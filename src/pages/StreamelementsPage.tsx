@@ -5,7 +5,7 @@ import type { DonationTrigger } from '../config/siteConfig'
 import SubPage from '../components/SubPage/SubPage'
 
 export default function StreamelementsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { triggers, donationUrl } = siteConfig.streamelements
   const [activeTrigger, setActiveTrigger] = useState<DonationTrigger | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -65,7 +65,20 @@ export default function StreamelementsPage() {
               <audio ref={audioRef} controls preload="none" src={activeTrigger.audio} />
             )}
             <div className="donation-modal-buttons">
-              <button className="btn btn-primary" onClick={closeModal}>
+              {activeTrigger.amountValue != null && (
+                <a
+                  className="btn btn-primary"
+                  href={`${donationUrl}?amount=${activeTrigger.amountValue}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={closeModal}
+                >
+                  {t('streamelementsPage.donateSpecific', {
+                    amount: activeTrigger.amountValue.toLocaleString(i18n.language),
+                  })}
+                </a>
+              )}
+              <button className="btn btn-secondary" onClick={closeModal}>
                 {t('streamelementsPage.close')}
               </button>
             </div>
