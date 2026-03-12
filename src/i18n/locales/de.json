@@ -20,7 +20,11 @@
     "partners": "Partner"
   },
   "live": {
-    "title": "Live",
+    "title": "🔴 Live",
+    "offlineTitle": "Aktuell offline",
+    "nextStream": "Nächster Stream",
+    "scheduleLoading": "Lade Streamplan…",
+    "seeSchedule": "Zum Streamplan →",
     "chatFallback": "Chat im neuen Tab öffnen"
   },
   "links": {

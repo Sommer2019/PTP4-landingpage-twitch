@@ -30,6 +30,8 @@ export interface ProfileConfig {
 export interface TwitchConfig {
   channel: string
   chatFallbackUrl: string
+  /** ICS calendar URL used to show the next scheduled stream when offline */
+  icsUrl: string
 }
 
 export interface FooterLink {
@@ -89,6 +91,7 @@ const siteConfig: SiteConfig = {
   twitch: {
     channel: 'hd1920x1080',
     chatFallbackUrl: 'https://www.twitch.tv/hd1920x1080/chat',
+    icsUrl: '/api/calendar.ics',
   },
 
   // ── Impressum ──
