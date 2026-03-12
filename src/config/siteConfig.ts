@@ -290,6 +290,7 @@ const siteConfig: SiteConfig = {
   footerLinks: [
     { labelKey: 'footer.impressum', url: '/impressum' },
     { labelKey: 'footer.datenschutz', url: '/datenschutz' },
+    { labelKey: 'footer.moderate', url: '/moderate/voting' },
   ],
   copyrightHolder: 'FullHD Media',
 }
