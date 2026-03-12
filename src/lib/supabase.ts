@@ -7,5 +7,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('[supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set – Supabase disabled.')
 }
 
-export const supabase = createClient(supabaseUrl ?? '', supabaseAnonKey ?? '')
+// Fallback to avoid crash if env vars missing
+const validUrl = supabaseUrl || 'https://placeholder.supabase.co'
+const validKey = supabaseAnonKey || 'placeholder'
 
+export const supabase = createClient(validUrl, validKey)

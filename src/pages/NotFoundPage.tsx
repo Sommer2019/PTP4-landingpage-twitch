@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import './NotFoundPage.css'
@@ -22,7 +22,8 @@ const CONFUSED_MESSAGES_EN = [
 export default function NotFoundPage() {
   const { t, i18n } = useTranslation()
   const messages = i18n.language?.startsWith('de') ? CONFUSED_MESSAGES_DE : CONFUSED_MESSAGES_EN
-  const [msgIndex, setMsgIndex] = useState(0)
+  // Initialize with a random index, lazy init avoids useEffect
+  const [msgIndex, setMsgIndex] = useState(() => Math.floor(Math.random() * messages.length))
   const [spin, setSpin] = useState(false)
 
   // Rotate through messages on click
@@ -32,10 +33,6 @@ export default function NotFoundPage() {
     setTimeout(() => setSpin(false), 600)
   }
 
-  // Random start message
-  useEffect(() => {
-    setMsgIndex(Math.floor(Math.random() * messages.length))
-  }, [messages.length])
 
   return (
     <main className="not-found">

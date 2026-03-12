@@ -108,13 +108,28 @@
   "streamplanPage": {
     "title": "Stream Schedule",
     "intro": "Here you can find the current stream schedule of HD1920x1080. Stay up to date on upcoming live streams and events!",
-    "calendarTitle": "Stream Calendar"
+    "calendarTitle": "Stream Calendar",
+    "filter": "Filter",
+    "all": "All",
+    "showMore": "Show {{count}} more events",
+    "showLess": "Show less"
+  },
+  "streamplan": {
+    "categories": {
+      "gog": "GOG - Good Old Games",
+      "justchatting": "Just Chatting / Reaction",
+      "grind": "Grindgames",
+      "special": "Special Event",
+      "multiplayer": "Multi-player Time",
+      "action": "Action Games"
+    }
   },
   "streamelementsPage": {
     "title": "Donations",
     "intro": "Here you can find all donation triggers and prices. Click on a trigger for details!",
     "donateButton": "Donate now",
-    "close": "Close"
+    "close": "Close",
+    "donateSpecific": "Donate ({{amount}} €)"
   },
   "donations": {
     "taschengeld": { "desc": "Pocket Money", "text": "Donation sound plays (Thanks from the kids) 🎉" },

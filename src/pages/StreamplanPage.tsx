@@ -1,27 +1,226 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import siteConfig from '../config/siteConfig'
 import SubPage from '../components/SubPage/SubPage'
+import ICAL from 'ical.js'
+import { format, isSameDay, startOfDay, addDays } from 'date-fns'
+import { de, enUS } from 'date-fns/locale' // Import locales
+import './StreamplanPage.css'
+
+interface CalendarEvent {
+  id: string // Unique ID (uid + category)
+  title: string
+  description?: string
+  startDate: Date
+  endDate: Date
+  location?: string
+  categoryId: string
+  color: string
+}
 
 export default function StreamplanPage() {
-  const { t } = useTranslation()
-  const { calendarUrl, calendarEmbedUrl } = siteConfig.streamplan
+  const { t, i18n } = useTranslation()
+  const { categories } = siteConfig.streamplan
+
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeFilters, setActiveFilters] = useState<string[]>([]) // Empty = All
+  const [expanded, setExpanded] = useState(false)
+
+  // Date-fns locale
+  const dateLocale = i18n.language === 'de' ? de : enUS
+
+  useEffect(() => {
+    async function fetchCalendars() {
+      setLoading(true)
+      const allEvents: CalendarEvent[] = []
+
+      // Fetch all category ICS files in parallel
+      const promises = categories.map(async (cat) => {
+        try {
+          // Use local proxy/asset path defined in vite.config.ts (to avoid CORS)
+          // The vite plugin maps these to external URLs or serves built assets.
+          const localUrl = `/api/calendar-${cat.id}.ics`
+          
+          const response = await fetch(localUrl)
+          if (!response.ok) {
+            console.error(`Error fetching ICS for category ${cat.id}: Network response was not ok`)
+            return
+          }
+          const icsData = await response.text()
+
+          const jcalData = ICAL.parse(icsData)
+          const comp = new ICAL.Component(jcalData)
+          const vevents = comp.getAllSubcomponents('vevent')
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          vevents.forEach((vevent: any) => {
+            const event = new ICAL.Event(vevent)
+            
+            // Handle dates. event.startDate is an ICAL.Time object
+            const startDate = event.startDate.toJSDate()
+            const endDate = event.endDate.toJSDate()
+
+            allEvents.push({
+              id: `${event.uid}-${cat.id}`,
+              title: event.summary,
+              description: event.description,
+              startDate,
+              endDate,
+              location: event.location,
+              categoryId: cat.id,
+              color: cat.color,
+            })
+          })
+        } catch (error) {
+          console.error(`Error fetching/parsing ICS for category ${cat.id}:`, error)
+        }
+      })
+
+      await Promise.all(promises)
+
+      // Sort by start date
+      allEvents.sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
+      
+      // Filter out old events (older than yesterday maybe?)
+      const todayStart = startOfDay(new Date())
+      const upcomingEvents = allEvents.filter(e => e.endDate >= todayStart)
+
+      setEvents(upcomingEvents)
+      setLoading(false)
+    }
+
+    fetchCalendars()
+  }, [categories]) // Empty dependency array is fine as categories from config are constant
+
+  const toggleFilter = (catId: string, event: React.MouseEvent<HTMLButtonElement>) => {
+    // Wenn Shift gedrückt ist und aktuell "Alle" (leeres Array) aktiv sind:
+    // Wähle ALLE Kategorien aus, außer der angeklickten.
+    if (event.shiftKey && activeFilters.length === 0) {
+      const allIds = categories.map((c) => c.id)
+      setActiveFilters(allIds.filter((id) => id !== catId))
+      return
+    }
+
+    setActiveFilters((prev) => {
+      let nextFilters: string[]
+      if (prev.includes(catId)) {
+        nextFilters = prev.filter(id => id !== catId)
+      } else {
+        nextFilters = [...prev, catId]
+      }
+
+      // Wenn alle Kategorien ausgewählt wären, reset auf "Alle" (leeres Array)
+      if (nextFilters.length === categories.length) {
+        return []
+      }
+
+      return nextFilters
+    })
+  }
+
+  // Filter events based on active filters
+  const filteredEvents = activeFilters.length === 0
+    ? events
+    : events.filter(e => activeFilters.includes(e.categoryId))
+
+  // Limit to 14 days if not expanded
+  const today = new Date()
+  const limitDate = addDays(today, 14)
+  
+  const eventsIn14Days = filteredEvents.filter(e => e.startDate <= limitDate)
+  const showExpandButton = filteredEvents.length > eventsIn14Days.length
+
+  const displayedEvents = expanded ? filteredEvents : eventsIn14Days
+
+  // Group events by day
+  const groupedEvents: { date: Date; events: CalendarEvent[] }[] = []
+  
+  displayedEvents.forEach(event => {
+    const lastGroup = groupedEvents[groupedEvents.length - 1]
+    if (lastGroup && isSameDay(lastGroup.date, event.startDate)) {
+      lastGroup.events.push(event)
+    } else {
+      groupedEvents.push({ date: event.startDate, events: [event] })
+    }
+  })
 
   return (
     <SubPage>
       <h1>{t('streamplanPage.title')}</h1>
       <p>{t('streamplanPage.intro')}</p>
 
-      <a href={calendarUrl} target="_blank" rel="noopener noreferrer">
-        <div className="embed-title">{t('streamplanPage.calendarTitle')}</div>
-      </a>
-      <div className="subpage-embed">
-        <iframe
-          src={calendarEmbedUrl}
-          title={t('streamplanPage.calendarTitle')}
-          allowFullScreen
-        />
+      {/* Filter UI */}
+      <div className="streamplan-filters">
+        <div className="filter-label">{t('streamplanPage.filter')}:</div>
+        <button
+          className={`filter-btn ${activeFilters.length === 0 ? 'active' : ''}`}
+          onClick={() => setActiveFilters([])}
+        >
+          {t('streamplanPage.all')}
+        </button>
+        {categories.map(cat => (
+          <button
+            key={cat.id}
+            className={`filter-btn ${activeFilters.includes(cat.id) ? 'active' : ''}`}
+            style={{ 
+              borderColor: cat.color,
+              backgroundColor: activeFilters.includes(cat.id) ? cat.color : 'transparent',
+              color: activeFilters.includes(cat.id) ? '#fff' : 'inherit'
+            }}
+            onClick={(e) => toggleFilter(cat.id, e)}
+          >
+            {t(cat.labelKey)}
+          </button>
+        ))}
+      </div>
+
+      {loading && <div className="loading-spinner">{t('auth.loading')}</div>}
+
+      <div className="streamplan-list">
+        {groupedEvents.map((group, index) => (
+          <div key={index} className="day-group">
+            <h3 className="day-header">
+              {format(group.date, 'EEEE, d. MMMM', { locale: dateLocale })}
+            </h3>
+            <div className="events-grid">
+              {group.events.map(event => (
+                <div 
+                  key={event.id} 
+                  className="event-card"
+                  style={{ borderLeftColor: event.color }}
+                >
+                  <div className="event-time">
+                    {format(event.startDate, 'HH:mm')} – {format(event.endDate, 'HH:mm')}
+                  </div>
+                  <div className="event-details">
+                    <div className="event-title">{event.title}</div>
+                    {event.description && <div className="event-desc">{event.description}</div>}
+                    <div className="event-category-badge" style={{ backgroundColor: event.color }}>
+                      {t(categories.find(c => c.id === event.categoryId)?.labelKey || '')}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {!loading && groupedEvents.length === 0 && (
+          <div className="no-events">Keine Termine gefunden.</div>
+        )}
+
+        {showExpandButton && (
+          <div className="streamplan-expand-container" style={{ marginTop: '20px', textAlign: 'center' }}>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? t('streamplanPage.showLess') : t('streamplanPage.showMore', { count: filteredEvents.length - eventsIn14Days.length })}
+            </button>
+          </div>
+        )}
       </div>
     </SubPage>
   )
 }
-
