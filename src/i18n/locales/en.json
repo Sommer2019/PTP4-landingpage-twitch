@@ -63,7 +63,7 @@
   "partners": {
     "yvolve": { "title": "Yvolve", "desc": "10% off your entire order" },
     "nclip": { "title": "NClip" },
-    "frugends": { "title": "Frugends" }
+    "frugends": { "title": "Frugends", "desc": "10% off with code FullHD" }
   },
   "footer": {
     "impressum": "Imprint",

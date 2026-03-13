@@ -63,7 +63,7 @@
   "partners": {
     "yvolve": { "title": "Yvolve", "desc": "10% Rabatt auf die gesamte Bestellung" },
     "nclip": { "title": "NClip" },
-    "frugends": { "title": "Frugends" }
+    "frugends": { "title": "Frugends", "desc": "10% Rabatt mit Code FullHD" }
   },
   "footer": {
     "impressum": "Impressum",
