@@ -663,9 +663,9 @@ BEGIN
     bs.total_ever,
     bs.rebirth_count,
     bs.last_updated,
-    COALESCE(u.raw_user_meta_data->>'user_login', u.email)::text as display_name
+    COALESCE(p.username, 'Player ' || ROW_NUMBER() OVER (ORDER BY bs.total_ever DESC, bs.rebirth_count DESC)::text)::text as display_name
   FROM bartclicker_scores bs
-  LEFT JOIN auth.users u ON u.id = bs.user_id
+  LEFT JOIN profiles p ON p.id = bs.user_id
   WHERE bs.total_ever > 0 OR bs.rebirth_count > 0
   ORDER BY bs.total_ever DESC, bs.rebirth_count DESC
   LIMIT p_limit;
