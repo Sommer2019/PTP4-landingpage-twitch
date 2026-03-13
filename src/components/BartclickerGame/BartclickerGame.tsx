@@ -81,7 +81,7 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
       {/* Header Stats */}
       <div className="bartclicker-header">
         <div className="stat-box">
-          <h2 className="stat-value">{formatNumber(gameState.energy)}</h2>
+          <h3 className="stat-value">{formatNumber(gameState.energy)}</h3>
           <p className="stat-label">{t('bartclicker.stats.beards')}</p>
         </div>
 
