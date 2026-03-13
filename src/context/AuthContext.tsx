@@ -3,6 +3,8 @@ import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { AuthContext } from './authContextDef'
 
+const REDIRECT_PATH_KEY = 'auth-redirect-path'
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -28,7 +30,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Navigiere zum gespeicherten Pfad nach erfolgreicher Anmeldung
+  useEffect(() => {
+    if (user && session) {
+      const savedPath = sessionStorage.getItem(REDIRECT_PATH_KEY)
+      if (savedPath) {
+        sessionStorage.removeItem(REDIRECT_PATH_KEY)
+        window.location.href = savedPath
+      }
+    }
+  }, [user, session])
+
   const signInWithTwitch = useCallback(async () => {
+    // Speichere den aktuellen Pfad vor der Anmeldung
+    sessionStorage.setItem(REDIRECT_PATH_KEY, window.location.pathname + window.location.search)
+    
     await supabase.auth.signInWithOAuth({
       provider: 'twitch',
       options: {
