@@ -834,6 +834,8 @@
 
   .click-area {
     min-height: 60px;
+    align-items: flex-start;
+    padding: 5px 0 0 0;
   }
 
   .click-button:hover:not(:disabled) .beard-svg {
