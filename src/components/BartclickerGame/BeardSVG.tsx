@@ -14,17 +14,21 @@ export function BeardSVG({ bartLength, clickCount = 0 }: BeardProps) {
   // Skalierung basierend auf Klicks - NUR für Bart, nicht für Kopf
   const clickScale = Math.min(1.5, 1 + clickCount * 0.01);
   
-  // SVG-Höhe: Base + Bartgröße, aber Breite bleibt konstant
-  const svgHeight = 800 + beardHeight * 0.9;
+  // viewBox Height dynamisch basierend auf Bartgröße
+  const viewBoxHeight = 350 + Math.max(0, beardHeight - 20) * 0.5;
+  
+  // SVG width/height mit korrektem Verhältnis zur viewBox
+  const svgWidth = 180;
+  const svgHeight = svgWidth * (viewBoxHeight / 100);
 
   return (
     <svg 
       id="avatar-svg" 
-      viewBox="0 0 100 350" 
+      viewBox={`0 0 100 ${viewBoxHeight}`}
       xmlns="http://www.w3.org/2000/svg"
       className="beard-svg"
       style={{ 
-        width: 180, 
+        width: svgWidth, 
         height: svgHeight,
         transition: 'all 0.2s ease'
       }}
