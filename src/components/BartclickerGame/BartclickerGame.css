@@ -604,7 +604,7 @@
 
 .leaderboard-item-header {
   display: grid;
-  grid-template-columns: 40px 1fr 70px 60px;
+  grid-template-columns: 30px 1fr 60px 60px;
   gap: 8px;
   padding: 8px;
   background: rgba(124, 77, 255, 0.15);
@@ -619,7 +619,7 @@
 
 .leaderboard-item {
   display: grid;
-  grid-template-columns: 40px 1fr 70px 60px;
+  grid-template-columns: 30px 1fr 60px 60px;
   gap: 8px;
   padding: 10px 8px;
   background: rgba(50, 50, 70, 0.5);
@@ -878,9 +878,17 @@
   }
 
   .leaderboard-item {
-    grid-template-columns: 40px 1fr 80px 60px;
-    gap: 8px;
-    font-size: 0.85rem;
+    grid-template-columns: 30px 1fr 50px 50px;
+    gap: 6px;
+    font-size: 0.8rem;
+    padding: 8px 6px;
+  }
+
+  .leaderboard-item-header {
+    grid-template-columns: 30px 1fr 50px 50px;
+    gap: 6px;
+    font-size: 0.7rem;
+    padding: 6px;
   }
 
   .item-list {
