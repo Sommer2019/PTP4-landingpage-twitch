@@ -1,0 +1,404 @@
+.bartclicker-game {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.bartclicker-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #7c4dff;
+  font-size: 1.2rem;
+}
+
+/* Header Stats */
+.bartclicker-header {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.stat-box {
+  background: rgba(124, 77, 255, 0.1);
+  border: 1px solid #7c4dff;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #ffd700;
+  margin: 0 0 5px 0;
+}
+
+.stat-cps,
+.stat-rebirth {
+  font-size: 1.2rem;
+  color: #7c4dff;
+  margin: 0;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #b0b0b0;
+  margin: 5px 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Click Area */
+.click-area {
+  display: flex;
+  justify-content: center;
+  padding: 30px 0;
+}
+
+.click-button {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #9c27b0, #7c4dff);
+  border: 3px solid #ffd700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+  box-shadow: 0 0 30px rgba(124, 77, 255, 0.5);
+  font-size: 0;
+  overflow: hidden;
+}
+
+.click-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 50px rgba(255, 215, 0, 0.7);
+}
+
+.click-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.click-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.click-button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.click-icon {
+  font-size: 3rem;
+}
+
+.click-power {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  background: transparent;
+  color: #b0b0b0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #7c4dff;
+}
+
+.tab-button.active {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+}
+
+/* Shop Content */
+.shop-content,
+.stats-content,
+.leaderboard-content {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.shop-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shop-content::-webkit-scrollbar-track {
+  background: rgba(124, 77, 255, 0.1);
+  border-radius: 10px;
+}
+
+.shop-content::-webkit-scrollbar-thumb {
+  background: #7c4dff;
+  border-radius: 10px;
+}
+
+.shop-section {
+  margin-bottom: 20px;
+}
+
+.shop-section h3 {
+  font-size: 1rem;
+  color: #7c4dff;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-item {
+  background: rgba(50, 50, 70, 0.5);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.shop-item:hover {
+  background: rgba(124, 77, 255, 0.15);
+  border-color: #7c4dff;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.item-icon {
+  font-size: 1.5rem;
+  min-width: 32px;
+  text-align: center;
+}
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-info h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-cps,
+.item-power {
+  font-size: 0.75rem;
+  color: #7c4dff;
+  margin: 3px 0 0 0;
+  font-weight: 600;
+}
+
+.item-count {
+  font-size: 0.9rem;
+  color: #ffd700;
+  font-weight: bold;
+  min-width: 30px;
+}
+
+.buy-button {
+  padding: 6px 12px;
+  background: #7c4dff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.buy-button:hover:not(:disabled) {
+  background: #9c27b0;
+  box-shadow: 0 0 10px rgba(124, 77, 255, 0.5);
+}
+
+.buy-button:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Rebirth Section */
+.rebirth-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(124, 77, 255, 0.15));
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.rebirth-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-weight: 900;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+
+.rebirth-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+.rebirth-info {
+  font-size: 0.9rem;
+  color: #b0b0b0;
+  margin: 0;
+}
+
+/* Stats Content */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #333;
+  font-size: 0.95rem;
+}
+
+.stat-row label {
+  color: #b0b0b0;
+}
+
+.stat-row span {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Leaderboard */
+.coming-soon {
+  text-align: center;
+  color: #7c4dff;
+  padding: 30px;
+  font-style: italic;
+}
+
+/* Compact Mode */
+.bartclicker-game.compact {
+  padding: 15px;
+  gap: 15px;
+}
+
+.bartclicker-game.compact .bartclicker-header {
+  grid-template-columns: 1fr;
+}
+
+.bartclicker-game.compact .click-button {
+  width: 140px;
+  height: 140px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bartclicker-game {
+    padding: 15px;
+  }
+
+  .bartclicker-header {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .click-button {
+    width: 150px;
+    height: 150px;
+  }
+
+  .click-icon {
+    font-size: 2.5rem;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .shop-content,
+  .stats-content,
+  .leaderboard-content {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bartclicker-game {
+    padding: 10px;
+    gap: 12px;
+  }
+
+  .bartclicker-header {
+    grid-template-columns: 1fr;
+  }
+
+  .click-button {
+    width: 130px;
+    height: 130px;
+  }
+
+  .click-icon {
+    font-size: 2rem;
+  }
+
+  .shop-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .item-header {
+    width: 100%;
+  }
+
+  .buy-button {
+    width: 100%;
+  }
+}
+
+

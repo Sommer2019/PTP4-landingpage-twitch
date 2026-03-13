@@ -563,3 +563,75 @@ BEGIN
 END;
 $$;
 
+-- ═════════════════════════════════════════════════════════
+--  Bartclicker Game – Scores & Progress
+-- ═════════════════════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS bartclicker_scores (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  energy numeric DEFAULT 0,
+  total_ever numeric DEFAULT 0,
+  rebirth_count integer DEFAULT 0,
+  rebirth_multiplier numeric DEFAULT 1,
+  shop_items jsonb DEFAULT '[]'::jsonb,
+  active_buffs jsonb DEFAULT '[]'::jsonb,
+  active_debuffs jsonb DEFAULT '[]'::jsonb,
+  relics jsonb DEFAULT '[]'::jsonb,
+  offline_earning_upgrades integer DEFAULT 0,
+  auto_click_buyer_enabled boolean DEFAULT false,
+  click_upgrade_buyer_enabled boolean DEFAULT false,
+  auto_click_buyer_items jsonb DEFAULT '[]'::jsonb,
+  click_upgrade_buyer_items jsonb DEFAULT '[]'::jsonb,
+  last_updated timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bartclicker_user_id ON bartclicker_scores(user_id);
+CREATE INDEX IF NOT EXISTS idx_bartclicker_total_ever ON bartclicker_scores(total_ever DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_bartclicker_user_unique ON bartclicker_scores(user_id);
+
+ALTER TABLE bartclicker_scores ENABLE ROW LEVEL SECURITY;
+
+-- Jeder kann Scores lesen (Leaderboard)
+CREATE POLICY "select_public" ON bartclicker_scores FOR SELECT USING (true);
+
+-- Nur Owner kann eigene Scores aktualisieren
+CREATE POLICY "update_self" ON bartclicker_scores FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Nur Owner kann eigene Scores einfügen
+CREATE POLICY "insert_self" ON bartclicker_scores FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Nur Moderatoren können löschen
+CREATE POLICY "delete_moderator" ON bartclicker_scores FOR DELETE
+  USING (is_moderator());
+
+-- ── Helper-Funktion: Leaderboard abrufen ──
+CREATE OR REPLACE FUNCTION get_bartclicker_leaderboard(p_limit integer DEFAULT 100)
+RETURNS TABLE (
+  rank bigint,
+  user_id uuid,
+  total_ever numeric,
+  rebirth_count integer,
+  last_updated timestamptz
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ROW_NUMBER() OVER (ORDER BY bs.total_ever DESC, bs.rebirth_count DESC) as rank,
+    bs.user_id,
+    bs.total_ever,
+    bs.rebirth_count,
+    bs.last_updated
+  FROM bartclicker_scores bs
+  WHERE bs.total_ever > 0 OR bs.rebirth_count > 0
+  ORDER BY bs.total_ever DESC, bs.rebirth_count DESC
+  LIMIT p_limit;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+GRANT SELECT ON bartclicker_scores TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_bartclicker_leaderboard(integer) TO anon, authenticated;
