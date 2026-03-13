@@ -11,27 +11,28 @@ export function BeardSVG({ bartLength, clickCount = 0 }: BeardProps) {
   // Dynamische Bart-Höhe: von Basis bis zu extremem Wachstum
   const beardHeight = Math.min(200, 20 + bartGrowth * 150);
   
-  // Skalierung basierend auf Klicks
+  // Skalierung basierend auf Klicks - NUR für Bart, nicht für Kopf
   const clickScale = Math.min(1.5, 1 + clickCount * 0.01);
-  const svgWidth = 120 * clickScale;
-  const svgHeight = 240 * clickScale;
+  
+  // SVG-Höhe: Base + Bartgröße, aber Breite bleibt konstant
+  const svgHeight = 280 + beardHeight * 0.5;
 
   return (
     <svg 
       id="avatar-svg" 
-      viewBox="0 0 100 200" 
+      viewBox="0 0 100 300" 
       xmlns="http://www.w3.org/2000/svg"
       className="beard-svg"
       style={{ 
-        width: svgWidth, 
+        width: 150, 
         height: svgHeight,
         transition: 'all 0.2s ease'
       }}
     >
-      {/* Kopf */}
+      {/* Kopf - BLEIBT GLEICH GROSS */}
       <rect x="30" y="30" width="40" height="35" rx="6" fill="#d4a373"/>
 
-      {/* CAP (SNAPBACK) */}
+      {/* CAP (SNAPBACK) - BLEIBT GLEICH GROSS */}
       <g id="cap">
         {/* Schirm */}
         <rect x="25" y="32" width="50" height="5" rx="2" fill="#7C4DFF"/>
@@ -48,19 +49,27 @@ export function BeardSVG({ bartLength, clickCount = 0 }: BeardProps) {
         </g>
       </g>
 
-      {/* Brille */}
+      {/* Brille - BLEIBT GLEICH GROSS */}
       <g stroke="#111" strokeWidth="1.2" fill="none">
         <rect x="34" y="42" width="10" height="7" rx="1"/>
         <rect x="56" y="42" width="10" height="7" rx="1"/>
         <path d="M44 46 h12"/>
       </g>
 
-      {/* Augen */}
+      {/* Augen - BLEIBEN GLEICH GROSS */}
       <circle cx="39" cy="45" r="1" fill="#000"/>
       <circle cx="61" cy="45" r="1" fill="#000"/>
 
-      {/* DYNAMISCHER BART */}
-      <g id="beard-group" style={{ transition: 'all 0.2s ease' }}>
+      {/* DYNAMISCHER BART - WIRD MIT KLICKS SKALIERT */}
+      <g 
+        id="beard-group" 
+        style={{ 
+          transition: 'all 0.2s ease',
+          transform: `scale(${clickScale})`,
+          transformOrigin: '50px 60px',
+          transformBox: 'fill-box'
+        }}
+      >
         {/* Basis-Beard (dynamisch wachsend) */}
         <path 
           id="beard-path" 

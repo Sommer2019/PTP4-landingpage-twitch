@@ -62,7 +62,9 @@
 .click-area {
   display: flex;
   justify-content: center;
-  padding: 30px 0;
+  padding: 20px 0;
+  min-height: 350px;
+  align-items: center;
 }
 
 .click-button {
@@ -86,6 +88,7 @@
   width: 220px;
   height: 280px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  flex-shrink: 0;
 }
 
 .click-button:hover:not(:disabled) .beard-svg {
