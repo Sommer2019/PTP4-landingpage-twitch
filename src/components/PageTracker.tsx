@@ -7,9 +7,15 @@ const SESSION_KEY = 'pv-session-id'
 
 /** UUID v4 Fallback für Browser ohne crypto.randomUUID-Support. */
 function generateUUID(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
+  try {
+    // Versuche native crypto.randomUUID zu verwenden
+    if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
+      return globalThis.crypto.randomUUID()
+    }
+  } catch {
+    // Fallback bei Fehler
   }
+  
   // Fallback: manuelles UUID v4
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
