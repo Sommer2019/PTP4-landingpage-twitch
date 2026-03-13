@@ -119,7 +119,17 @@ export default function ModerateVotingPage() {
     try {
       let twitchId = name
       let displayName = name
-      if (providerToken && TWITCH_CLIENT_ID && !/^\d+$/.test(name)) {
+      if (!/^\d+$/.test(name)) {
+        if (!providerToken) {
+          showToast('❌ Bitte Twitch-User-ID (Zahl) eingeben oder zuerst mit Twitch einloggen')
+          setBusy(false)
+          return
+        }
+        if (!TWITCH_CLIENT_ID) {
+          showToast('❌ VITE_TWITCH_CLIENT_ID nicht gesetzt')
+          setBusy(false)
+          return
+        }
         const twitchUser = await lookupTwitchUser(providerToken, name)
         if (!twitchUser) { showToast(`❌ Twitch-User „${name}" nicht gefunden`); setBusy(false); return }
         twitchId = twitchUser.id
