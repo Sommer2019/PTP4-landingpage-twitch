@@ -8,8 +8,13 @@ export function BeardSVG({ bartLength, clickCount = 0 }: BeardProps) {
   // Normalisiere bartLength auf eine Prozentquote (50-100 → 0-1)
   const bartGrowth = (bartLength - 50) / 50; // 0 bis 1
   
-  // Dynamische Bart-Höhe: von Basis bis zu extremem Wachstum
-  const beardHeight = Math.min(200, 20 + bartGrowth * 150);
+  // Dynamische Bart-Höhe: 
+  // - Basis: 20px
+  // - Rebirths: +250px max
+  // - Klicks: +0.5px pro Klick, max 200px
+  const rebirthHeight = bartGrowth * 250;
+  const clickHeight = Math.min(200, clickCount * 0.5);
+  const beardHeight = 20 + rebirthHeight + clickHeight;
   
   // Skalierung basierend auf Klicks - NUR für Bart, nicht für Kopf
   const clickScale = Math.min(1.5, 1 + clickCount * 0.01);
