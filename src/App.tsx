@@ -1,4 +1,4 @@
-import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
+import {BrowserRouter, Routes, Route, Navigate, useLocation} from 'react-router-dom'
 import {useLayoutEffect} from 'react'
 import SettingsBar from './components/SettingsBar'
 import CookieBanner from './components/CookieBanner/CookieBanner'
@@ -30,6 +30,29 @@ const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
 }
 const {channel} = siteConfig.twitch
 const {links: [instagram, youtube, discord, tiktok]} = siteConfig
+const externalRedirects: Record<string, string> = {
+    "/insta": instagram.url,
+    "/instagram": instagram.url,
+    "/yt": youtube.url,
+    "/youtube": youtube.url,
+    "/dc": discord.url,
+    "/discord": discord.url,
+    "/tiktok": tiktok.url,
+    "/twitch": `https://www.twitch.tv/${channel}`,
+};
+
+const ExternalRedirectHandler = () => {
+    const { pathname } = useLocation();
+
+    useLayoutEffect(() => {
+        const target = externalRedirects[pathname];
+        if (target) {
+            window.location.href = target;
+        }
+    }, [pathname]);
+
+    return null;
+};
 
 function App() {
     return (
@@ -68,23 +91,18 @@ function App() {
                 <Route path="/cdm" element={<Navigate to="/clipdesmonats" replace/>}/>
 
                 {/* ── Externe Links → Redirect ── */}
-                <Route path="/twitch" element={<RedirectToHtml to={`https://www.twitch.tv/${channel}`}/>}/>
-                <Route path="/insta" element={<RedirectToHtml to={`${instagram.url}`}/>}/>
-                <Route path="/instagram" element={<RedirectToHtml to={`${instagram.url}`}/>}/>
-                <Route path="/yt" element={<RedirectToHtml to={`${youtube.url}`}/>}/>
-                <Route path="/youtube" element={<RedirectToHtml to={`${youtube.url}`}/>}/>
-                <Route path="/dc" element={<RedirectToHtml to={`${discord.url}`}/>}/>
-                <Route path="/discord" element={<RedirectToHtml to={`${discord.url}`}/>}/>
-                <Route path="/tiktok" element={<RedirectToHtml to={`${tiktok.url}`}/>}/>
+                {Object.keys(externalRedirects).map((path) => (
+                    <Route key={path} path={path} element={<ExternalRedirectHandler />} />
+                ))}
 
-
-                {/* Custom Wünsche */}
+                {/* ── Legacy "OnlyBart"-Seiten → Redirect zu statischen HTML-Seiten ── */}
                 <Route path="/onlybart" element={<RedirectToHtml to="/ob.html"/>}/>
                 <Route path="/onlybart/media" element={<RedirectToHtml to="/ob/media.html"/>}/>
                 <Route path="/onlybart/photos" element={<RedirectToHtml to="/ob/photos.html"/>}/>
                 <Route path="/onlybart/posts" element={<RedirectToHtml to="/ob/posts.html"/>}/>
                 <Route path="/onlybart/videos" element={<RedirectToHtml to="/ob/videos.html"/>}/>
 
+                {/* Custom Wünsche */}
                 <Route path="/rp" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/ressourcepack" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/tanggle" element={<RedirectToHtml to="http://tng.gl/c/hd1920x1080"/>}/>
