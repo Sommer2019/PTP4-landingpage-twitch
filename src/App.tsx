@@ -102,7 +102,7 @@ function App() {
                 <Route path="/onlybart/posts" element={<RedirectToHtml to="/ob/posts.html"/>}/>
                 <Route path="/onlybart/videos" element={<RedirectToHtml to="/ob/videos.html"/>}/>
 
-                {/* Custom Wünsche */}
+                {/* ── Custom Wünsche ── */}
                 <Route path="/rp" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/ressourcepack" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/tanggle" element={<RedirectToHtml to="http://tng.gl/c/hd1920x1080"/>}/>
