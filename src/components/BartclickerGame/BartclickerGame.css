@@ -815,6 +815,10 @@
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     }
 
+    .tabs {
+        position: static;
+    }
+
     .shop-subtabs {
         display: flex;
         gap: 4px;
@@ -884,6 +888,7 @@
 
     .tabs {
         gap: 4px;
+        position: static;
     }
 
     .tab-button {
