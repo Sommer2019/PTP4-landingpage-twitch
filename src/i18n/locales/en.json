@@ -308,6 +308,8 @@
     "manualAddHintWithToken": "Enter a Twitch username — the ID will be resolved automatically.",
     "manualAddHintNoToken": "Without an active sync login you can only enter numeric Twitch user IDs.",
     "addBtn": "Add",
+    "cannotRemoveSelf": "You cannot remove yourself.",
+    "cannotRemoveBroadcaster": "The broadcaster cannot be removed.",
     "statisticsTitle": "Statistics",
     "statisticsComingSoon": "The statistics dashboard is being prepared… 📊",
     "statisticsDescription": "Overview of voting, traffic, and round data for moderation.",

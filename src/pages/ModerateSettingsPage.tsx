@@ -59,7 +59,7 @@ async function lookupTwitchUser(providerToken: string, login: string): Promise<T
   return res.data[0] ?? null
 }
 
-interface ModRow { twitch_user_id: string; display_name: string | null }
+interface ModRow { twitch_user_id: string; display_name: string | null; is_broadcaster: boolean }
 
 /* ═════════════════════════════════════════════════════════ */
 
@@ -78,7 +78,7 @@ export default function ModerateVotingPage() {
   useEffect(() => {
     (async () => {
       const [modsRes] = await Promise.all([
-        supabase.from('moderators').select('twitch_user_id, display_name').order('display_name'),
+        supabase.from('moderators').select('twitch_user_id, display_name, is_broadcaster').order('display_name'),
       ])
       setMods((modsRes.data ?? []) as ModRow[])
     })()
@@ -175,13 +175,18 @@ export default function ModerateVotingPage() {
     setBusy(true)
     const { data, error } = await supabase.rpc('remove_moderator', { p_twitch_user_id: twitchUserId })
     const result = data as { error?: string } | null
-    if (error || result?.error) showToast(`❌ ${error?.message ?? result?.error}`)
-    else showToast('✅ Entfernt')
+    if (error || result?.error) {
+      const errKey = result?.error
+      if (errKey === 'cannot_remove_self') showToast(`❌ ${t('moderate.cannotRemoveSelf')}`)
+      else if (errKey === 'cannot_remove_broadcaster') showToast(`❌ ${t('moderate.cannotRemoveBroadcaster')}`)
+      else showToast(`❌ ${error?.message ?? errKey}`)
+    } else showToast('✅ Entfernt')
     setRefreshKey((k) => k + 1)
     setBusy(false)
   }
 
   const userName = user?.user_metadata?.full_name ?? user?.email ?? ''
+  const myTwitchId: string = user?.user_metadata?.sub ?? user?.user_metadata?.provider_id ?? ''
 
   return (
     <SubPage>
@@ -255,9 +260,15 @@ export default function ModerateVotingPage() {
                   <td style={{ padding: '8px 6px' }}>{m.display_name ?? '—'}</td>
                   <td style={{ padding: '8px 6px', opacity: 0.6 }}>{m.twitch_user_id}</td>
                   <td style={{ padding: '8px 6px' }}>
-                    <button className="btn btn-secondary" disabled={busy}
-                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                      onClick={() => removeMod(m.twitch_user_id)}>✕</button>
+                    {m.is_broadcaster || m.twitch_user_id === myTwitchId ? (
+                      <span style={{ opacity: 0.4, fontSize: '0.78rem' }}>
+                        {m.is_broadcaster ? '🎙️' : '👤'}
+                      </span>
+                    ) : (
+                      <button className="btn btn-secondary" disabled={busy}
+                        style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                        onClick={() => removeMod(m.twitch_user_id)}>✕</button>
+                    )}
                   </td>
                 </tr>
               ))}
