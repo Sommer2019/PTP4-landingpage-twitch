@@ -307,6 +307,8 @@
     "manualAddHintWithToken": "Gib einen Twitch-Username ein – die ID wird automatisch aufgelöst.",
     "manualAddHintNoToken": "Ohne aktiven Sync-Login kannst du nur numerische Twitch-User-IDs eingeben.",
     "addBtn": "Hinzufügen",
+    "cannotRemoveSelf": "Du kannst dich nicht selbst entfernen.",
+    "cannotRemoveBroadcaster": "Der Broadcaster kann nicht entfernt werden.",
     "statisticsTitle": "Statistiken",
     "statisticsComingSoon": "Das Statistik-Dashboard wird vorbereitet… 📊",
     "statisticsDescription": "Überblick über Voting-, Traffic- und Runden-Daten für die Moderation.",

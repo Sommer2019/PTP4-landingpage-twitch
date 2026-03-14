@@ -174,8 +174,12 @@ CREATE TABLE IF NOT EXISTS moderators (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   twitch_user_id  text UNIQUE NOT NULL,
   display_name    text,
+  is_broadcaster  boolean NOT NULL DEFAULT false,
   created_at      timestamptz NOT NULL DEFAULT now()
 );
+
+-- Add is_broadcaster column to existing installs (backward-compatible migration; safe to re-run)
+ALTER TABLE moderators ADD COLUMN IF NOT EXISTS is_broadcaster boolean NOT NULL DEFAULT false;
 
 ALTER TABLE moderators ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "select" ON moderators FOR SELECT USING (true);
@@ -243,12 +247,12 @@ BEGIN
   END IF;
 
   -- Alle bisherigen Einträge entfernen und neu befüllen
-  DELETE FROM moderators;
+  DELETE FROM moderators WHERE true;
 
-  INSERT INTO moderators (twitch_user_id, display_name)
-  SELECT (m->>'user_id')::text, (m->>'user_name')::text
+  INSERT INTO moderators (twitch_user_id, display_name, is_broadcaster)
+  SELECT (m->>'user_id')::text, (m->>'user_name')::text, (m->>'user_id')::text = v_broadcaster_id
   FROM jsonb_array_elements(p_mods) AS m
-  ON CONFLICT (twitch_user_id) DO UPDATE SET display_name = EXCLUDED.display_name;
+  ON CONFLICT (twitch_user_id) DO UPDATE SET display_name = EXCLUDED.display_name, is_broadcaster = EXCLUDED.is_broadcaster;
 
   SELECT count(*) INTO v_count FROM moderators;
   RETURN jsonb_build_object(
@@ -506,6 +510,11 @@ BEGIN
   -- Sich selbst entfernen verhindern
   IF p_twitch_user_id = v_caller_twitch_id THEN
     RETURN jsonb_build_object('error', 'cannot_remove_self');
+  END IF;
+
+  -- Broadcaster entfernen verhindern
+  IF EXISTS(SELECT 1 FROM moderators WHERE twitch_user_id = p_twitch_user_id AND is_broadcaster = true) THEN
+    RETURN jsonb_build_object('error', 'cannot_remove_broadcaster');
   END IF;
 
   DELETE FROM moderators WHERE twitch_user_id = p_twitch_user_id;
