@@ -19,6 +19,7 @@ import ModerateStatisticsPage from './pages/ModerateStatisticsPage'
 import ModerateSettingsPage from './pages/ModerateSettingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import './App.css'
+import siteConfig from "./config/siteConfig.ts";
 
 // Komponente für echte Browser-Redirects zu statischen HTML-Dateien
 const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
@@ -27,6 +28,8 @@ const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
     }, [to])
     return null
 }
+const {channel} = siteConfig.twitch
+const {links: [instagram, youtube, discord, tiktok]} = siteConfig
 
 function App() {
     return (
@@ -55,6 +58,8 @@ function App() {
                 <Route path="/moderate/voting" element={<ModeratorRoute><ModerateVotingPage/></ModeratorRoute>}/>
                 <Route path="/moderate/statistics"
                        element={<ModeratorRoute><ModerateStatisticsPage/></ModeratorRoute>}/>
+                <Route path="/moderate/twitch"
+                       element={<Navigate to={`https://www.twitch.tv/moderator/${channel}`} replace/>}/>
                 <Route path="/moderate/settings"
                        element={<BroadcasterRoute><ModerateSettingsPage/></BroadcasterRoute>}/>
 
@@ -67,14 +72,13 @@ function App() {
                 <Route path="/cdm" element={<Navigate to="/clipdesmonats" replace/>}/>
 
                 {/* ── Externe Links → Redirect ── */}
-                <Route path="/twitch" element={<Navigate to="https://www.twitch.tv/hd1920x1080" replace/>}/>
-                <Route path="/insta" element={<Navigate to="https://www.instagram.com/hd1920x1080/" replace/>}/>
-                <Route path="/instagram" element={<Navigate to="https://www.instagram.com/hd1920x1080/" replace/>}/>
-                <Route path="/yt" element={<Navigate to="https://youtube.com/@hawedereplus" replace/>}/>
-                <Route path="/youtube" element={<Navigate to="https://youtube.com/@hawedereplus" replace/>}/>
-                <Route path="/dc" element={<Navigate to="https://discord.gg/Zp5KNqCHzc" replace/>}/>
-                <Route path="/discord" element={<Navigate to="https://discord.gg/Zp5KNqCHzc" replace/>}/>
-                <Route path="/tiktok" element={<Navigate to="https://tiktok.com/@hd1920x1080" replace/>}/>
+                <Route path="/twitch" element={<Navigate to={`https://www.twitch.tv/${channel}`} replace/>}/>                <Route path="/insta" element={<Navigate to="https://www.instagram.com/hd1920x1080/" replace/>}/>
+                <Route path="/instagram" element={<Navigate to={`${instagram.url}`} replace/>}/>
+                <Route path="/yt" element={<Navigate to={`${youtube.url}`} replace/>}/>
+                <Route path="/youtube" element={<Navigate to={`${youtube.url}`} replace/>}/>
+                <Route path="/dc" element={<Navigate to={`${discord.url}`} replace/>}/>
+                <Route path="/discord" element={<Navigate to={`${discord.url}`} replace/>}/>
+                <Route path="/tiktok" element={<Navigate to={`${tiktok.url}`} replace/>}/>
                 <Route path="/rp" element={<Navigate to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip" replace/>}/>
                 <Route path="/ressourcepack" element={<Navigate to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip" replace/>}/>
                 <Route path="/tanggle" element={<Navigate to="http://tng.gl/c/hd1920x1080" replace/>}/>
