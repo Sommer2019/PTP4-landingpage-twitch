@@ -29,15 +29,15 @@ const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
     return null
 }
 const {channel} = siteConfig.twitch
-const {links: [instagram, youtube, discord, tiktok]} = siteConfig
+const getLink = (platform: string) => siteConfig.links.find(l => l.id === platform)?.url || "/";
 const externalRedirects: Record<string, string> = {
-    "/insta": instagram.url,
-    "/instagram": instagram.url,
-    "/yt": youtube.url,
-    "/youtube": youtube.url,
-    "/dc": discord.url,
-    "/discord": discord.url,
-    "/tiktok": tiktok.url,
+    "/insta": getLink("instagram"),
+    "/instagram": getLink("instagram"),
+    "/yt": getLink("youtube"),
+    "/youtube": getLink("youtube"),
+    "/dc": getLink("discord"),
+    "/discord": getLink("discord"),
+    "/tiktok": getLink("tiktok"),
     "/twitch": `https://www.twitch.tv/${channel}`,
 };
 
@@ -60,6 +60,10 @@ function App() {
             <SettingsBar/>
             <PageTracker/>
             <Routes>
+                {/* ── Externe Links → Redirect ── */}
+                {Object.keys(externalRedirects).map((path) => (
+                    <Route key={path} path={path} element={<ExternalRedirectHandler />} />
+                ))}
                 <Route path="/" element={<HomePage/>}/>
                 <Route path="/impressum" element={<ImpressumPage/>}/>
                 <Route path="/datenschutz" element={<DatenschutzPage/>}/>
@@ -89,11 +93,6 @@ function App() {
                 <Route path="/ob" element={<Navigate to="/onlybart" replace/>}/>
                 <Route path="/bc" element={<Navigate to="/bartclicker" replace/>}/>
                 <Route path="/cdm" element={<Navigate to="/clipdesmonats" replace/>}/>
-
-                {/* ── Externe Links → Redirect ── */}
-                {Object.keys(externalRedirects).map((path) => (
-                    <Route key={path} path={path} element={<ExternalRedirectHandler />} />
-                ))}
 
                 {/* ── Legacy "OnlyBart"-Seiten → Redirect zu statischen HTML-Seiten ── */}
                 <Route path="/onlybart" element={<RedirectToHtml to="/ob.html"/>}/>
