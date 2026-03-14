@@ -366,6 +366,7 @@ function PostCard({ post, access, onDelete }: { post: Post, access: OnlyBartAcce
 
 export function OnlyBartPage() {
   const { t } = useTranslation()
+  const { user, signInWithTwitch } = useAuth()
   const access = useOnlyBartAccess()
   const [showIntro, setShowIntro] = useState(true)
   const [filter, setFilter] = useState<'all' | 'media' | 'photos' | 'videos'>('all')
@@ -455,6 +456,23 @@ export function OnlyBartPage() {
 
   // Render Access Denied
   if (!access.loading && !access.canView && !showIntro) {
+      if (!user) {
+          return (
+              <div className="onlybart-container">
+                  <div className="access-denied">
+                      <FaLock className="denied-icon" />
+                      <h2>{t('auth.loginRequired', 'Login Required')}</h2>
+                      <p>{t('onlybart.notLoggedIn', 'Log in with Twitch to check if you have access to OnlyBart.')}</p>
+                      <button className="btn btn-twitch mt-4" onClick={signInWithTwitch}>
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                              <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+                          </svg>
+                          {t('auth.loginWithTwitch', 'Sign in with Twitch')}
+                      </button>
+                  </div>
+              </div>
+          )
+      }
       return (
           <div className="onlybart-container">
                <div className="access-denied">
