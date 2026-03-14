@@ -291,8 +291,8 @@
 .bg-gradient-to-r { background-image: linear-gradient(to right, #60a5fa, #db2777); } /* blue-400 to pink-600 */
 
 .ob-logo {
-  width: 32px;
-  height: 32px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   object-fit: cover;
 }
