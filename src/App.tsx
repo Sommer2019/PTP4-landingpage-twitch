@@ -42,11 +42,7 @@ function App() {
                 <Route path="/datenschutz" element={<DatenschutzPage/>}/>
                 <Route path="/streamplan" element={<StreamplanPage/>}/>
                 <Route path="/streamelements" element={<StreamelementsPage/>}/>
-                <Route path="/onlybart" element={<RedirectToHtml to="/ob.html"/>}/>
-                <Route path="/onlybart/media" element={<RedirectToHtml to="/ob/media.html"/>}/>
-                <Route path="/onlybart/photos" element={<RedirectToHtml to="/ob/photos.html"/>}/>
-                <Route path="/onlybart/posts" element={<RedirectToHtml to="/ob/posts.html"/>}/>
-                <Route path="/onlybart/videos" element={<RedirectToHtml to="/ob/videos.html"/>}/>
+
                 {/* ── Login zum Aufrufen nötig ── */}
                 <Route path="/bartclicker" element={<ProtectedRoute><BartclickerPage/></ProtectedRoute>}/>
 
@@ -80,6 +76,15 @@ function App() {
                 <Route path="/dc" element={<Navigate to={`${discord.url}`} replace/>}/>
                 <Route path="/discord" element={<Navigate to={`${discord.url}`} replace/>}/>
                 <Route path="/tiktok" element={<Navigate to={`${tiktok.url}`} replace/>}/>
+
+
+                {/* Custom Wünsche */}
+                <Route path="/onlybart" element={<RedirectToHtml to="/ob.html"/>}/>
+                <Route path="/onlybart/media" element={<RedirectToHtml to="/ob/media.html"/>}/>
+                <Route path="/onlybart/photos" element={<RedirectToHtml to="/ob/photos.html"/>}/>
+                <Route path="/onlybart/posts" element={<RedirectToHtml to="/ob/posts.html"/>}/>
+                <Route path="/onlybart/videos" element={<RedirectToHtml to="/ob/videos.html"/>}/>
+
                 <Route path="/rp" element={<Navigate to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip" replace/>}/>
                 <Route path="/ressourcepack" element={<Navigate to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip" replace/>}/>
                 <Route path="/tanggle" element={<Navigate to="http://tng.gl/c/hd1920x1080" replace/>}/>
