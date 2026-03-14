@@ -1,11 +1,13 @@
 import {Link} from 'react-router-dom'
 import {useTranslation} from 'react-i18next'
 import {useAuth} from '../context/useAuth'
+import {useIsModerator} from '../hooks/useIsModerator'
 import SubPage from '../components/SubPage/SubPage'
 
 export default function ModeratePage() {
     const {t} = useTranslation()
     const {user} = useAuth()
+    const {isBroadcaster} = useIsModerator()
     const userName =
         user?.user_metadata?.full_name ??
         user?.user_metadata?.preferred_username ??
@@ -26,9 +28,11 @@ export default function ModeratePage() {
                 <Link to="/moderate/statistics" className="btn btn-secondary">
                     📊 {t('moderate.statisticsTitle')}
                 </Link>
-                <Link to="/moderate/settings" className="btn btn-secondary">
-                    ⚙️ {t('moderate.settings')}
-                </Link>
+                {isBroadcaster && (
+                    <Link to="/moderate/settings" className="btn btn-secondary">
+                        ⚙️ {t('moderate.settings')}
+                    </Link>
+                )}
             </nav>
         </SubPage>
     )
