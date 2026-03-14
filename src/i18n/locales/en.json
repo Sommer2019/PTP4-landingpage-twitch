@@ -494,6 +494,7 @@
       "message": "Only Subscribers, VIPs, and Moderators have access to OnlyBart.",
       "subHint": "Are you a subscriber? Please ensure you are logged in with the correct account."
     },
+    "notLoggedIn": "Log in with Twitch to check if you have access to OnlyBart.",
     "noPosts": "No posts yet. Be the first to see something amazing!"
   }
 }
