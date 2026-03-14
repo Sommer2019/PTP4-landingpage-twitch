@@ -19,10 +19,7 @@ import ModerateStatisticsPage from './pages/ModerateStatisticsPage'
 import ModerateSettingsPage from './pages/ModerateSettingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import OnlyBartPage from './pages/OnlyBartPage'
-import OnlyBartPostsPage from './pages/onlybart/OnlyBartPostsPage'
-import OnlyBartVideosPage from './pages/onlybart/OnlyBartVideosPage'
-import OnlyBartPhotosPage from './pages/onlybart/OnlyBartPhotosPage'
-import OnlyBartMediaPage from './pages/onlybart/OnlyBartMediaPage'
+import OnlyBartProfilePage from './pages/onlybart/OnlyBartProfilePage'
 import './App.css'
 import siteConfig from "./config/siteConfig.ts";
 
@@ -104,10 +101,10 @@ function AppInner() {
 
                 {/* ── OnlyBart-Seiten ── */}
                 <Route path="/onlybart" element={<OnlyBartPage/>}/>
-                <Route path="/onlybart/posts" element={<OnlyBartPostsPage/>}/>
-                <Route path="/onlybart/videos" element={<OnlyBartVideosPage/>}/>
-                <Route path="/onlybart/photos" element={<OnlyBartPhotosPage/>}/>
-                <Route path="/onlybart/media" element={<OnlyBartMediaPage/>}/>
+                <Route path="/onlybart/posts" element={<OnlyBartProfilePage tab="posts"/>}/>
+                <Route path="/onlybart/videos" element={<OnlyBartProfilePage tab="videos"/>}/>
+                <Route path="/onlybart/photos" element={<OnlyBartProfilePage tab="photos"/>}/>
+                <Route path="/onlybart/media" element={<OnlyBartProfilePage tab="media"/>}/>
 
                 {/* ── Custom Wünsche ── */}
                 <Route path="/rp" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
