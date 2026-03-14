@@ -298,8 +298,6 @@ $$;
 --  Admin RPC functions (nur für Moderatoren)
 -- ═════════════════════════════════════════════════════════
 
--- ── Runde 2 manuell starten (24 h) ──
-
 CREATE OR REPLACE FUNCTION admin_start_round2()
 RETURNS jsonb
 LANGUAGE plpgsql
