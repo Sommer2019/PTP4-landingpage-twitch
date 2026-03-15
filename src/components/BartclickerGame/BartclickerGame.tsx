@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useBartclickerGame, MAX_OFFLINE_UPGRADES } from '../../hooks/useBartclickerGame';
+import { useBartclickerGame, MAX_OFFLINE_UPGRADES, BASE_REBIRTH_COST } from '../../hooks/useBartclickerGame';
 import { useBartclickerLeaderboard } from '../../hooks/useBartclickerLeaderboard';
 import { BeardSVG } from './BeardSVG';
 import './BartclickerGame.css';
@@ -55,6 +55,8 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
       gameState.relics.reduce((sum, r) => (r.effect === 'offlineBonus' ? sum + (r.value || 0) : sum), 0)) * 100
   );
   const OFFLINE_UPGRADE_REBIRTH_COST = 5;
+  const rebirthCost = BASE_REBIRTH_COST * Math.pow(2, gameState.rebirth_count);
+  const canRebirth = gameState.energy >= rebirthCost;
 
   const handleBartClick = () => {
     handleClick();
@@ -133,18 +135,6 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
           <BeardSVG bartLength={bartLength} clickCount={clickCount} />
         </button>
       </div>
-
-      {/* Rebirth Section - Always accessible */}
-      {gameState.total_ever >= 1000000 && (
-        <div className="rebirth-section">
-          <button className="rebirth-button" onClick={performRebirth}>
-            {t('bartclicker.rebirth.button')} ({gameState.rebirth_count})
-          </button>
-          <p className="rebirth-info">
-            {t('bartclicker.rebirth.description')} {t('bartclicker.rebirth.multiplierBoost', { multiplier: (gameState.rebirth_multiplier * 2).toFixed(0) })}
-          </p>
-        </div>
-      )}
 
       {/* Tabs */}
       <div className="tabs">
@@ -287,24 +277,45 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
           )}
 
           {shopTab === 'booster' && (
-            <div className="booster-grid">
-              {BOOSTERS.map((booster) => {
-                const scaledCost = getScaledCost(booster.baseCost);
-                return (
-                  <div key={booster.id} className="booster-card">
-                    <div className="booster-icon">{booster.icon}</div>
-                    <h3>{booster.name}</h3>
-                    <p className="booster-effect">{booster.effect}</p>
-                    <button
-                      className="buy-button"
-                      onClick={() => activateBuff(booster.id)}
-                      disabled={gameState.energy < scaledCost}
-                    >
-                      {formatNumber(scaledCost)}
-                    </button>
-                  </div>
-                );
-              })}
+            <div className="booster-content-wrapper">
+              {gameState.active_debuffs.length > 0 && (
+                <div className="active-debuffs-banner">
+                  {gameState.active_debuffs.map((debuff, idx) => {
+                    const remainingSecs = Math.max(0, Math.ceil((debuff.endTime - Date.now()) / 1000));
+                    return (
+                      <div key={idx} className="debuff-pill">
+                        ⚠️ {debuff.description} ({remainingSecs}s)
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="booster-grid">
+                {BOOSTERS.map((booster) => {
+                  const scaledCost = getScaledCost(booster.baseCost);
+                  const activeBuff = gameState.active_buffs.find((b) => b.id === booster.id);
+                  const remainingSecs = activeBuff?.endTime ? Math.max(0, Math.ceil((activeBuff.endTime - Date.now()) / 1000)) : 0;
+                  return (
+                    <div key={booster.id} className={`booster-card ${activeBuff ? 'booster-active' : ''}`}>
+                      <div className="booster-icon">{booster.icon}</div>
+                      <h3>{booster.name}</h3>
+                      <p className="booster-effect">{booster.effect}</p>
+                      <p className="booster-risk">{t('bartclicker.booster.riskWarning')}</p>
+                      {activeBuff ? (
+                        <div className="booster-timer">⏱ {remainingSecs}s</div>
+                      ) : (
+                        <button
+                          className="buy-button"
+                          onClick={() => activateBuff(booster.id)}
+                          disabled={gameState.energy < scaledCost}
+                        >
+                          {formatNumber(scaledCost)}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -312,7 +323,6 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
             <div className="relics-grid">
               {RELICS.map((relic) => {
                 const isUnlocked = gameState.relics.some((r) => r.id === relic.id);
-                const scaledCost = getScaledCost(relic.baseCost);
                 return (
                   <div key={relic.id} className={`relic-card ${isUnlocked ? 'unlocked' : ''}`}>
                     <div className="relic-icon">{relic.icon}</div>
@@ -324,10 +334,10 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
                       <button
                         className="buy-button"
                         onClick={() => unlockRelic(relic.id)}
-                        disabled={gameState.energy < scaledCost}
-                        title={`Kosten: ${formatNumber(scaledCost)}`}
+                        disabled={gameState.energy < relic.baseCost}
+                        title={`Kosten: ${formatNumber(relic.baseCost)}`}
                       >
-                        {formatNumber(scaledCost)}
+                        {formatNumber(relic.baseCost)}
                       </button>
                     )}
                   </div>
@@ -470,6 +480,19 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
           </div>
         </div>
       )}
+
+      {/* Rebirth Section - Below Shops + Leaderboard + Stats */}
+      <div className="rebirth-section">
+        <button className="rebirth-button" onClick={performRebirth} disabled={!canRebirth}>
+          {t('bartclicker.rebirth.button')} ({gameState.rebirth_count})
+        </button>
+        <p className="rebirth-info">
+          {t('bartclicker.rebirth.cost', { cost: formatNumber(rebirthCost) })}
+        </p>
+        <p className="rebirth-info">
+          {t('bartclicker.rebirth.description')} {t('bartclicker.rebirth.multiplierBoost', { multiplier: (gameState.rebirth_multiplier * 2).toFixed(0) })}
+        </p>
+      </div>
     </div>
   );
 }

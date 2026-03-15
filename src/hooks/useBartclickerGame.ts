@@ -5,6 +5,7 @@ import type {
   BartclickerGameState,
   ShopItem,
   Buff,
+  Debuff,
   Relic,
 } from '../types/bartclicker';
 
@@ -12,6 +13,8 @@ import type {
 export const MAX_OFFLINE_UPGRADES = 8;
 // Maximum offline time cap (8 hours in seconds)
 const MAX_OFFLINE_SECONDS = 8 * 3600;
+// Base cost for the first rebirth (doubles with each subsequent rebirth)
+export const BASE_REBIRTH_COST = 1_000_000;
 
 // Calculate CPS from raw data (used for offline earnings – no React state needed)
 function calculateCpsFromData(
@@ -66,6 +69,13 @@ const AVAILABLE_BUFFS: Buff[] = [
     duration: 60000,
     baseCost: 1000,
     description: '2x CPS für 1 Minute',
+    negativeEffect: {
+      chance: 0.2,
+      type: 'energyLoss',
+      cpsValue: 0.3,
+      duration: 30000,
+      description: '-30% CPS für 30s',
+    },
   },
   {
     id: 1,
@@ -76,6 +86,13 @@ const AVAILABLE_BUFFS: Buff[] = [
     duration: 45000,
     baseCost: 1500,
     description: '3x Klick-Power für 45s',
+    negativeEffect: {
+      chance: 0.2,
+      type: 'clickReduction',
+      clickValue: 0.3,
+      duration: 22000,
+      description: '-30% Klick-Power für 22s',
+    },
   },
   {
     id: 2,
@@ -87,6 +104,14 @@ const AVAILABLE_BUFFS: Buff[] = [
     duration: 30000,
     baseCost: 2000,
     description: '+50% CPS und Klicks für 30s',
+    negativeEffect: {
+      chance: 0.2,
+      type: 'both',
+      cpsValue: 0.2,
+      clickValue: 0.2,
+      duration: 15000,
+      description: '-20% CPS und Klicks für 15s',
+    },
   },
 ];
 
@@ -513,6 +538,20 @@ export function useBartclickerGame() {
 
       const endTime = Date.now() + buff.duration;
 
+      // Roll for negative side-effect
+      const newDebuffs: Debuff[] = [];
+      if (buff.negativeEffect && Math.random() < buff.negativeEffect.chance) {
+        const debuffEndTime = Date.now() + (buff.negativeEffect.duration ?? buff.duration);
+        newDebuffs.push({
+          type: buff.negativeEffect.type,
+          ...(buff.negativeEffect.value !== undefined && { value: buff.negativeEffect.value }),
+          cpsValue: buff.negativeEffect.cpsValue,
+          clickValue: buff.negativeEffect.clickValue,
+          endTime: debuffEndTime,
+          description: buff.negativeEffect.description,
+        });
+      }
+
       setGameState((prev) => ({
         ...prev,
         energy: prev.energy - cost,
@@ -523,6 +562,10 @@ export function useBartclickerGame() {
             endTime,
           },
         ],
+        active_debuffs: [
+          ...prev.active_debuffs,
+          ...newDebuffs,
+        ],
       }));
 
       return true;
@@ -532,20 +575,24 @@ export function useBartclickerGame() {
 
   // Rebirth - erhöht Multiplikator, setzt Items zurück, behält aber Relikte, Autobuyer & aktive Boosts
   const performRebirth = useCallback(() => {
-    setGameState((prev) => ({
-      ...prev,
-      rebirth_count: prev.rebirth_count + 1,
-      rebirth_multiplier: prev.rebirth_multiplier * 2,
-      energy: 0,
-      shop_items: prev.shop_items.map((item) => ({
-        ...item,
-        count: 0,
-        cost: Math.floor((INITIAL_SHOP_ITEMS.find((i) => i.id === item.id)?.cost || item.cost) * Math.pow(1.1, prev.rebirth_count)),
-      })),
-      active_buffs: [],
-      active_debuffs: [],
-      // Behalte: relics, auto_click_buyer_enabled, click_upgrade_buyer_enabled, Autobuyer Items
-    }));
+    setGameState((prev) => {
+      const rebirthCost = BASE_REBIRTH_COST * Math.pow(2, prev.rebirth_count);
+      if (prev.energy < rebirthCost) return prev;
+      return {
+        ...prev,
+        rebirth_count: prev.rebirth_count + 1,
+        rebirth_multiplier: prev.rebirth_multiplier * 2,
+        energy: 0,
+        shop_items: prev.shop_items.map((item) => ({
+          ...item,
+          count: 0,
+          cost: Math.floor((INITIAL_SHOP_ITEMS.find((i) => i.id === item.id)?.cost || item.cost) * Math.pow(1.1, prev.rebirth_count)),
+        })),
+        active_buffs: [],
+        active_debuffs: [],
+        // Behalte: relics, auto_click_buyer_enabled, click_upgrade_buyer_enabled, Autobuyer Items
+      };
+    });
   }, []);
 
   // Game loop for CPS
@@ -568,6 +615,27 @@ export function useBartclickerGame() {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
     };
   }, [calculateCps]);
+
+  // Clean up expired buffs and debuffs every second
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      setGameState((prev) => {
+        const filteredBuffs = prev.active_buffs.filter((buff) => buff.endTime && buff.endTime > now);
+        const filteredDebuffs = prev.active_debuffs.filter((debuff) => debuff.endTime > now);
+        if (filteredBuffs.length === prev.active_buffs.length && filteredDebuffs.length === prev.active_debuffs.length) {
+          return prev;
+        }
+        return {
+          ...prev,
+          active_buffs: filteredBuffs,
+          active_debuffs: filteredDebuffs,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(cleanupInterval);
+  }, []);
 
   // Load initial state
   useEffect(() => {

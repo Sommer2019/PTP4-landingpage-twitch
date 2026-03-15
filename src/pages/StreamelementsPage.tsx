@@ -60,7 +60,7 @@ export default function StreamelementsPage() {
         {activeTrigger && (
           <div className="donation-modal-content">
             <h2>{t(activeTrigger.descKey)}</h2>
-            <p>{t(activeTrigger.textKey)}</p>
+            {activeTrigger.textKey && <p>{t(activeTrigger.textKey)}</p>}
             {activeTrigger.audio && (
               <audio ref={audioRef} controls preload="none" src={activeTrigger.audio} />
             )}

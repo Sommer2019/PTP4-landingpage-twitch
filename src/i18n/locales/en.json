@@ -273,7 +273,7 @@
   "moderate": {
     "forbidden": "Access Denied",
     "forbiddenHint": "This area is only accessible to moderators and the streamer.",
-    "landingTitle": "Moderation Area",
+    "landingTitle": "\uD83D\uDEE1\uFE0F Moderation Area",
     "welcome": "Welcome, {{name}}!",
     "settings": "Settings",
     "unknownUser": "Moderator",
@@ -412,7 +412,8 @@
     "rebirth": {
       "button": "🔄 Rebirth",
       "description": "Double your multiplier and start fresh! Your beard will grow longer!",
-      "multiplierBoost": "Multiplier ×{multiplier}"
+      "multiplierBoost": "Multiplier ×{{multiplier}}",
+      "cost": "Cost: {{cost}} beard hairs"
     },
     "booster": {
       "turboBoost": "Turbo Boost",
@@ -420,7 +421,8 @@
       "clickMadness": "Click Madness",
       "clickEffect": "3x Clicks for 45s",
       "luckyBonus": "Lucky Bonus",
-      "luckyEffect": "+50% for 30s"
+      "luckyEffect": "+50% for 30s",
+      "riskWarning": "⚠️ 20% risk of debuff"
     },
     "relics": {
       "ancientComb": "Ancient Comb",
@@ -472,5 +474,27 @@
       "timeMinutes": "{{minutes}}min",
       "youHave": "You have: {{count}} Rebirths"
     }
+  },
+  "onlybart": {
+    "filter": {
+      "all": "All",
+      "media": "Media",
+      "photos": "Photos",
+      "videos": "Videos"
+    },
+    "create": {
+      "placeholder": "What's on your mind?",
+      "submit": "Post",
+      "videoPrompt": "Enter unlisted YouTube video URL:"
+    },
+    "confirmDelete": "Delete this post?",
+    "confirmDeleteComment": "Delete this comment?",
+    "accessDenied": {
+      "title": "Access Restricted",
+      "message": "Only Subscribers, VIPs, and Moderators have access to OnlyBart.",
+      "subHint": "Are you a subscriber? Please ensure you are logged in with the correct account."
+    },
+    "notLoggedIn": "Log in with Twitch to check if you have access to OnlyBart.",
+    "noPosts": "No posts yet. Be the first to see something amazing!"
   }
 }

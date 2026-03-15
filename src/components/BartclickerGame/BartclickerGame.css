@@ -135,8 +135,6 @@
     border-bottom: 1px solid #333;
     overflow-x: auto;
     padding-bottom: 0;
-    position: sticky;
-    top: 140px;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     z-index: 101;
 }
@@ -210,7 +208,6 @@
 .autobuyer-content,
 .stats-content,
 .leaderboard-content {
-    overflow-y: auto;
     padding-right: 10px;
 }
 
@@ -392,6 +389,15 @@
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
 }
 
+.rebirth-button:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+    box-shadow: none;
+}
+
 .rebirth-info {
     font-size: 0.9rem;
     color: #b0b0b0;
@@ -399,6 +405,12 @@
 }
 
 /* Booster Grid */
+.booster-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .booster-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -420,6 +432,12 @@
     box-shadow: 0 0 15px rgba(124, 77, 255, 0.4);
 }
 
+.booster-card.booster-active {
+    background: rgba(76, 175, 80, 0.15);
+    border-color: #4caf50;
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.4);
+}
+
 .booster-icon {
     font-size: 2.5rem;
     margin-bottom: 10px;
@@ -435,6 +453,40 @@
     font-size: 0.85rem;
     color: #b0b0b0;
     margin: 8px 0;
+}
+
+.booster-risk {
+    font-size: 0.75rem;
+    color: #ff8a65;
+    margin: 4px 0 8px;
+}
+
+.booster-timer {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #4caf50;
+    margin-top: 8px;
+    animation: pulse-timer 1s ease-in-out infinite;
+}
+
+@keyframes pulse-timer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.active-debuffs-banner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.debuff-pill {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid #f44336;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    color: #ff8a80;
 }
 
 /* Relics Grid */
@@ -588,8 +640,6 @@
 
 /* Leaderboard */
 .leaderboard-content {
-    max-height: 500px;
-    overflow-y: auto;
     padding-right: 10px;
 }
 
@@ -751,13 +801,19 @@
     .booster-content,
     .relics-content,
     .autobuyer-content,
-    .stats-content {
+    .stats-content,
+    .leaderboard-content {
         max-height: 400px;
+        overflow-y: auto;
     }
 
     .booster-grid,
     .relics-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+
+    .tabs {
+        position: static;
     }
 
     .shop-subtabs {
@@ -829,6 +885,7 @@
 
     .tabs {
         gap: 4px;
+        position: static;
     }
 
     .tab-button {
