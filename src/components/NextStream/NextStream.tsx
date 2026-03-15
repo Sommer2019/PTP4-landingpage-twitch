@@ -15,7 +15,9 @@ export default function NextStream() {
     if (error || !nextEvent) {
         return (
             <div className="next-stream-fallback">
-                <a href="/streamplan">{t('live.seeSchedule')}</a>
+                <Link to="/streamplan">
+                    {t('live.seeSchedule')}
+                </Link>
             </div>
         )
     }
