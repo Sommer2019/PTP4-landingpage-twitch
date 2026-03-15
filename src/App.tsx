@@ -1,4 +1,4 @@
-import {BrowserRouter, Routes, Route, Navigate, useLocation} from 'react-router-dom'
+import {HashRouter, Routes, Route, Navigate, useLocation} from 'react-router-dom'
 import {useLayoutEffect} from 'react'
 import SettingsBar from './components/SettingsBar/SettingsBar.tsx'
 import CookieBanner from './components/CookieBanner/CookieBanner'
@@ -57,7 +57,7 @@ const ExternalRedirectHandler = () => {
 
 function App() {
     return (
-        <BrowserRouter>
+        <HashRouter>
             <SettingsBar/>
             <PageTracker/>
             <Routes>
@@ -109,7 +109,7 @@ function App() {
                 <Route path="*" element={<NotFoundPage/>}/>
             </Routes>
             <CookieBanner/>
-        </BrowserRouter>
+        </HashRouter>
     )
 }
 
