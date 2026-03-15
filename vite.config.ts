@@ -3,8 +3,28 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 
-const ICS_SOURCE_URL =
-  'https://export.kalender.digital/ics/0/4ccef74582e0eb8d7026/twitchhd1920x1080.ics?past_months=0&future_months=36'
+
+function getMainCalendarUrl(): string {
+  const fallback = '';
+  try {
+    const configPath = path.resolve(__dirname, 'src/config/siteConfig.ts')
+    if (!fs.existsSync(configPath)) return fallback
+    const content = fs.readFileSync(configPath, 'utf-8')
+    const streamplanBlockMatch = content.match(/streamplan:\s*{([\s\S]*?)}/)
+    if (!streamplanBlockMatch) return fallback
+    const block = streamplanBlockMatch[1]
+    const icsUrlMatch = block.match(/icsUrl:\s*'([^']+)'/)
+    if (icsUrlMatch) {
+      return icsUrlMatch[1]
+    }
+    return fallback
+  } catch (e) {
+    console.warn('Could not parse siteConfig for main calendar URL:', e)
+    return fallback
+  }
+}
+
+const ICS_SOURCE_URL = getMainCalendarUrl()
 
 /**
  * Lies die Site-Config (als Text), extrahiert via Regex alle Streamplan-Kategorien (ID + URL)
