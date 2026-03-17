@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import { createClient } from '@supabase/supabase-js'
+import {createClient} from '@supabase/supabase-js'
 
 // ── Environment Variables ──
 // Required in GitHub Secrets
@@ -11,15 +11,23 @@ const TWITCH_REFRESH_TOKEN = process.env.TWITCH_REFRESH_TOKEN
 const CHANNEL_NAME = process.env.CHANNEL_NAME
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET || !TWITCH_REFRESH_TOKEN || !CHANNEL_NAME) {
-  console.error('Missing environment variables. Please check GitHub Secrets.')
-  process.exit(1)
+    console.error('Missing environment variables. Please check GitHub Secrets.')
+    process.exit(1)
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 // ── Types ──
-interface TwitchUser { id: string; login: string; display_name: string }
-interface TwitchMod { user_id: string; user_name: string }
+interface TwitchUser {
+    id: string;
+    login: string;
+    display_name: string
+}
+
+interface TwitchMod {
+    user_id: string;
+    user_name: string
+}
 
 // ── Helpers ──
 
@@ -58,172 +66,201 @@ async function getAccessToken() {
 
 
 async function twitchGet<T>(endpoint: string, token: string): Promise<T> {
-  const res = await fetch(`https://api.twitch.tv/helix/${endpoint}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Client-Id': TWITCH_CLIENT_ID!,
-    },
-  })
-  if (!res.ok) {
-      const text = await res.text()
-      // If 401, maybe try re-refresh? For simplicity, just fail script.
-      throw new Error(`Twitch API Error ${res.status}: ${text}`)
-  }
-  return res.json() as Promise<T>
+    const res = await fetch(`https://api.twitch.tv/helix/${endpoint}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Client-Id': TWITCH_CLIENT_ID!,
+        },
+    })
+    if (!res.ok) {
+        const text = await res.text()
+        // If 401, maybe try re-refresh? For simplicity, just fail script.
+        throw new Error(`Twitch API Error ${res.status}: ${text}`)
+    }
+    return res.json() as Promise<T>
+}
+
+// Hilfsfunktion: Mappe Twitch-IDs auf UUIDs aus auth.users
+async function getUuidsForTwitchIds(twitchIds: string[]): Promise<string[]> {
+    const uuids: string[] = []
+    let nextPage: number | undefined = undefined
+    do {
+        const {data, error} = await supabase.auth.admin.listUsers({page: nextPage})
+        if (error) throw error
+        const users = data?.users ?? []
+        for (const user of users) {
+            const providerId = user?.user_metadata?.provider_id || user?.user_metadata?.sub
+            if (providerId && twitchIds.includes(providerId)) {
+                uuids.push(user.id)
+            }
+        }
+        nextPage = (data && 'nextPage' in data) ? (data as { nextPage?: number }).nextPage : undefined
+    } while (nextPage !== undefined)
+    return uuids
 }
 
 // ── Main Logic ──
 
 async function main() {
-  try {
-    const accessToken = await getAccessToken()
-    
-    // 1. Get Broadcaster ID
-    const users = await twitchGet<{ data: TwitchUser[] }>(`users?login=${CHANNEL_NAME}`, accessToken)
-    const broadcaster = users.data[0]
-    if (!broadcaster) throw new Error(`Broadcaster ${CHANNEL_NAME} not found`)
-    
-    console.log(`Broadcaster: ${broadcaster.display_name} (${broadcaster.id})`)
-
-    // ── SYNC MODS ──
-    console.log('Fetching Moderators...')
-    const mods: TwitchMod[] = []
-    let cursor = ''
-    do {
-        const p = new URLSearchParams({ broadcaster_id: broadcaster.id, first: '100' })
-        if (cursor) p.set('after', cursor)
-        
-        const page = await twitchGet<{ data: TwitchMod[]; pagination: { cursor?: string } }>(
-            `moderation/moderators?${p}`, accessToken
-        )
-        mods.push(...page.data)
-        cursor = page.pagination?.cursor || ''
-    } while (cursor)
-
-    console.log(`Found ${mods.length} moderators.`)
-
-    // Upsert Mods (Using existing RPC logic locally or replicate strict upsert?)
-    // The RPC `sync_moderators` cleans up removed mods too. Let's call it via RPC.
-    // Note: RPC requires `p_mods` as JSON array.
-    
-    const modsPayload = [
-        { user_id: broadcaster.id, user_name: broadcaster.display_name }, // Add Broadcaster as Mod
-        ...mods
-    ]
-    
-    const { error: modError, data: modResult } = await supabase.rpc('sync_moderators', {
-        p_mods: modsPayload,
-        p_broadcaster_twitch_id: broadcaster.id
-    })
-
-    if (modError) {
-        console.error('Suppbase sync_moderators failed:', modError)
-    } else {
-        console.log('Moderators synced:', modResult)
-    }
-
-    // ── SYNC VIPs & SUBs (OnlyBart) ──
-    console.log('Fetching VIPs...')
-    const vips: string[] = []
-    cursor = ''
     try {
+        const accessToken = await getAccessToken()
+
+        // 1. Get Broadcaster ID
+        const users = await twitchGet<{ data: TwitchUser[] }>(`users?login=${CHANNEL_NAME}`, accessToken)
+        const broadcaster = users.data[0]
+        if (!broadcaster) throw new Error(`Broadcaster ${CHANNEL_NAME} not found`)
+
+        console.log(`Broadcaster: ${broadcaster.display_name} (${broadcaster.id})`)
+
+        // ── SYNC MODS ──
+        console.log('Fetching Moderators...')
+        const mods: TwitchMod[] = []
+        let cursor = ''
         do {
-            const p = new URLSearchParams({ broadcaster_id: broadcaster.id, first: '100' })
+            const p = new URLSearchParams({broadcaster_id: broadcaster.id, first: '100'})
             if (cursor) p.set('after', cursor)
-            const page = await twitchGet<{ data: { user_id: string }[], pagination: { cursor?: string } }>(
-                `channels/vips?${p}`, accessToken
+
+            const page = await twitchGet<{ data: TwitchMod[]; pagination: { cursor?: string } }>(
+                `moderation/moderators?${p}`, accessToken
             )
-            vips.push(...page.data.map(v => v.user_id))
+            mods.push(...page.data)
             cursor = page.pagination?.cursor || ''
         } while (cursor)
-    } catch (e) {
-        console.warn('Error fetching VIPs (maybe no scope?):', e)
-    }
 
-    console.log(`Found ${vips.length} VIPs.`)
+        console.log(`Found ${mods.length} moderators.`)
 
-    console.log('Fetching Subscribers...')
-    const subs: string[] = []
-    cursor = ''
-    try {
-        do {
-            const p = new URLSearchParams({ broadcaster_id: broadcaster.id, first: '100' })
-            if (cursor) p.set('after', cursor)
-            const page = await twitchGet<{ data: { user_id: string }[], pagination: { cursor?: string } }>(
-                `subscriptions?${p}`, accessToken
-            )
-            subs.push(...page.data.map(u => u.user_id))
-            cursor = page.pagination?.cursor || ''
-        } while (cursor)
-    } catch (e) {
-        console.warn('Error fetching Subs (maybe no scope?):', e)
-    }
-    
-    console.log(`Found ${subs.length} Subscribers.`)
+        // Upsert Mods (Using existing RPC logic locally or replicate strict upsert?)
+        // The RPC `sync_moderators` cleans up removed mods too. Let's call it via RPC.
+        // Note: RPC requires `p_mods` as JSON array.
 
-    // Upsert into `twitch_permissions`
-    // We want to combine lists.
-    const uniqueIds = new Set([...vips, ...subs])
-    const updates = Array.from(uniqueIds).map(id => ({
-        twitch_id: id,
-        is_vip: vips.includes(id),
-        is_subscriber: subs.includes(id),
-        last_updated: new Date().toISOString()
-    }))
+        const modsPayload = [
+            {user_id: broadcaster.id, user_name: broadcaster.display_name}, // Add Broadcaster as Mod
+            ...mods
+        ]
 
-    console.log(`Updating ${updates.length} permission records...`)
-    
-    // Batch upsert (Supabase handles large batches well, but safe to chunk)
-    const BATCH_SIZE = 1000
-    for (let i = 0; i < updates.length; i += BATCH_SIZE) {
-        const batch = updates.slice(i, i + BATCH_SIZE)
-        const { error } = await supabase.from('twitch_permissions').upsert(batch, { onConflict: 'twitch_id' })
-        if (error) {
-            console.error('Error batch upserting permissions:', error)
-            throw error // Fail action
+        const {error: modError, data: modResult} = await supabase.rpc('sync_moderators', {
+            p_mods: modsPayload,
+            p_broadcaster_twitch_id: broadcaster.id
+        })
+
+        if (modError) {
+            console.error('Suppbase sync_moderators failed:', modError)
+        } else {
+            console.log('Moderators synced:', modResult)
         }
-    }
-    
-    console.log('Sync completed successfully.')
 
-    // ── Upsert VIPs in user_roles ──
-    if (vips.length > 0) {
-      const vipUserRoles = vips.map(id => ({ user_id: id, is_vip: true }))
-      const { error: vipError } = await supabase.from('user_roles').upsert(vipUserRoles, {
-        onConflict: 'user_id',
-        ignoreDuplicates: false,
-      })
-      if (vipError) {
-        console.error('Error upserting VIPs in user_roles:', vipError)
-        throw vipError
-      } else {
-        console.log(`VIPs upserted in user_roles: ${vips.length}`)
-      }
-    }
+        // ── SYNC VIPs & SUBs (OnlyBart) ──
+        console.log('Fetching VIPs...')
+        const vips: string[] = []
+        cursor = ''
+        try {
+            do {
+                const p = new URLSearchParams({broadcaster_id: broadcaster.id, first: '100'})
+                if (cursor) p.set('after', cursor)
+                const page = await twitchGet<{ data: { user_id: string }[], pagination: { cursor?: string } }>(
+                    `channels/vips?${p}`, accessToken
+                )
+                vips.push(...page.data.map(v => v.user_id))
+                cursor = page.pagination?.cursor || ''
+            } while (cursor)
+        } catch (e) {
+            console.warn('Error fetching VIPs (maybe no scope?):', e)
+        }
 
-    // ── Upsert MODs in user_roles ──
-    if (mods.length > 0) {
-      const modUserRoles = mods.map(mod => ({ user_id: mod.user_id, is_moderator: true }))
-      // Broadcaster als Mod (falls nicht schon in mods)
-      if (!mods.find(m => m.user_id === broadcaster.id)) {
-        modUserRoles.push({ user_id: broadcaster.id, is_moderator: true })
-      }
-      const { error: modUpsertError } = await supabase.from('user_roles').upsert(modUserRoles, {
-        onConflict: 'user_id',
-        ignoreDuplicates: false,
-      })
-      if (modUpsertError) {
-        console.error('Error upserting MODs in user_roles:', modUpsertError)
-        throw modUpsertError
-      } else {
-        console.log(`MODs upserted in user_roles: ${modUserRoles.length}`)
-      }
-    }
+        console.log(`Found ${vips.length} VIPs.`)
 
-  } catch (err) {
-    console.error('Script failed:', err)
-    process.exit(1)
-  }
+        console.log('Fetching Subscribers...')
+        const subs: string[] = []
+        cursor = ''
+        try {
+            do {
+                const p = new URLSearchParams({broadcaster_id: broadcaster.id, first: '100'})
+                if (cursor) p.set('after', cursor)
+                const page = await twitchGet<{ data: { user_id: string }[], pagination: { cursor?: string } }>(
+                    `subscriptions?${p}`, accessToken
+                )
+                subs.push(...page.data.map(u => u.user_id))
+                cursor = page.pagination?.cursor || ''
+            } while (cursor)
+        } catch (e) {
+            console.warn('Error fetching Subs (maybe no scope?):', e)
+        }
+
+        console.log(`Found ${subs.length} Subscribers.`)
+
+        // Upsert into `twitch_permissions`
+        // We want to combine lists.
+        const uniqueIds = new Set([...vips, ...subs])
+        const updates = Array.from(uniqueIds).map(id => ({
+            twitch_id: id,
+            is_vip: vips.includes(id),
+            is_subscriber: subs.includes(id),
+            last_updated: new Date().toISOString()
+        }))
+
+        console.log(`Updating ${updates.length} permission records...`)
+
+        // Batch upsert (Supabase handles large batches well, but safe to chunk)
+        const BATCH_SIZE = 1000
+        for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+            const batch = updates.slice(i, i + BATCH_SIZE)
+            const {error} = await supabase.from('twitch_permissions').upsert(batch, {onConflict: 'twitch_id'})
+            if (error) {
+                console.error('Error batch upserting permissions:', error)
+                throw error // Fail action
+            }
+        }
+
+        console.log('Sync completed successfully.')
+
+        // ── Upsert VIPs in user_roles (nur für bekannte UUIDs) ──
+        if (vips.length > 0) {
+            const vipUuids = await getUuidsForTwitchIds(vips)
+            if (vipUuids.length === 0) {
+                console.warn('Keine passenden UUIDs für VIPs gefunden. Upsert wird übersprungen.')
+            } else {
+                const vipUserRoles = vipUuids.map(id => ({user_id: id, is_vip: true}))
+                const {error: vipError} = await supabase.from('user_roles').upsert(vipUserRoles, {
+                    onConflict: 'user_id',
+                    ignoreDuplicates: false,
+                })
+                if (vipError) {
+                    console.error('Error upserting VIPs in user_roles:', vipError)
+                    throw vipError
+                } else {
+                    console.log(`VIPs upserted in user_roles: ${vipUserRoles.length}`)
+                }
+            }
+        }
+
+        // ── Upsert MODs in user_roles (nur für bekannte UUIDs) ──
+        if (mods.length > 0) {
+            const modTwitchIds = mods.map(mod => mod.user_id)
+            if (!modTwitchIds.includes(broadcaster.id)) {
+                modTwitchIds.push(broadcaster.id)
+            }
+            const modUuids = await getUuidsForTwitchIds(modTwitchIds)
+            if (modUuids.length === 0) {
+                console.warn('Keine passenden UUIDs für MODs gefunden. Upsert wird übersprungen.')
+            } else {
+                const modUserRoles = modUuids.map(id => ({user_id: id, is_moderator: true}))
+                const {error: modUpsertError} = await supabase.from('user_roles').upsert(modUserRoles, {
+                    onConflict: 'user_id',
+                    ignoreDuplicates: false,
+                })
+                if (modUpsertError) {
+                    console.error('Error upserting MODs in user_roles:', modUpsertError)
+                    throw modUpsertError
+                } else {
+                    console.log(`MODs upserted in user_roles: ${modUserRoles.length}`)
+                }
+            }
+        }
+
+    } catch (err) {
+        console.error('Script failed:', err)
+        process.exit(1)
+    }
 }
 
 main()

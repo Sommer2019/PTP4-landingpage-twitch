@@ -351,7 +351,7 @@ const siteConfig: SiteConfig = {
 
   // -- Profile --
   profileLinks: [
-    { labelKey: 'moderate', url: '/moderate' },
+    { labelKey: 'profile.moderate', url: '/moderate' },
   ],
 
   // ── Footer ──
