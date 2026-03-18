@@ -35,8 +35,8 @@ jobs:
 
       - name: Download Launch4j
         run: |
-          curl -L -o launch4j.zip https://github.com/launch4j/launch4j/releases/download/3.50/launch4j-3.50-win32.zip
-          tar -xf launch4j.zip
+          Invoke-WebRequest -Uri "https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download" -OutFile "launch4j.zip"
+          Expand-Archive -Path launch4j.zip -DestinationPath launch4j
 
       - name: Get Twitch OAuth Access Token
         id: get_oauth
@@ -63,7 +63,7 @@ jobs:
 
       - name: Build EXE with Launch4j
         run: |
-          ../launch4j/launch4j.exe launch4j-config.xml
+          ..\launch4j\launch4j.exe launch4j-config.xml
         working-directory: TwitchAddon
 
       - name: Upload EXE as artifact
