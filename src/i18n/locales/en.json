@@ -284,7 +284,9 @@
     "loginHint": "Sign in with Twitch to access this page.",
     "loginWithTwitch": "Sign in with Twitch",
     "loggedInAs": "Logged in as {{name}}",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "requiredTitle": "Authentication required",
+    "requiredMsg": "Please log in to continue."
   },
   "bartclickerPage": {
     "title": "Bartclicker",

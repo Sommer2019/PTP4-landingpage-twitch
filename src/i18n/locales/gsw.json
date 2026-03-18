@@ -273,7 +273,9 @@
     "loginHint": "Meld di mit Twitch aa, um die Siite z'gseh.",
     "loginWithTwitch": "Mit Twitch aamelda",
     "loggedInAs": "Iigloggt als {{name}}",
-    "logout": "Uuslogge"
+    "logout": "Uuslogge",
+    "requiredTitle": "Login nötig",
+    "requiredMsg": "Bitte logg di i, zum wyterzmache."
   },
   "bartclickerPage": {
     "title": "Bartclicker",

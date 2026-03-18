@@ -284,7 +284,9 @@
     "loginHint": "Melde dich mit Twitch an, um diese Seite zu sehen.",
     "loginWithTwitch": "Mit Twitch anmelden",
     "loggedInAs": "Eingeloggt als {{name}}",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "requiredTitle": "Authentifizierung erforderlich",
+    "requiredMsg": "Bitte logge dich ein, um fortzufahren."
   },
   "bartclickerPage": {
     "title": "Bartclicker",
