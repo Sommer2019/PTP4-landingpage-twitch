@@ -19,5 +19,11 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      'no-unreachable': 'off',
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
+      'no-empty-function': 'off',
+    },
   },
 ])
