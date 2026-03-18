@@ -101,7 +101,7 @@ jobs:
           name: TwitchAddon-exe
           path: TwitchAddon/dist/*.exe
 
-            - name: Create GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           # Ein Präfix davor setzen, um die 40-Zeichen-Hex-Regel zu umgehen
