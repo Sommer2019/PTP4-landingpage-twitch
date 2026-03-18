@@ -536,5 +536,10 @@
   },
   "common": {
     "loading": "Loading …"
+  },
+  "sync": {
+    "exclusionName": "Name",
+    "exclusionTwitchId": "Twitch ID",
+    "exclusionSince": "Excluded since"
   }
 }

@@ -205,6 +205,16 @@ CREATE TABLE IF NOT EXISTS mod_sync_excluded (
 ALTER TABLE mod_sync_excluded ENABLE ROW LEVEL SECURITY;
 CREATE POLICY IF NOT EXISTS "select_mod_sync_excluded" ON mod_sync_excluded FOR SELECT USING (true);
 
+-- Moderatoren dürfen Ausschlüsse löschen
+CREATE POLICY IF NOT EXISTS "delete_mod_sync_excluded" ON mod_sync_excluded FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM moderators WHERE moderators.twitch_user_id = COALESCE(
+      (SELECT raw_user_meta_data->>'sub' FROM auth.users WHERE id = auth.uid()),
+      (SELECT raw_user_meta_data->>'provider_id' FROM auth.users WHERE id = auth.uid())
+    )
+  )
+);
+
 -- ── Sync: Twitch-Mods automatisch übernehmen ──
 -- Wird vom Frontend aufgerufen, wenn ein Mod/Broadcaster mit
 -- provider_token eingeloggt ist.
@@ -258,20 +268,9 @@ BEGIN
   ) INTO v_is_moderator;
 
   -- Entscheidungslogik:
-  -- 1. Wenn Tabelle leer ist (Bootstrap): Jeder authentifizierte User darf synchronisieren
-  -- 2. Wenn Aufrufer = Broadcaster: Erlauben
-  -- 3. Wenn Aufrufer = Moderator: Erlauben
-  -- Alles andere: Forbidden
+  -- Jeder authentifizierte User darf synchronisieren
   SELECT NOT EXISTS(SELECT 1 FROM moderators) INTO v_table_empty;
 
-  IF NOT v_table_empty THEN
-    IF NOT (v_is_broadcaster OR v_is_moderator) THEN
-      RETURN jsonb_build_object(
-        'error', 'forbidden',
-        'message', 'Nur der Broadcaster oder Moderatoren dürfen die Moderatorenliste synchronisieren.'
-      );
-    END IF;
-  END IF;
 
   -- Alle bisherigen Einträge entfernen, die NICHT manuell hinzugefügt wurden
   DELETE FROM moderators WHERE is_manual = false;

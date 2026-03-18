@@ -411,13 +411,13 @@ export default function ModerateSettingsPage() {
         <>
           <div style={{ overflowX: 'auto', marginBottom: 12 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--box-border)', textAlign: 'left' }}>
-                  <th style={{ padding: '8px 6px' }}>Name</th>
-                  <th style={{ padding: '8px 6px' }}>Twitch-ID</th>
-                  <th style={{ padding: '8px 6px' }}>Ausgeschlossen seit</th>
-                  <th style={{ padding: '8px 6px' }}></th>
-                </tr>
+               <thead>
+                 <tr style={{ borderBottom: '1px solid var(--box-border)', textAlign: 'left' }}>
+                   <th style={{ padding: '8px 6px' }}>{t('moderate.exclusionName')}</th>
+                   <th style={{ padding: '8px 6px' }}>{t('moderate.exclusionTwitchId')}</th>
+                   <th style={{ padding: '8px 6px' }}>{t('moderate.exclusionSince')}</th>
+                   <th style={{ padding: '8px 6px' }}></th>
+                 </tr>
               </thead>
               <tbody>
                 {exclusions.map((e) => (
