@@ -4,12 +4,14 @@
     <!-- Meta-Refresh entfernt, damit SPA-Fallback funktioniert -->
     <script>
       // SPA-Fallback für GitHub Pages
-      // Leitet auf index.html weiter und erhält die Pfad-URL für React Router
+      // Leitet auf die aktuelle Pfad-URL weiter, ohne Hash!
       (function() {
-        const l = window.location;
-        // Leite auf index.html weiter, aber ohne Hash!
-        const redirect = l.pathname + l.search;
-        window.location.replace(redirect);
+        var pathname = window.location.pathname;
+        var search = window.location.search;
+        // Nur weiterleiten, wenn nicht auf der Root-Seite
+        if (pathname !== '/') {
+          window.location.replace(window.location.origin + pathname + search);
+        }
       })();
     </script>
     <title>Redirecting...</title>
