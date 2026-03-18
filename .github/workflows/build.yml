@@ -34,10 +34,10 @@ jobs:
         working-directory: TwitchAddon
 
       - name: Download Launch4j
-        shell: pwsh
+        shell: bash
         run: |
-          Invoke-WebRequest -Uri "https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download" -OutFile "launch4j.zip"
-          Expand-Archive -Path launch4j.zip -DestinationPath launch4j
+          curl -L -f -sS "https://downloads.sourceforge.net/project/launch4j/launch4j-3/3.50/launch4j-3.50-win32.zip" -o launch4j.zip
+          unzip launch4j.zip -d launch4j_bin
 
       - name: Get Twitch OAuth Access Token
         shell: bash
