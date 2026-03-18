@@ -101,19 +101,21 @@ jobs:
           name: TwitchAddon-exe
           path: TwitchAddon/dist/*.exe
 
-      - name: Create GitHub Release
+            - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.sha }}
-          name: TwitchAddon Release ${{ github.sha }}
+          # Ein Präfix davor setzen, um die 40-Zeichen-Hex-Regel zu umgehen
+          tag_name: "v-${{ github.sha }}"
+          name: "TwitchAddon Release ${{ github.run_number }}"
+          files: TwitchAddon/dist/*.exe
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
         with:
           files: TwitchAddon/dist/*.exe
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
