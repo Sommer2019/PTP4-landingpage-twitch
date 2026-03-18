@@ -62,25 +62,27 @@ jobs:
           echo TWITCH_CLIENT_ID=${{ secrets.TWITCH_CLIENT_ID }} >> TwitchAddon/.env
           echo CHANNEL_NAME=${{ secrets.CHANNEL_NAME }} >> TwitchAddon/.env
 
-      - name: Create dist directory
-        run: mkdir -p TwitchAddon/dist
-
+      - name: Prepare dist folder
+        # Wir nutzen den relativen Pfad direkt im Arbeitsverzeichnis
+        run: mkdir -p dist
+        working-directory: TwitchAddon
 
       - name: Build EXE with Launch4j
         shell: pwsh
         run: |
-          # Suche explizit die Konsolen-Version
+          # 1. Suche die exe (bleibt gleich)
           $l4jExe = Get-ChildItem -Path "${{ github.workspace }}" -Filter "launch4jc.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
           
-          Write-Host "Nutze Launch4j: $l4jExe"
+          # 2. Debug: Zeig uns, wo wir sind und was da ist
+          Write-Host "Aktueller Pfad: $(Get-Location)"
+          Write-Host "Suche JAR in target/..."
+          Get-ChildItem -Path "target" -Filter "*.jar"
           
-          # Starte den Build
+          # 3. Launch4j ausführen
+          # Wir übergeben den Pfad zur XML absolut, damit es keine Missverständnisse gibt
           & $l4jExe "${{ github.workspace }}/TwitchAddon/launch4j-config.xml"
-          
-          # Kontrolle: Was wurde erzeugt?
-          Write-Host "Inhalt von TwitchAddon/dist:"
-          Get-ChildItem -Path "${{ github.workspace }}/TwitchAddon/dist" -ErrorAction SilentlyContinue
         working-directory: TwitchAddon
+
 
       - name: Upload EXE as artifact
         uses: actions/upload-artifact@v4
