@@ -59,13 +59,24 @@ jobs:
         run: |
           echo SUPABASE_URL=${{ secrets.SUPABASE_URL }} > TwitchAddon/.env
           echo SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }} >> TwitchAddon/.env
-          echo TWITCH_OAUTH_TOKEN=$TWITCH_OAUTH_TOKEN >> TwitchAddon/.env
           echo TWITCH_CLIENT_ID=${{ secrets.TWITCH_CLIENT_ID }} >> TwitchAddon/.env
           echo CHANNEL_NAME=${{ secrets.CHANNEL_NAME }} >> TwitchAddon/.env
 
       - name: Build EXE with Launch4j
+        shell: pwsh
         run: |
-          ..\launch4j\launch4j.exe launch4j-config.xml
+          # Wir suchen die launch4j.exe im gesamten Workspace, falls der Ordnername variiert
+          $l4jExe = Get-ChildItem -Path "${{ github.workspace }}" -Filter "launch4j.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          
+          if (-not $l4jExe) {
+              Write-Error "launch4j.exe wurde im Workspace nicht gefunden!"
+              exit 1
+          }
+
+          Write-Host "Nutze Launch4j von: $l4jExe"
+          
+          # Ausführung mit dem gefundenen absoluten Pfad
+          & $l4jExe "${{ github.workspace }}/TwitchAddon/launch4j-config.xml"
         working-directory: TwitchAddon
 
       - name: Upload EXE as artifact
