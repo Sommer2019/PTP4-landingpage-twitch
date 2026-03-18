@@ -207,7 +207,7 @@ export default function StreamplanPage() {
         ))}
 
         {!loading && groupedEvents.length === 0 && (
-          <div className="no-events">Keine Termine gefunden.</div>
+          <div className="no-events">{t('streamplanPage.noEvents')}</div>
         )}
 
         {showExpandButton && (

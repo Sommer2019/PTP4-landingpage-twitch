@@ -196,11 +196,11 @@
   },
   "streamplanPage": {
     "title": "Streamplan",
-    "intro": "Hier findest du den aktuellen Streamplan von HD1920x1080. Bleib auf dem Laufenden über kommende Live-Streams und Events!",
-    "calendarTitle": "Stream-Kalender",
+    "intro": "Hier findest du alle geplanten Streams und Events.",
     "filter": "Filter",
     "all": "Alle",
-    "showMore": "{{count}} weitere Termine anzeigen",
+    "noEvents": "Keine Termine in den nächsten 14 Tagen gefunden.",
+    "showMore": "Mehr anzeigen ({{count}} weitere)",
     "showLess": "Weniger anzeigen"
   },
   "streamplan": {

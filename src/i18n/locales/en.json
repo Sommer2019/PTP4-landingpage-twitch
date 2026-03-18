@@ -197,10 +197,10 @@
   "streamplanPage": {
     "title": "Stream Schedule",
     "intro": "Here you can find the current stream schedule of HD1920x1080. Stay up to date on upcoming live streams and events!",
-    "calendarTitle": "Stream Calendar",
     "filter": "Filter",
     "all": "All",
-    "showMore": "Show {{count}} more events",
+    "noEvents": "No events in next 14 days found.",
+    "showMore": "Show more ({{count}} more)",
     "showLess": "Show less"
   },
   "streamplan": {

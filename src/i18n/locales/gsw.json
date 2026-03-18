@@ -120,7 +120,7 @@
     }
   },
   "profile": {
-    "moderate": "Moderation"
+    "n": "Moderation"
   },
   "footer": {
     "impressum": "Impressum",
@@ -185,10 +185,10 @@
   },
   "streamplanPage": {
     "title": "Streamplan",
-    "intro": "Da findsch de aktuälle Streamplan vo HD1920x1080. Bliib uf em Laufende über kommendi Live-Streams und Events!",
-    "calendarTitle": "Stream-Kalender",
+    "intro": "Da findsch alli geplante Streams und Events.",
     "filter": "Filter",
     "all": "Alli",
+    "noEvents": "Kei Termine in den nächschte 14 Täg gfunde.",
     "showMore": "{{count}} witteri Termin azeige",
     "showLess": "Weniger azeige"
   },
