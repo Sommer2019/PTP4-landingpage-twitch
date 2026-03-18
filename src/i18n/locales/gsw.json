@@ -525,5 +525,10 @@
   },
   "common": {
     "loading": "Ladä …"
+  },
+  "sync": {
+    "exclusionName": "Name",
+    "exclusionTwitchId": "Twitch-ID",
+    "exclusionSince": "Usgschlosse sit"
   }
 }
