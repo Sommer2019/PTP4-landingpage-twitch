@@ -21,7 +21,7 @@ jobs:
       TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
       TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
 
-     steps:
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
