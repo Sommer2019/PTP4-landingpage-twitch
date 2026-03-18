@@ -6,8 +6,8 @@
       // SPA-Fallback für GitHub Pages
       // Leitet auf die aktuelle Pfad-URL weiter, ohne Hash!
       (function() {
-        var pathname = window.location.pathname;
-        var search = window.location.search;
+        const pathname = window.location.pathname;
+        const search = window.location.search;
         // Nur weiterleiten, wenn nicht auf der Root-Seite
         if (pathname !== '/') {
           window.location.replace(window.location.origin + pathname + search);

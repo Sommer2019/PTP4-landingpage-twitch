@@ -151,6 +151,12 @@ export function useBartclickerGame() {
   });
 
   const [cps, setCps] = useState(0);
+  // Hand-CPS Stats
+  const [handCps, setHandCps] = useState(0);
+  const [handCpsAvg, setHandCpsAvg] = useState(0);
+  const [handCpsTop, setHandCpsTop] = useState(0);
+  const handClickCountRef = useRef(0);
+  const handClickStartRef = useRef<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastSaveTime, setLastSaveTime] = useState(0);
   const [offlineEarnings, setOfflineEarnings] = useState<{ amount: number; seconds: number } | null>(null);
@@ -471,6 +477,10 @@ export function useBartclickerGame() {
     // Timestamp aufnehmen
     const timestamps = clickTimestampsRef.current;
     timestamps.push(now);
+
+    // Hand-CPS Tracking
+    handClickCountRef.current++;
+    if (!handClickStartRef.current) handClickStartRef.current = now;
 
     // Nur die letzten AC_WINDOW Klicks behalten
     if (timestamps.length > AC_WINDOW) {
@@ -811,6 +821,27 @@ export function useBartclickerGame() {
     setOfflineEarnings(null);
   }, []);
 
+  // Intervall zur Berechnung der Hand-CPS
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = performance.now();
+      // Hand-CPS: Klicks in den letzten 1000ms
+      const timestamps = clickTimestampsRef.current;
+      const oneSecAgo = now - 1000;
+      const recentClicks = timestamps.filter(ts => ts >= oneSecAgo);
+      setHandCps(recentClicks.length);
+      // Durchschnittliche CPS
+      if (handClickStartRef.current) {
+        const duration = (now - handClickStartRef.current) / 1000;
+        const avg = duration > 0 ? handClickCountRef.current / duration : 0;
+        setHandCpsAvg(avg);
+      }
+      // Top-CPS
+      if (recentClicks.length > handCpsTop) setHandCpsTop(recentClicks.length);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [handCpsTop]);
+
   return {
     gameState,
     isLoading,
@@ -830,9 +861,11 @@ export function useBartclickerGame() {
     buyOfflineUpgrade,
     saveGameState,
     loadGameState,
+    handCps,
+    handCpsAvg,
+    handCpsTop,
   };
 }
-
 
 
 

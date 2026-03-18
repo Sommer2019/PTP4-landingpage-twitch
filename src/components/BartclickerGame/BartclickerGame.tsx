@@ -11,7 +11,7 @@ interface BartclickerGameProps {
 
 export default function BartclickerGame({ compact = false }: BartclickerGameProps) {
   const { t } = useTranslation();
-  const { gameState, isLoading, cps, clickBlocked, handleClick, buyItem, buyMaxItems, activateBuff, performRebirth, buyAutobuyer, buyUpgradeAutobuyer, unlockRelic, buyOfflineUpgrade, offlineEarnings, dismissOfflineEarnings } =
+  const { gameState, isLoading, cps, clickBlocked, handleClick, buyItem, buyMaxItems, activateBuff, performRebirth, buyAutobuyer, buyUpgradeAutobuyer, unlockRelic, buyOfflineUpgrade, offlineEarnings, dismissOfflineEarnings, handCps, handCpsAvg } =
     useBartclickerGame();
   const { entries: leaderboardEntries, isLoading: leaderboardLoading } = useBartclickerLeaderboard();
 
@@ -487,6 +487,14 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
             <span>{formatNumber(cps)}</span>
           </div>
           <div className="stat-row">
+            <label>Hand-CPS (live):</label>
+            <span>{formatCPS(handCps)}</span>
+          </div>
+          <div className="stat-row">
+            <label>Hand-CPS (Ø):</label>
+            <span>{formatCPS(handCpsAvg)}</span>
+          </div>
+          <div className="stat-row">
             <label>{t('bartclicker.stats.activeBuffs')}:</label>
             <span>{gameState.active_buffs.length}</span>
           </div>
@@ -516,6 +524,4 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
     </div>
   );
 }
-
-
 
