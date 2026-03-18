@@ -538,12 +538,8 @@
     "loading": "Lädt …"
   },
   "sync": {
-    "exclusions": {
-      "title": "Ausschlüsse",
-      "description": "Hier siehst du, welche Moderatoren beim nächsten Sync ignoriert werden.",
       "exclusionName": "Name",
       "exclusionTwitchId": "Twitch-ID",
       "exclusionSince": "Ausgeschlossen seit"
-    }
   }
 }
