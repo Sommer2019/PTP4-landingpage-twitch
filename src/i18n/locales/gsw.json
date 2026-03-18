@@ -326,6 +326,7 @@
     "syncExclusionsCount": "{{count}} Mod(s) usgschlosse",
     "syncExclusionsNone": "Keini Usschlüss vorhande.",
     "resetExclusions": "Usschlüss zruggsetze",
+    "removeExclusionBtn": "Usschluss zruggsetze",
     "resetExclusionsConfirmTitle": "Usschlüss zruggsetze?",
     "resetExclusionsConfirmMsg": "Alli {{count}} Usschlüss werded glöscht. Bim nächschte Sync werded die Mods wieder hinzuegfüegt.",
     "resetExclusionsSuccess": "{{count}} Usschlüss zrugggsetzt",

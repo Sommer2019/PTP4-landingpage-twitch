@@ -337,6 +337,7 @@
     "syncExclusionsCount": "{{count}} Mod(s) ausgeschlossen",
     "syncExclusionsNone": "Keine Ausschlüsse vorhanden.",
     "resetExclusions": "Ausschlüsse zurücksetzen",
+    "removeExclusionBtn": "Ausschluss zurücksetzen",
     "resetExclusionsConfirmTitle": "Ausschlüsse zurücksetzen?",
     "resetExclusionsConfirmMsg": "Alle {{count}} Ausschlüsse werden gelöscht. Beim nächsten Sync werden diese Mods wieder hinzugefügt.",
     "resetExclusionsSuccess": "{{count}} Ausschluss/Ausschlüsse zurückgesetzt",

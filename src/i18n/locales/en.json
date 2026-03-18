@@ -337,6 +337,7 @@
     "syncExclusionsCount": "{{count}} mod(s) excluded",
     "syncExclusionsNone": "No exclusions.",
     "resetExclusions": "Reset exclusions",
+    "removeExclusionBtn": "Reset exclusion",
     "resetExclusionsConfirmTitle": "Reset exclusions?",
     "resetExclusionsConfirmMsg": "All {{count}} exclusions will be removed. These mods will be re-added on the next sync.",
     "resetExclusionsSuccess": "{{count}} exclusion(s) reset",
