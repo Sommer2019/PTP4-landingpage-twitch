@@ -155,10 +155,10 @@ export default function LiveSection() {
                 {t('live.chatFallback')}
               </a>
             </div>
-            {/* Punkte & Rewards direkt unter dem Chat anzeigen */}
-            <PointsAndRewardSection isLive={true} />
           </div>
         </div>
+        {/* Punkte & Rewards direkt unter dem Chat anzeigen */}
+        <PointsAndRewardSection isLive={true} />
       </div>
     </section>
   )
