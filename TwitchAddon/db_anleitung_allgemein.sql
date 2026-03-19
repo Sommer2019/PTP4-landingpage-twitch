@@ -52,21 +52,13 @@ insert into rewards (
 ('13', 'Sour and Sweet + 1x Centershock', 10000, 'video', 'youtube', 'https://www.youtube.com/watch?v=4FHlp88vSuU', false, 'Stefan futtert nen Centershock', 'https://www.sweetsanddrinks.ch/temp/resize_800x800_20051_9688.png', 'Sour and Sweet + 1x Centershock', 60, null)
 on conflict (id) do nothing;
 
--- 3. Beispiel: Reward einlösen (manuell)
--- Normale TTS-Belohnung:
-INSERT INTO redeemed_rewards (user, reward_id, description, ttsText)
-VALUES ('USERNAME', 'reward3', 'Dies ist eine Text to Speech Nachricht.', 'Dies ist eine Text to Speech Nachricht.');
-
--- RAID-Anführer (nur einmal pro Stream, bleibt bis Streamende stehen):
-INSERT INTO redeemed_rewards (user, reward_id, description, ttsText)
-VALUES ('USERNAME', 'raid_leader', 'GEGEBENER NAME', 'GEGEBENER NAME');
-
--- Video-Reward:
-INSERT INTO redeemed_rewards (user, reward_id, description)
-VALUES ('USERNAME', 'reward2', 'Spielt ein Meme von YouTube ab.');
-
--- 4. Nach dem Stream kann der RAID-Anführer-Reward manuell gelöscht werden:
-DELETE FROM redeemed_rewards WHERE reward_id = 'raid_leader';
+create table if not exists points (
+    id uuid primary key default gen_random_uuid(),
+    twitch_user_id text not null,
+    points integer not null default 0,
+    reason text,
+    timestamp timestamptz not null default now()
+    );
 
 -- Hinweise:
 -- - Rewards werden in rewards.json gepflegt und mit obigem Befehl in die DB übernommen.

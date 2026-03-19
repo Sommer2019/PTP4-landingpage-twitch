@@ -104,7 +104,7 @@
     "type": "tts",
     "description": "RAID-Anführer",
     "duration": 5,
-    "oncePerStream": true
+    "onceperstream": true
   },
   {
     "id": "12",
@@ -122,7 +122,7 @@
     "type": "video",
     "source": "youtube",
     "mediaurl": "https://www.youtube.com/watch?v=4FHlp88vSuU",
-    "showYoutubeVideo": false,
+    "showyoutubevideo": false,
     "description": "Stefan futtert nen Centershock",
     "customimageurl": "https://www.sweetsanddrinks.ch/temp/resize_800x800_20051_9688.png",
     "text": "Sour and Sweet + 1x Centershock",
