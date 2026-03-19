@@ -1,12 +1,7 @@
 -- Komplette Anleitung: Rewards-System mit Supabase/Postgres
 -- Tabellen anlegen, Rewards befüllen, Einlösen und Hinweise
 
--- 1. Tabellen anlegen
-create table if not exists users (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  points integer not null default 0
-);
+
 
 create table if not exists rewards (
   id text primary key,
@@ -66,5 +61,5 @@ create table if not exists points (
 -- - Für TTS kann der Text dynamisch über ttsText oder description gesetzt werden.
 -- - Für einmalige Rewards (z.B. RAID-Anführer) sorgt das Overlay dafür, dass sie nicht automatisch gelöscht werden.
 -- - Die Felder cost, timestamp etc. können optional mitgegeben werden.
--- - User-Punkte werden in der Tabelle users gepflegt (z.B. für ein Shop-System).
+-- - User-Punkte werden in der Tabelle points gepflegt (z.B. für ein Shop-System).
 -- - Ein Reward-Kauf kann über eine Funktion wie buy_reward atomar umgesetzt werden (siehe separate Anleitung).
