@@ -29,16 +29,32 @@
     }
     let pollTimeoutId = null;
     let isPlaying = false;
+    // IDs der zuletzt abgespielten Rewards merken (max 20)
+    function getPlayedRewardIds() {
+      try {
+        return JSON.parse(localStorage.getItem('playedRewardIds') || '[]');
+      } catch { return []; }
+    }
+    function addPlayedRewardId(id) {
+      let arr = getPlayedRewardIds();
+      arr.push(id);
+      if (arr.length > 20) arr = arr.slice(arr.length - 20);
+      localStorage.setItem('playedRewardIds', JSON.stringify(arr));
+    }
     async function pollRedeemedRewards() {
       if (isPlaying) return; // Blockiere doppeltes Polling während Wiedergabe
       const now = Date.now();
       const redeemed = await fetchRedeemedRewards();
+      const playedIds = getPlayedRewardIds();
+      // Finde ersten Reward, der noch nicht gespielt wurde
+      const next = redeemed.find(r => !playedIds.includes(r.id));
       console.log(`[Overlay] Polling: ${redeemed.length} Rewards gefunden, Zeit seit letztem: ${now - lastRedeemTime}ms`);
-      if (redeemed.length > 0 && (now - lastRedeemTime >= MIN_REDEEM_INTERVAL)) {
+      if (next && (now - lastRedeemTime >= MIN_REDEEM_INTERVAL)) {
         console.log('[Overlay] Spiele nächsten Reward ab ...');
         isPlaying = true;
-        await playAndDeleteReward(redeemed[0]);
+        await playAndDeleteReward(next);
         lastRedeemTime = Date.now();
+        addPlayedRewardId(next.id);
         // Das weitere Polling wird erst nach erfolgreichem Löschen im clearAndDelete() wieder gestartet!
       } else {
         document.getElementById('media').innerHTML = '';

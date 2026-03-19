@@ -66,7 +66,7 @@ public class SupabaseClient {
             logger.info("Supabase GET Status: {} | Body: {}", response.statusCode(), response.body());
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
                 JSONArray arr = new JSONArray(response.body());
-                if (arr.length() > 0) {
+                if (!arr.isEmpty()) {
                     return arr.getJSONObject(0).getInt("points");
                 }
             }
@@ -93,7 +93,7 @@ public class SupabaseClient {
             logger.info("Supabase existsUser Status: {} | Body: {}", response.statusCode(), response.body());
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
                 JSONArray arr = new JSONArray(response.body());
-                return arr.length() > 0;
+                return !arr.isEmpty();
             }
         } catch (IOException | InterruptedException e) {
             logger.error("Fehler bei existsUser: {}", e.getMessage(), e);
@@ -194,5 +194,97 @@ public class SupabaseClient {
         } catch (IOException | InterruptedException e) {
             logger.error("Fehler beim Supabase UPSERT Reward: {}", e.getMessage(), e);
         }
+    }
+
+    // Gibt den Cooldown einer Belohnung aus der DB zurück (in Sekunden)
+    public int getRewardCooldownFromDb(String rewardId) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(supabaseUrl + "/rest/v1/rewards?id=eq." + rewardId))
+                .header("apikey", apiKey)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .build();
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                JSONArray arr = new JSONArray(response.body());
+                if (!arr.isEmpty()) {
+                    return arr.getJSONObject(0).optInt("cooldown", 0);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Supabase GET rewards (cooldown): {}", e.getMessage(), e);
+        }
+        return 0;
+    }
+
+    // Gibt den letzten Einlösezeitpunkt für einen Reward eines Users zurück (Unix-Timestamp in ms, 0 falls nie eingelöst)
+    public long getLastRedemptionTimestampFromRedeemedRewards(String userId, String rewardId) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(supabaseUrl + "/rest/v1/redeemed_rewards?select=timestamp&user_id=eq." + userId + "&reward_id=eq." + rewardId + "&order=timestamp.desc&limit=1"))
+                .header("apikey", apiKey)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .build();
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                JSONArray arr = new JSONArray(response.body());
+                if (!arr.isEmpty()) {
+                    return arr.getJSONObject(0).optLong("timestamp", 0);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Supabase GET redeemed_rewards (timestamp): {}", e.getMessage(), e);
+        }
+        return 0;
+    }
+
+    // Fügt eine Reward-Einlösung in redeemed_rewards ein
+    public void insertRedeemedReward(JSONObject redeemedReward) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(supabaseUrl + "/rest/v1/redeemed_rewards"))
+                .header("apikey", apiKey)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString("[" + redeemedReward.toString() + "]"))
+                .timeout(Duration.ofSeconds(10))
+                .build();
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                logger.error("Supabase INSERT redeemed_rewards fehlgeschlagen: {} {}", response.statusCode(), response.body());
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Supabase INSERT redeemed_rewards: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Gibt einen einzelnen eingelösten Reward anhand der ID zurück (aus redeemed_rewards).
+     */
+    public JSONObject getRedeemedRewardById(String id) {
+        if (id == null) return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(supabaseUrl + "/rest/v1/redeemed_rewards?id=eq." + id))
+                .header("apikey", apiKey)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .build();
+        try {
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                JSONArray arr = new JSONArray(response.body());
+                if (arr.length() > 0) {
+                    return arr.getJSONObject(0);
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            logger.error("Fehler beim Supabase GET redeemed_reward by id: {}", e.getMessage(), e);
+        }
+        return null;
     }
 }

@@ -110,10 +110,14 @@
     "id": "12",
     "name": "Oreo",
     "cost": 500,
-    "type": "image_text",
-    "mediaurl": "https://pngimg.com/d/oreo_PNG30.png",
+    "type": "video",
+    "source": "youtube",
+    "mediaurl": "https://www.youtube.com/watch?v=boDKFEpgzwI",
+    "showyoutubevideo": false,
+    "customimageurl": "https://pngimg.com/d/oreo_PNG15.png",
     "description": "Snäck!",
-    "duration": 5
+    "duration": 5,
+    "cooldown": 180
   },
   {
     "id": "13",
@@ -126,6 +130,7 @@
     "description": "Stefan futtert nen Centershock",
     "customimageurl": "https://www.sweetsanddrinks.ch/temp/resize_800x800_20051_9688.png",
     "text": "Sour and Sweet + 1x Centershock",
-    "duration": 60
+    "duration": 60,
+    "cooldown": 180
   }
 ]
