@@ -12,12 +12,12 @@ public class UserPointsManager {
         this.supabaseClient = supabaseClient;
     }
 
-    public void userJoined(String username) {
+    public void userJoined(String username, String userid) {
         logger.info("userJoined: {}", username);
-        sessions.put(username, new UserSession(username, System.currentTimeMillis()));
+        sessions.put(username, new UserSession(username, userid, System.currentTimeMillis()));
         // Prüfe, ob User in DB existiert, sonst anlegen
-        if (!supabaseClient.existsUser(username)) {
-            supabaseClient.createUser(username);
+        if (!supabaseClient.existsUser(username, userid)) {
+            supabaseClient.createUser(username, userid);
         }
     }
 
@@ -30,9 +30,9 @@ public class UserPointsManager {
         return sessions.get(username);
     }
 
-    public void addPoints(String username, int points, String reason) {
+    public void addPoints(String username, String userid, int points, String reason) {
         logger.info("addPoints: {} | {} | {}", username, points, reason);
-        supabaseClient.addOrUpdatePoints(username, points, reason);
+        supabaseClient.addOrUpdatePoints(username, userid, points, reason);
     }
 
     public void setFollower(String username) {
