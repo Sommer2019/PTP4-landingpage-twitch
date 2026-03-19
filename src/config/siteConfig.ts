@@ -101,7 +101,7 @@ export interface SiteConfig {
 const siteConfig: SiteConfig = {
   // ── Profil ──
   profile: {
-    name: 'HD1920x1080',
+    name: 'lesommer2019',
     subtitleKey: 'hero.subtitle',
     image: '/img/logos/HDProfile.webp',
   },
