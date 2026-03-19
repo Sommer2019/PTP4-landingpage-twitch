@@ -1,0 +1,17 @@
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>console</headerType>
+  <jar>target/ChannelPointsBot-1.0-SNAPSHOT.jar</jar>
+  <outfile>dist/TwitchAddon.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl>https://adoptium.net/</downloadUrl>
+  <supportUrl></supportUrl>
+  <manifest></manifest>
+  <icon></icon>
+  <jre>
+    <minVersion>17</minVersion>
+  </jre>
+</launch4jConfig>

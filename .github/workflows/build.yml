@@ -1,0 +1,107 @@
+name: Build TwitchAddon EXE
+
+on:
+  push:
+    branches:
+      - master
+      - main
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
+      TWITCH_OAUTH_TOKEN: ${{ secrets.TWITCH_OAUTH_TOKEN }}
+      TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
+      CHANNEL_NAME: ${{ secrets.CHANNEL_NAME }}
+      TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+      TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      # 1. ZUERST den Token holen
+      - name: Get Twitch OAuth Access Token
+        shell: bash
+        id: get_oauth
+        run: |
+          RESPONSE=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
+            -d client_id=${{ secrets.VITE_TWITCH_CLIENT_ID }} \
+            -d client_secret=${{ secrets.TWITCH_CLIENT_SECRET }} \
+            -d grant_type=refresh_token \
+            -d refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }})
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      # 2. DANN die .env im Resources-Ordner erstellen
+      - name: Create .env file for build
+        shell: pwsh
+        run: |
+          $resPath = "TwitchAddon/src/main/resources"
+          if (!(Test-Path $resPath)) { New-Item -ItemType Directory -Force -Path $resPath }
+          
+          $envContent = @(
+            "SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}",
+            "SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}",
+            "TWITCH_OAUTH_TOKEN=$($env:TWITCH_OAUTH_TOKEN)",
+            "TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}",
+            "CHANNEL_NAME=${{ secrets.CHANNEL_NAME }}"
+          )
+          $envContent | Out-File -FilePath "$resPath/.env" -Encoding utf8
+        env:
+          TWITCH_OAUTH_TOKEN: ${{ env.TWITCH_OAUTH_TOKEN }}
+
+      # 3. JETZT Maven ausführen (packt die .env automatisch mit ein)
+      - name: Build Fat JAR
+        run: mvn package
+        working-directory: TwitchAddon
+
+      # 4. DOWNLOAD Launch4j
+      - name: Download Launch4j
+        shell: bash
+        run: |
+          curl -L -f -sS "https://downloads.sourceforge.net/project/launch4j/launch4j-3/3.50/launch4j-3.50-win32.zip" -o launch4j.zip
+          unzip launch4j.zip -d launch4j_bin
+
+      - name: Prepare dist folder
+        run: mkdir -p dist
+        working-directory: TwitchAddon
+
+      # 5. EXE BAUEN
+      - name: Build EXE with Launch4j
+        shell: pwsh
+        run: |
+          $l4jExe = Get-ChildItem -Path "${{ github.workspace }}" -Filter "launch4jc.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          & $l4jExe "${{ github.workspace }}/TwitchAddon/launch4j-config.xml"
+        working-directory: TwitchAddon
+
+      # 5.1. rewards.json in den dist-Ordner kopieren
+      - name: Copy rewards.json to dist
+        shell: pwsh
+        run: |
+          Copy-Item "${{ github.workspace }}/TwitchAddon/config/rewards.json" "${{ github.workspace }}/TwitchAddon/dist/rewards.json" -Force
+        working-directory: TwitchAddon
+
+      # 6. RELEASE
+      - name: Create and Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v-${{ github.sha }}
+          name: TwitchAddon Build ${{ github.run_number }}
+          files: |
+            TwitchAddon/dist/*.exe
+            TwitchAddon/dist/rewards.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

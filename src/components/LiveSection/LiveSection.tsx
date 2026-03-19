@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import siteConfig from '../../config/siteConfig'
 import NextStream from '../NextStream/NextStream'
 import CurrentGame from '../CurrentGame/CurrentGame'
+import PointsAndRewardSection from './PointsAndRewardSection'
 import './LiveSection.css'
 
 /* ── Twitch Player SDK types ── */
@@ -113,9 +114,7 @@ export default function LiveSection() {
         <CurrentGame isLive={showStream} />
 
         {/* ── Player + Chat (immer im DOM für Erkennung, versteckt wenn offline) ── */}
-        <div
-          className={`embed-row${showStream ? '' : ' embed-row--hidden'}`}
-        >
+        <div className={`embed-row${showStream ? '' : ' embed-row--hidden'}`}>
           <div className="embed-player" ref={playerContainerRef} />
 
           <div className="embed-chat">
@@ -135,6 +134,8 @@ export default function LiveSection() {
                 {t('live.chatFallback')}
               </a>
             </div>
+            {/* Punkte & Rewards direkt unter dem Chat anzeigen */}
+            <PointsAndRewardSection isLive={showStream} />
           </div>
         </div>
       </div>

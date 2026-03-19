@@ -21,7 +21,7 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 
 -- ── Tables ──────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS voting_rounds (
+CREATE TABLE IF NOT EXISTS clipvoting.voting_rounds (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   type       voting_round_type   NOT NULL,
   status     voting_round_status NOT NULL DEFAULT 'pending',
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS voting_rounds (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS clips (
+CREATE TABLE IF NOT EXISTS clipvoting.clips (
   id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   twitch_clip_id     text UNIQUE NOT NULL,
   title              text NOT NULL DEFAULT '',
@@ -47,40 +47,39 @@ CREATE TABLE IF NOT EXISTS clips (
 );
 
 -- Many-to-many: which clips belong to which round
-CREATE TABLE IF NOT EXISTS round_clips (
-  round_id uuid NOT NULL REFERENCES voting_rounds(id) ON DELETE CASCADE,
-  clip_id  uuid NOT NULL REFERENCES clips(id)          ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS clipvoting.round_clips (
+  round_id uuid NOT NULL REFERENCES clipvoting.voting_rounds(id) ON DELETE CASCADE,
+  clip_id  uuid NOT NULL REFERENCES clipvoting.clips(id)          ON DELETE CASCADE,
   PRIMARY KEY (round_id, clip_id)
 );
 
-CREATE TABLE IF NOT EXISTS votes (
+CREATE TABLE IF NOT EXISTS clipvoting.votes (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  round_id   uuid NOT NULL REFERENCES voting_rounds(id) ON DELETE CASCADE,
-  clip_id    uuid NOT NULL REFERENCES clips(id)          ON DELETE CASCADE,
+  round_id   uuid NOT NULL REFERENCES clipvoting.voting_rounds(id) ON DELETE CASCADE,
+  clip_id    uuid NOT NULL REFERENCES clipvoting.clips(id)          ON DELETE CASCADE,
   user_id    uuid NOT NULL REFERENCES auth.users(id)     ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT votes_one_per_user_per_round UNIQUE (round_id, user_id)
 );
 
-CREATE TABLE IF NOT EXISTS monthly_winners (
+CREATE TABLE IF NOT EXISTS clipvoting.monthly_winners (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   year       integer NOT NULL,
   month      integer NOT NULL,
-  clip_id    uuid NOT NULL REFERENCES clips(id) ON DELETE CASCADE,
+  clip_id    uuid NOT NULL REFERENCES clipvoting.clips(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT monthly_winners_unique UNIQUE (year, month)
 );
 
-CREATE TABLE IF NOT EXISTS yearly_winners (
+CREATE TABLE IF NOT EXISTS clipvoting.yearly_winners (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   year       integer NOT NULL UNIQUE,
-  clip_id    uuid NOT NULL REFERENCES clips(id) ON DELETE CASCADE,
+  clip_id    uuid NOT NULL REFERENCES clipvoting.clips(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- ── View: aggregated vote counts per clip per round ─────────
 
-CREATE OR REPLACE VIEW clip_vote_counts AS
+CREATE OR REPLACE VIEW clipvoting.clip_vote_counts AS
 SELECT
   rc.round_id,
   rc.clip_id,
@@ -94,34 +93,34 @@ SELECT
   c.duration,
   c.twitch_created_at,
   COALESCE(vc.cnt, 0)::integer AS vote_count
-FROM round_clips rc
-JOIN clips c ON c.id = rc.clip_id
+FROM clipvoting.round_clips rc
+JOIN clipvoting.clips c ON c.id = rc.clip_id
 LEFT JOIN (
   SELECT round_id, clip_id, count(*)::integer AS cnt
-  FROM votes GROUP BY round_id, clip_id
+  FROM clipvoting.votes GROUP BY round_id, clip_id
 ) vc ON vc.round_id = rc.round_id AND vc.clip_id = rc.clip_id;
 
 -- ── Row Level Security ──────────────────────────────────────
 
-ALTER TABLE voting_rounds  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE clips           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE round_clips     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE votes           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE monthly_winners ENABLE ROW LEVEL SECURITY;
-ALTER TABLE yearly_winners  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clipvoting.voting_rounds  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clipvoting.clips           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clipvoting.round_clips     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clipvoting.votes           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clipvoting.monthly_winners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clipvoting.yearly_winners  ENABLE ROW LEVEL SECURITY;
 
 -- Public read
-CREATE POLICY "select" ON voting_rounds  FOR SELECT USING (true);
-CREATE POLICY "select" ON clips           FOR SELECT USING (true);
-CREATE POLICY "select" ON round_clips     FOR SELECT USING (true);
-CREATE POLICY "select" ON votes           FOR SELECT USING (true);
-CREATE POLICY "select" ON monthly_winners FOR SELECT USING (true);
-CREATE POLICY "select" ON yearly_winners  FOR SELECT USING (true);
+CREATE POLICY "select" ON clipvoting.voting_rounds  FOR SELECT USING (true);
+CREATE POLICY "select" ON clipvoting.clips           FOR SELECT USING (true);
+CREATE POLICY "select" ON clipvoting.round_clips     FOR SELECT USING (true);
+CREATE POLICY "select" ON clipvoting.votes           FOR SELECT USING (true);
+CREATE POLICY "select" ON clipvoting.monthly_winners FOR SELECT USING (true);
+CREATE POLICY "select" ON clipvoting.yearly_winners  FOR SELECT USING (true);
 
 -- Writes happen through cast_vote (SECURITY DEFINER) or
 -- GitHub Actions (service_role key → bypasses RLS).
 
-GRANT SELECT ON clip_vote_counts TO anon, authenticated;
+GRANT SELECT ON clipvoting.clip_vote_counts TO anon, authenticated;
 
 -- ── Function: cast_vote ─────────────────────────────────────
 
@@ -140,7 +139,7 @@ BEGIN
     RETURN jsonb_build_object('error', 'not_authenticated');
   END IF;
 
-  SELECT status INTO v_status FROM voting_rounds WHERE id = p_round_id;
+  SELECT status INTO v_status FROM clipvoting.voting_rounds WHERE id = p_round_id;
   IF v_status IS NULL THEN
     RETURN jsonb_build_object('error', 'round_not_found');
   END IF;
@@ -149,14 +148,14 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM round_clips
+    SELECT 1 FROM clipvoting.round_clips
     WHERE round_id = p_round_id AND clip_id = p_clip_id
   ) THEN
     RETURN jsonb_build_object('error', 'clip_not_in_round');
   END IF;
 
   BEGIN
-    INSERT INTO votes (round_id, clip_id, user_id)
+    INSERT INTO clipvoting.votes (round_id, clip_id, user_id)
     VALUES (p_round_id, p_clip_id, v_user_id);
   EXCEPTION WHEN unique_violation THEN
     RETURN jsonb_build_object('error', 'already_voted');

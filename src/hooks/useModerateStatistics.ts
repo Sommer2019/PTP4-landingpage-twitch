@@ -146,21 +146,25 @@ export function useModerateStatistics() {
       pageViewRes,
     ] = await Promise.all([
       supabase
+        .schema('clipvoting')
         .from('voting_rounds')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(12),
       supabase
+        .schema('clipvoting')
         .from('votes')
         .select('created_at, user_id')
         .gte('created_at', fromIso)
         .lte('created_at', toIso),
       supabase
+        .schema('clipvoting')
         .from('monthly_winners')
         .select('id, year, month, created_at, clip_id, clips(title, creator_name)')
         .order('created_at', { ascending: false })
         .limit(4),
       supabase
+        .schema('clipvoting')
         .from('yearly_winners')
         .select('id, year, created_at, clip_id, clips(title, creator_name)')
         .order('year', { ascending: false })
@@ -189,6 +193,7 @@ export function useModerateStatistics() {
 
     if (referenceRound) {
       const { data: roundClips, error: roundClipsError } = await supabase
+        .schema('clipvoting')
         .from('clip_vote_counts')
         .select('*')
         .eq('round_id', referenceRound.id)
@@ -206,6 +211,7 @@ export function useModerateStatistics() {
       }))
 
       const { data: roundVotes, error: roundVotesError } = await supabase
+        .schema('clipvoting')
         .from('votes')
         .select('created_at, user_id')
         .eq('round_id', referenceRound.id)

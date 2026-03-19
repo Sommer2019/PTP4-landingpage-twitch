@@ -21,7 +21,7 @@ export default function ModerateVotingPage() {
     useEffect(() => {
         (async () => {
             const [roundsRes] = await Promise.all([
-                supabase.from('voting_rounds').select('*').order('created_at', {ascending: false}).limit(10),
+                supabase.schema('clipvoting').from('voting_rounds').select('*').order('created_at', {ascending: false}).limit(10),
             ])
             setRounds((roundsRes.data ?? []) as VotingRound[])
             setLoading(false)

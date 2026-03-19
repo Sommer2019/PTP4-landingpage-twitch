@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Overlay</title>
+  <style>
+    body { background: #222; margin: 0; width: 100vw; height: 100vh; overflow: hidden; }
+    #media { display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+    video, audio, iframe { max-width: 80vw; max-height: 80vh; }
+    .reward-text { color: #fff; font-size: 2em; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="media"></div>
+  <script>
+    async function fetchRewards() {
+      console.log('[Overlay] Lade rewards.json ...');
+      const response = await fetch('/api/rewards.json');
+      const data = await response.json();
+      console.log('[Overlay] Rewards geladen:', data);
+      return data;
+    }
+    async function fetchRedeemedRewards() {
+      console.log('[Overlay] Lade eingelöste Rewards ...');
+      const response = await fetch('/api/redeemed_rewards');
+      const data = await response.json();
+      console.log('[Overlay] Eingelöste Rewards:', data);
+      return data;
+    }
+    let pollTimeoutId = null;
+    let isPlaying = false;
+    async function pollRedeemedRewards() {
+      if (isPlaying) return; // Blockiere doppeltes Polling während Wiedergabe
+      const now = Date.now();
+      const redeemed = await fetchRedeemedRewards();
+      console.log(`[Overlay] Polling: ${redeemed.length} Rewards gefunden, Zeit seit letztem: ${now - lastRedeemTime}ms`);
+      if (redeemed.length > 0 && (now - lastRedeemTime >= MIN_REDEEM_INTERVAL)) {
+        console.log('[Overlay] Spiele nächsten Reward ab ...');
+        isPlaying = true;
+        await playAndDeleteReward(redeemed[0]);
+        lastRedeemTime = Date.now();
+        // Das weitere Polling wird erst nach erfolgreichem Löschen im clearAndDelete() wieder gestartet!
+      } else {
+        document.getElementById('media').innerHTML = '';
+        pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
+      }
+    }
+    async function playAndDeleteReward(redeemed) {
+      console.log('[Overlay] Starte playAndDeleteReward für:', redeemed);
+      const rewards = await fetchRewards();
+      const reward = rewards.find(r => String(r.id) === String(redeemed.reward_id));
+      const mediaDiv = document.getElementById('media');
+      mediaDiv.innerHTML = '';
+
+      let duration = reward.duration ? parseInt(reward.duration, 10) : 10; // Standard 10 Sekunden
+      let timeoutId;
+      console.log(`[Overlay] Zeige Reward: ${reward.id} (${reward.type}), Dauer: ${duration}s`);
+      if (reward.type === 'video') {
+        if (reward.source === 'local') {
+          mediaDiv.innerHTML = `<video id="rewardVideo" src="${reward.mediaPath}" controls autoplay></video>`;
+          console.log('[Overlay] Video-Element erzeugt:', reward.mediaPath);
+          const video = document.getElementById('rewardVideo');
+          if (video) {
+            video.onloadedmetadata = () => {
+              if (!reward.duration) duration = Math.ceil(video.duration);
+              timeoutId = setTimeout(clearAndDelete, duration * 1000);
+              console.log('[Overlay] Video geladen, Dauer:', video.duration);
+            };
+          }
+        } else if (reward.source === 'youtube') {
+          if (reward.showYoutubeVideo === false) {
+            // Unsichtbares YouTube-Video für Ton + Bild/Text anzeigen (sichtbar, aber außerhalb des Viewports)
+            let imgHtml = '';
+            if (reward.customImageUrl) {
+              imgHtml = `<img src="${reward.customImageUrl}" alt="Reward-Bild" style="max-width:60vw;max-height:60vh;" />`;
+            }
+            const ytId = reward.mediaUrl.split('v=')[1];
+            mediaDiv.innerHTML = `<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;'>
+              <iframe width="1" height="1" style="opacity:0;position:absolute;left:-9999px;pointer-events:none;" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="autoplay; encrypted-media"></iframe>
+              ${imgHtml}<div class="reward-text">${reward.text || reward.description || ''}</div>
+            </div>`;
+            console.log('[Overlay] YouTube-Video ausgeblendet, Ton läuft, zeige stattdessen Bild/Text:', reward.customImageUrl, reward.text || reward.description);
+            timeoutId = setTimeout(clearAndDelete, duration * 1000);
+          } else {
+            // YouTube IFrame Player API einbinden, falls noch nicht vorhanden
+            if (!window.YT) {
+              let tag = document.createElement('script');
+              tag.src = "https://www.youtube.com/iframe_api";
+              document.body.appendChild(tag);
+            }
+            function onYouTubeIframeAPIReadyWrapper() {
+              const ytId = reward.mediaUrl.split('v=')[1];
+              mediaDiv.innerHTML = `<div id="ytplayer"></div>`;
+              let player = new window.YT.Player('ytplayer', {
+                height: '315',
+                width: '560',
+                videoId: ytId,
+                playerVars: { 'autoplay': 1 },
+                events: {
+                  'onStateChange': function(event) {
+                    if (event.data === window.YT.PlayerState.PLAYING) {
+                      console.log('[Overlay] YouTube-Video PLAYING:', reward.mediaUrl, '| getCurrentTime:', player.getCurrentTime());
+                      // Kein Timeout mehr hier! Nur Logging.
+                    }
+                    if (event.data === window.YT.PlayerState.ENDED) {
+                      console.log('[Overlay] YouTube-Video ENDED:', reward.mediaUrl);
+                      clearAndDelete();
+                    }
+                  }
+                }
+              });
+              // Fallback: Timeout, falls ENDED nicht getriggert wird (z.B. bei Fehlern)
+              timeoutId = setTimeout(() => {
+                console.warn('[Overlay] YouTube-Timeout als Fallback ausgelöst!');
+                clearAndDelete();
+              }, duration * 1000);
+              console.log('[Overlay] YouTube-Video eingebettet (API):', reward.mediaUrl);
+            }
+            // API ready-Callback setzen
+            if (window.YT && window.YT.Player) {
+              onYouTubeIframeAPIReadyWrapper();
+            } else {
+              window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReadyWrapper;
+            }
+          }
+        }
+      } else if (reward.type === 'sound') {
+        mediaDiv.innerHTML = `<audio id="rewardAudio" src="${reward.mediaPath}" controls autoplay></audio>`;
+        console.log('[Overlay] Audio-Element erzeugt:', reward.mediaPath);
+        const audio = document.getElementById('rewardAudio');
+        if (audio) {
+          audio.onloadedmetadata = () => {
+            if (!reward.duration) duration = Math.ceil(audio.duration);
+            timeoutId = setTimeout(clearAndDelete, duration * 1000);
+            console.log('[Overlay] Sound geladen, Dauer:', audio.duration);
+          };
+        }
+      } else if (reward.type === 'audio_text') {
+        if (reward.source === 'youtube') {
+          // YouTube als Audioquelle: Unsichtbares IFrame + Text
+          const ytId = reward.mediaUrl.split('v=')[1];
+          mediaDiv.innerHTML = `<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;'>
+            <iframe width="0" height="0" style="display:none;" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="autoplay; encrypted-media"></iframe>
+            <div class="reward-text">${reward.text || reward.description || ''}</div>
+          </div>`;
+          console.log('[Overlay] YouTube-Audio+Text Reward:', reward.mediaUrl);
+          timeoutId = setTimeout(clearAndDelete, duration * 1000);
+        } else {
+          // Lokale Audiodatei
+          mediaDiv.innerHTML = `<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;'><audio id="rewardAudioText" src="${reward.mediaUrl}" controls autoplay></audio><div class="reward-text">${reward.text || reward.description || ''}</div></div>`;
+          console.log('[Overlay] Audio+Text-Element erzeugt:', reward.mediaUrl);
+          const audio = document.getElementById('rewardAudioText');
+          if (audio) {
+            audio.onloadedmetadata = () => {
+              if (!reward.duration) duration = Math.ceil(audio.duration);
+              timeoutId = setTimeout(clearAndDelete, duration * 1000);
+              console.log('[Overlay] Audio+Text geladen, Dauer:', audio.duration);
+            };
+          }
+        }
+      } else if (reward.type === 'image_text') {
+        mediaDiv.innerHTML = `<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;'><img src="${reward.mediaUrl}" alt="Reward-Bild" style="max-width:60vw;max-height:60vh;" /><div class="reward-text">${reward.text || reward.description || ''}</div></div>`;
+        console.log('[Overlay] Image+Text Reward:', reward.mediaUrl, reward.text || reward.description);
+        timeoutId = setTimeout(clearAndDelete, duration * 1000);
+      } else if (reward.type === 'tts') {
+        let text;
+        if (reward.id === 'raid_leader') {
+          // Dynamischer TTS-Text für RAID-Anführer
+          const username = redeemed.user || '';
+          const target = redeemed.ttsText || redeemed.description || '';
+          text = `RAID-Anführer ${username} zu ${target}`;
+        } else {
+          text = redeemed.ttsText || redeemed.description || reward.ttsText || reward.description || 'Text to Speech';
+        }
+        mediaDiv.innerHTML = `<div class="reward-text">${text}</div>`;
+        if ('speechSynthesis' in window) {
+          const utter = new window.SpeechSynthesisUtterance(text);
+          window.speechSynthesis.speak(utter);
+        }
+        console.log('[Overlay] TTS Reward:', text);
+        timeoutId = setTimeout(clearAndDelete, duration * 1000);
+      } else {
+        mediaDiv.innerHTML = `<div class="reward-text">${reward.description}</div>`;
+        console.log('[Overlay] Fallback Reward:', reward.description);
+        timeoutId = setTimeout(clearAndDelete, duration * 1000);
+      }
+      function clearAndDelete() {
+        if (reward.oncePerStream) {
+          console.log('[Overlay] oncePerStream: Reward bleibt in DB:', reward.id);
+          mediaDiv.innerHTML = '';
+          isPlaying = false;
+          pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
+          return;
+        }
+        // Nach der Wiedergabe: Lösche Reward aus DB
+        fetch(`/api/redeemed_rewards?id=${redeemed.id}`, { method: 'DELETE' })
+          .then(async response => {
+            const text = await response.text();
+            if (response.ok) {
+              console.log('[Overlay] Reward nach Wiedergabe gelöscht:', redeemed.id, '| Status:', response.status, '| Antwort:', text);
+            } else {
+              console.error('[Overlay] Fehler beim Löschen nach Wiedergabe:', response.status, response.statusText, '| Antwort:', text);
+            }
+          })
+          .catch(e => {
+            console.error('[Overlay] Fehler beim Löschen nach Wiedergabe (Netzwerk/JS):', e);
+          });
+        mediaDiv.innerHTML = '';
+        isPlaying = false;
+        pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
+      }
+    }
+    let lastRedeemTime = 0;
+    const MIN_REDEEM_INTERVAL = 5000;
+    pollRedeemedRewards();
+  </script>
+</body>
+</html>
