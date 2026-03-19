@@ -20,6 +20,8 @@ const HEADERS = {
   Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
   'Content-Type': 'application/json',
   Prefer: 'return=representation',
+  'Accept-Profile': 'clipvoting',
+  'Content-Profile': 'clipvoting'
 }
 
 // ── Helpers ──────────────────────────────────────────────
