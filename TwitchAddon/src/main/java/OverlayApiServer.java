@@ -19,7 +19,7 @@ public class OverlayApiServer {
         HttpServer server = HttpServer.create(new java.net.InetSocketAddress(8081), 0);
         server.createContext("/api/redeemed_rewards", new RedeemedRewardsHandler());
         server.createContext("/api/rewards.json", new RewardsJsonHandler());
-        server.createContext("/api/redeem_reward", new RedeemRewardHandler()); // <--- NEU
+        // server.createContext("/api/redeem_reward", new RedeemRewardHandler()); // entfernt, Redeems laufen nur noch über Supabase
         server.createContext("/overlay.html", new StaticFileHandler("overlay.html", "text/html"));
         server.createContext("/media", new StaticDirHandler("media"));
         server.setExecutor(null);
@@ -138,62 +138,7 @@ public class OverlayApiServer {
         }
     }
 
-    // Handler für das Einlösen von Rewards mit Cooldown-Prüfung
-    class RedeemRewardHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-                exchange.sendResponseHeaders(405, 0);
-                exchange.getResponseBody().close();
-                return;
-            }
-            try {
-                String body = new String(exchange.getRequestBody().readAllBytes());
-                JSONObject req = new JSONObject(body);
-                String userId = req.getString("user_id");
-                String rewardId = req.getString("reward_id");
-                long now = System.currentTimeMillis();
-                int cooldown = supabaseClient.getRewardCooldownFromDb(rewardId); // Sekunden
-                long lastRedeemed = supabaseClient.getLastRedemptionTimestampFromRedeemedRewards(userId, rewardId); // ms
-                if (cooldown > 0 && (now - lastRedeemed) < cooldown * 1000L) {
-                    // Cooldown aktiv
-                    JSONObject resp = new JSONObject();
-                    resp.put("success", false);
-                    resp.put("cooldown", cooldown);
-                    resp.put("remaining", ((lastRedeemed + cooldown * 1000L) - now) / 1000L);
-                    String respStr = resp.toString();
-                    exchange.getResponseHeaders().add("Content-Type", "application/json");
-                    exchange.sendResponseHeaders(429, respStr.length());
-                    exchange.getResponseBody().write(respStr.getBytes());
-                    exchange.getResponseBody().close();
-                    return;
-                }
-                // Cooldown ok, Reward kann eingelöst werden
-                // Schreibe Einlösung in redeemed_rewards
-                JSONObject insert = new JSONObject();
-                insert.put("user_id", userId);
-                insert.put("reward_id", rewardId);
-                insert.put("timestamp", now);
-                supabaseClient.insertRedeemedReward(insert);
-                JSONObject resp = new JSONObject();
-                resp.put("success", true);
-                String respStr = resp.toString();
-                exchange.getResponseHeaders().add("Content-Type", "application/json");
-                exchange.sendResponseHeaders(200, respStr.length());
-                exchange.getResponseBody().write(respStr.getBytes());
-                exchange.getResponseBody().close();
-            } catch (Exception e) {
-                JSONObject resp = new JSONObject();
-                resp.put("success", false);
-                resp.put("error", e.getMessage());
-                String respStr = resp.toString();
-                exchange.getResponseHeaders().add("Content-Type", "application/json");
-                exchange.sendResponseHeaders(400, respStr.length());
-                exchange.getResponseBody().write(respStr.getBytes());
-                exchange.getResponseBody().close();
-            }
-        }
-    }
+    // Handler für das Einlösen von Rewards mit Cooldown-Prüfung wurde entfernt, da Redeems nur noch über Supabase laufen
 
     static class StaticFileHandler implements HttpHandler {
         private final String resourcePath;

@@ -11,8 +11,8 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
       TWITCH_OAUTH_TOKEN: ${{ secrets.TWITCH_OAUTH_TOKEN }}

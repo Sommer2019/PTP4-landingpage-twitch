@@ -10,6 +10,7 @@ interface Reward {
   cost: number;
   type: string;
   description: string;
+  cooldown?: number; // Cooldown in Sekunden
 }
 
 export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) {
@@ -23,8 +24,56 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
   const [ttsText, setTtsText] = useState('');
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [status, setStatus] = useState<{type: 'success' | 'error', msg: string} | null>(null);
+  const [cooldownActive, setCooldownActive] = useState(false);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
 
   const selectedReward = rewards.find(r => r.id === selectedRewardId) ?? null;
+
+  // Cooldown prüfen, wenn Reward ausgewählt wird
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+    async function checkCooldown() {
+      setCooldownActive(false);
+      setCooldownRemaining(0);
+      if (!selectedRewardId || !user) return;
+      const twitchUserId = user.user_metadata?.provider_id || user.user_metadata?.sub || user.id;
+      // Lade letzte Einlösung für diesen User und Reward
+      const { data, error } = await supabase
+        .from('redeemed_rewards')
+        .select('created_at')
+        .eq('twitch_user_id', twitchUserId)
+        .eq('reward_id', selectedRewardId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) return;
+      const reward = rewards.find(r => r.id === selectedRewardId);
+      if (!reward || !reward.cooldown) return;
+      if (data && data.created_at) {
+        const last = new Date(data.created_at).getTime();
+        const now = Date.now();
+        const cooldownMs = reward.cooldown * 1000;
+        const remaining = last + cooldownMs - now;
+        if (remaining > 0) {
+          setCooldownActive(true);
+          setCooldownRemaining(Math.ceil(remaining / 1000));
+          // Starte Intervall für Restzeit
+          interval = setInterval(() => {
+            const newRemaining = last + cooldownMs - Date.now();
+            if (newRemaining > 0) {
+              setCooldownRemaining(Math.ceil(newRemaining / 1000));
+            } else {
+              setCooldownActive(false);
+              setCooldownRemaining(0);
+              clearInterval(interval);
+            }
+          }, 1000);
+        }
+      }
+    }
+    checkCooldown();
+    return () => { if (interval) clearInterval(interval); };
+  }, [selectedRewardId, user, rewards]);
 
   // Punkte laden
   useEffect(() => {
@@ -65,6 +114,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
     if (!selectedRewardId) return;
     const reward = rewards.find(r => r.id === selectedRewardId);
     if (!reward || (reward.type === 'tts' && !ttsText) || !user) return;
+    if (cooldownActive) return;
     setRedeemLoading(true);
     setStatus(null);
     const twitchUserId = user.user_metadata?.provider_id || user.user_metadata?.sub || user.id;
@@ -82,6 +132,8 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
       setStatus({ type: 'success', msg: t('Erfolgreich eingelöst!') });
       if (points !== null) setPoints(points - reward.cost);
       setTtsText('');
+      setCooldownActive(true);
+      setCooldownRemaining(reward.cooldown || 0);
       setTimeout(() => {
         setSelectedRewardId(null);
         setStatus(null);
@@ -148,10 +200,15 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
                       redeemLoading ||
                       !selectedReward ||
                       (selectedReward.type === 'tts' && !ttsText) ||
-                      (points !== null && selectedReward && points < selectedReward.cost )
+                      (points !== null && selectedReward && points < selectedReward.cost ) ||
+                      cooldownActive
                   }
               >
-                {redeemLoading ? t('Lädt...') : t('Jetzt einlösen')}
+                {redeemLoading
+                  ? t('Lädt...')
+                  : cooldownActive
+                    ? t('Cooldown: {{sec}}s', { sec: cooldownRemaining })
+                    : t('Jetzt einlösen')}
               </button>
             </div>
         )}
