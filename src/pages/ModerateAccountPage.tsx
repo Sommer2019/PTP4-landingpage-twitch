@@ -71,7 +71,32 @@ export default function ModerateAccountPage() {
     for (const key of Object.keys(defaultReward) as (keyof Reward)[]) {
       const val = r[key]
       if (val === undefined || val === null) continue
-      merged[key] = val
+      // assign with explicit typing per known field to avoid `any`
+      switch (key) {
+        case 'name':
+        case 'type':
+        case 'source':
+        case 'mediaurl':
+        case 'description':
+        case 'customimageurl':
+        case 'text':
+        case 'nameKey':
+        case 'descKey':
+          merged[key] = val as string
+          break
+        case 'cost':
+        case 'duration':
+        case 'cooldown':
+          merged[key] = Number(val) as number
+          break
+        case 'showyoutubevideo':
+        case 'onceperstream':
+          merged[key] = Boolean(val) as boolean
+          break
+        default:
+          // Unknown key — skip to keep typings strict
+          break
+      }
     }
     // preserve id if present
     if (r.id) merged.id = r.id
