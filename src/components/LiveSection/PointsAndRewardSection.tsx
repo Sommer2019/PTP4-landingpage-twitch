@@ -24,10 +24,16 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log('[PointsAndRewardSection] Kein User eingeloggt');
+      return;
+    }
     // Twitch-User-ID aus user.user_metadata holen
     const twitchUserId = user.user_metadata?.provider_id || user.user_metadata?.sub;
-    if (!twitchUserId) return;
+    if (!twitchUserId) {
+      console.log('[PointsAndRewardSection] Keine Twitch-User-ID gefunden');
+      return;
+    }
     supabase
       .from('points')
       .select('points')
@@ -36,8 +42,11 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
       .then(({ data, error }) => {
         if (error) {
           setPoints(0);
+          setError('Fehler beim Laden der Punkte: ' + error.message);
+          console.error('[PointsAndRewardSection] Fehler beim Laden der Punkte:', error);
         } else {
           setPoints(data?.points ?? 0);
+          console.log('[PointsAndRewardSection] Punkte geladen:', data?.points);
         }
       });
   }, [user]);
@@ -47,8 +56,13 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
     supabase
       .from('rewards')
       .select('*')
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          setError('Fehler beim Laden der Rewards: ' + error.message);
+          console.error('[PointsAndRewardSection] Fehler beim Laden der Rewards:', error);
+        }
         setRewards(data || []);
+        console.log('[PointsAndRewardSection] Rewards geladen:', data);
       });
   }, []);
 
@@ -93,7 +107,12 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
     setLoading(false);
   };
 
-  if (!user || !isLive) return null;
+  if (!user) {
+    return <div className="points-reward-section"><i>Bitte einloggen, um Punkte & Rewards zu sehen.</i></div>;
+  }
+  if (!isLive) {
+    return <div className="points-reward-section"><i>Punkte & Rewards sind nur während eines Livestreams verfügbar.</i></div>;
+  }
 
   return (
     <div className="points-reward-section">

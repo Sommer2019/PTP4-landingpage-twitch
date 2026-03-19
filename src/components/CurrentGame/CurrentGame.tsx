@@ -65,6 +65,7 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
   useEffect(() => {
     if (!isLive) {
       setGame(null)
+      console.log('[CurrentGame] Nicht live, setGame(null)')
       return
     }
 
@@ -80,6 +81,7 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
         if (cancelled) return
         if (error || !data?.isLive) {
           setGame(null)
+          console.log('[CurrentGame] Fehler oder nicht live:', error, data)
         } else {
           setGame({
             gameId: data.gameId,
@@ -87,9 +89,11 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
             boxArtUrl: data.boxArtUrl,
             streamTitle: data.streamTitle,
           })
+          console.log('[CurrentGame] Game gesetzt:', data)
         }
-      } catch {
+      } catch (err) {
         if (!cancelled) setGame(null)
+        console.error('[CurrentGame] Fehler beim API-Call:', err)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -105,6 +109,12 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
       clearInterval(interval)
     }
   }, [isLive])
+
+  // Debug-Ausgabe für Render-Entscheidung
+  if (!isLive) console.log('[CurrentGame] Render: nicht live')
+  if (loading) console.log('[CurrentGame] Render: loading')
+  if (!game) console.log('[CurrentGame] Render: kein game')
+  if (game && !game.gameName) console.log('[CurrentGame] Render: gameName fehlt')
 
   if (!isLive || loading || !game || !game.gameName) return null
 
