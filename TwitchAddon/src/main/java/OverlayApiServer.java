@@ -23,6 +23,13 @@ public class OverlayApiServer {
         server.createContext("/media", new StaticDirHandler("src/main/resources/media"));
         server.setExecutor(null);
         server.start();
+
+        // Prüfe beim Start, ob rewards.json existiert, sonst Fehler ausgeben
+        if (!Files.exists(Paths.get(rewardsJsonPath))) {
+            System.err.println("[OverlayApiServer] WARNUNG: rewards.json wurde nicht gefunden! Bitte stelle sicher, dass sie neben der EXE liegt.");
+        } else {
+            System.out.println("[OverlayApiServer] rewards.json gefunden.");
+        }
     }
 
     class RedeemedRewardsHandler implements HttpHandler {

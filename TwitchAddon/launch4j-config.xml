@@ -1,6 +1,6 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
-  <headerType>gui</headerType>
+  <headerType>console</headerType>
   <jar>target/ChannelPointsBot-1.0-SNAPSHOT.jar</jar>
   <outfile>dist/TwitchAddon.exe</outfile>
   <errTitle></errTitle>
@@ -15,4 +15,3 @@
     <minVersion>17</minVersion>
   </jre>
 </launch4jConfig>
-

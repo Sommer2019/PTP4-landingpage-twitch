@@ -12,8 +12,9 @@ public class Main {
         String channelName = dotenv.get("CHANNEL_NAME");
 
         SupabaseClient supabaseClient = new SupabaseClient(supabaseUrl, supabaseApiKey);
-        // Rewards aus rewards.json in die DB synchronisieren
-        OverlayApiServer.syncRewardsFromJson(supabaseClient, "src/main/resources/rewards.json");
+        // Rewards aus rewards.json im aktuellen Arbeitsverzeichnis in die DB synchronisieren
+        OverlayApiServer.syncRewardsFromJson(supabaseClient, "rewards.json");
+        System.out.println("[Main] Starte Overlay-API-Server...");
         UserPointsManager pointsManager = new UserPointsManager(supabaseClient);
         TwitchBot bot = new TwitchBot(twitchOauthToken, twitchClientId, channelName, pointsManager);
         bot.connect();

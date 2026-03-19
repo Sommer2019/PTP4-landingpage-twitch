@@ -100,6 +100,8 @@ jobs:
         with:
           tag_name: v-${{ github.sha }}
           name: TwitchAddon Build ${{ github.run_number }}
-          files: TwitchAddon/dist/*.exe
+          files: |
+            TwitchAddon/dist/*.exe
+            TwitchAddon/dist/rewards.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
