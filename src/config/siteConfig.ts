@@ -101,15 +101,15 @@ export interface SiteConfig {
 const siteConfig: SiteConfig = {
   // ── Profil ──
   profile: {
-    name: 'lesommer2019',
+    name: 'HD1920x1080',
     subtitleKey: 'hero.subtitle',
     image: '/img/logos/HDProfile.webp',
   },
 
   // ── Twitch ──
   twitch: {
-    channel: 'hd1920x1080',
-    chatFallbackUrl: 'https://www.twitch.tv/hd1920x1080/chat',
+    channel: 'lesommer2019',
+    chatFallbackUrl: 'https://www.twitch.tv/lesommer2019/chat',
     icsUrl: '/api/calendar.ics',
   },
 
