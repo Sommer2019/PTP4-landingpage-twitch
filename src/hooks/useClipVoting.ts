@@ -87,7 +87,7 @@ export function useClipVoting(): VotingState & {
             : displayRound.id
 
         const { data } = await supabase
-          .from('clip_vote_counts')
+          .from('clipvoting.clip_vote_counts')
           .select('*')
           .eq('round_id', roundIdForClips)
           .order('vote_count', { ascending: false })

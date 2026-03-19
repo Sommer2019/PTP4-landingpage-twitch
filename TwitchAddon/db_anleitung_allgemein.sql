@@ -25,7 +25,7 @@ create table if not exists rewards (
 
 create table if not exists redeemed_rewards (
   id uuid primary key default gen_random_uuid(),
-  user text not null,
+  twitch_user_id text not null,
   reward_id text references rewards(id) on delete cascade,
   timestamp timestamptz not null default now(),
   cost integer,

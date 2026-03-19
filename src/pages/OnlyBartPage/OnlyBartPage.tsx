@@ -79,6 +79,7 @@ function CreatePost({onSuccess}: { onSuccess: () => void }) {
             }
 
             const {error} = await supabase
+                .schema('onlybart')
                 .from('onlybart_posts')
                 .insert({
                     content,
@@ -186,6 +187,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
     const loadComments = useCallback(async () => {
         // 1. Kommentare laden (ohne Join)
         const {data: commentsData, count} = await supabase
+            .schema('onlybart')
             .from('onlybart_comments')
             .select('*', {count: 'exact'})
             .eq('post_id', post.id)
@@ -274,10 +276,12 @@ function PostCard({post, access, onDelete, onLikeChange}: {
 
                 // Delete old like, then insert new one
                 await supabase
+                    .schema('onlybart')
                     .from('onlybart_likes')
                     .delete()
                     .match({post_id: post.id, user_id: user?.id})
                 await supabase
+                    .schema('onlybart')
                     .from('onlybart_likes')
                     .insert({
                         post_id: post.id,
@@ -291,6 +295,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
                 setLikesCount(prev => Math.max(0, prev - currentValue))
 
                 await supabase
+                    .schema('onlybart')
                     .from('onlybart_likes')
                     .delete()
                     .match({post_id: post.id, user_id: user?.id})
@@ -303,6 +308,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
             else setHasLiked(true)
             setLikesCount(prev => prev + addValue)
             await supabase
+                .schema('onlybart')
                 .from('onlybart_likes')
                 .insert({
                     post_id: post.id,
@@ -322,12 +328,12 @@ function PostCard({post, access, onDelete, onLikeChange}: {
         })
         if (!confirmed) return
         onDelete(post.id)
-        await supabase.from('onlybart_posts').delete().eq('id', post.id)
+        await supabase.schema('onlybart').from('onlybart_posts').delete().eq('id', post.id)
     }
 
     const handlePostComment = async () => {
         if (!newComment.trim()) return
-        const {error} = await supabase.from('onlybart_comments').insert({
+        const {error} = await supabase.schema('onlybart').from('onlybart_comments').insert({
             post_id: post.id,
             user_id: user?.id,
             content: newComment
@@ -348,7 +354,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
             cancelLabel: t('confirmModal.cancel', 'Cancel'),
         })
         if (!confirmed) return
-        await supabase.from('onlybart_comments').delete().eq('id', commentId)
+        await supabase.schema('onlybart').from('onlybart_comments').delete().eq('id', commentId)
         setCommentsCount(prev => Math.max(0, prev - 1))
         loadComments()
     }
@@ -501,6 +507,7 @@ export function OnlyBartPage() {
         if (!access.canView) return
 
         const {data, error} = await supabase
+            .schema('onlybart')
             .from('onlybart_posts')
             .select('*, comments_count:onlybart_comments(count)')
             .order('created_at', {ascending: false})
@@ -515,6 +522,7 @@ export function OnlyBartPage() {
             const enhancedPromise = data.map(async (p: Post) => {
                 // Alle Likes für diesen Post laden
                 const {data: likesData} = await supabase
+                    .schema('onlybart')
                     .from('onlybart_likes')
                     .select('user_id, is_superlike')
                     .eq('post_id', p.id)

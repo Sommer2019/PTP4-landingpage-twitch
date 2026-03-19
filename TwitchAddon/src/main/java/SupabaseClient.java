@@ -28,7 +28,7 @@ public class SupabaseClient {
     public void addOrUpdatePoints(String username, int points, String reason) {
         logger.info("addOrUpdatePoints: {} | {} | {}", username, points, reason);
         JSONObject json = new JSONObject();
-        json.put("user", username);
+        json.put("twitch_user_id", username);
         json.put("points", points);
         json.put("reason", reason);
         json.put("timestamp", System.currentTimeMillis());
@@ -107,7 +107,7 @@ public class SupabaseClient {
     public void createUser(String username) {
         logger.info("createUser: {}", username);
         JSONObject json = new JSONObject();
-        json.put("user", username);
+        json.put("twitch_user_id", username);
         json.put("points", 0);
         json.put("reason", "init");
         json.put("timestamp", System.currentTimeMillis());
