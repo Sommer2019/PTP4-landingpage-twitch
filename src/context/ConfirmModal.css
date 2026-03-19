@@ -55,20 +55,22 @@
 
 .confirm-modal .modal-input {
   width: 100%;
-  padding: 8px 10px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(124, 77, 255, 0.25);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #e6eef8;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.15s ease;
   box-sizing: border-box;
+  background: var(--color-btn-bg);
+  color: var(--color-text);
+  border: 2px solid var(--box-border);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 1rem;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  outline: none;
+  transition: border-color 0.18s;
 }
 
 .confirm-modal .modal-input:focus {
   border-color: var(--accent);
+  outline: none;
 }
 
 .confirm-modal .modal-actions {
@@ -76,4 +78,3 @@
   gap: 8px;
   justify-content: flex-end;
 }
-

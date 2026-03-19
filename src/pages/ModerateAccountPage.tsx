@@ -9,14 +9,21 @@ import { getErrorMessage } from '../lib/utils'
 
 
 interface Reward {
-  id?: string;
-  nameKey: string;
-  descKey: string;
-  cost: number;
-  type: string;
-  cooldown?: number;
-  name?: string;
-  description?: string;
+    id?: string;
+    name?: string;
+    cost?: number;
+    type?: string;
+    source?: string;
+    mediaurl?: string;
+    showyoutubevideo?: boolean;
+    description?: string;
+    customimageurl?: string;
+    text?: string;
+    duration?: number;
+    onceperstream?: boolean;
+    cooldown?: number;
+    nameKey?: string;
+    descKey?: string;
 }
 
 
@@ -35,7 +42,23 @@ export default function ModerateAccountPage() {
   // Rewards-Logik
   const [rewards, setRewards] = useState<Reward[]>([])
   const [rewardEdit, setRewardEdit] = useState<Reward | null>(null)
-  const [rewardForm, setRewardForm] = useState<Reward>({ nameKey: '', descKey: '', cost: 0, type: '', cooldown: 0 })
+  const [rewardForm, setRewardForm] = useState<Reward>({
+    name: '',
+    cost: 0,
+    type: '',
+    source: '',
+    mediaurl: '',
+    showyoutubevideo: false,
+    description: '',
+    customimageurl: '',
+    text: '',
+    duration: 0,
+    onceperstream: false,
+    cooldown: 0,
+    nameKey: '',
+    descKey: ''
+  })
+  const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [rewardBusy, setRewardBusy] = useState(false)
 
   // Bann-Liste laden
@@ -100,7 +123,15 @@ export default function ModerateAccountPage() {
     if (!pointsName.trim()) return
     setBusy(true)
     try {
-      const targetUser = pointsName.trim()
+      let targetUser = pointsName.trim()
+      // Twitch-ID holen, falls kein reiner Zahlenwert
+      if (!/^\d+$/.test(targetUser)) {
+        const res = await fetch(`https://decapi.me/twitch/id/${encodeURIComponent(targetUser)}`)
+        if (!res.ok) throw new Error('Twitch-ID konnte nicht abgerufen werden')
+        const id = (await res.text()).trim()
+        if (!/^\d+$/.test(id)) throw new Error('Ungültige Twitch-ID erhalten')
+        targetUser = id
+      }
       if (pointsAction === 'reset') {
         const { error } = await supabase
           .from('points')
@@ -269,46 +300,51 @@ export default function ModerateAccountPage() {
         <ul style={{margin:'8px 0',padding:0,listStyle:'none'}}>
           {rewards.length === 0 && <li style={{color:'#888'}}>{t('moderate.noRewards')}</li>}
           {rewards.map(r => (
-            <li key={r.id} style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-              <span style={{flex:1}}>
-                <b>{r.name || t(r.nameKey)}</b> ({r.cost} {t('pointsAndRewardSection.punkte')}) – {r.type} {r.cooldown ? `/ CD: ${r.cooldown}s` : ''}
-                <div style={{fontSize:'0.95em',color:'var(--color-muted)'}}>{r.description || t(r.descKey)}</div>
+            <li key={r.id}>
+              <span>
+                <b>{r.name || t(r.nameKey || '')}</b>
+                <div>{r.description || t(r.descKey || '')}</div>
               </span>
-              <button className="btn btn-sm btn-secondary" onClick={() => { setRewardEdit(r); setRewardForm(r); }}>{t('moderate.editRewardBtn')}</button>
+              <button className="btn btn-sm btn-secondary" onClick={() => { setRewardEdit(r); setRewardForm(r); setRewardModalOpen(true); }}>{t('moderate.editRewardBtn')}</button>
               <button className="btn btn-sm btn-danger" onClick={() => r.id && deleteReward(r.id)} disabled={rewardBusy}>{t('moderate.deleteRewardBtn')}</button>
             </li>
           ))}
         </ul>
-        {/* Reward-Formular */}
-        <div style={{marginTop:16}}>
-          <b>{rewardEdit ? t('moderate.editRewardTitle') : t('moderate.newRewardTitle')}</b>
-          <form style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginTop:8}} onSubmit={e => {e.preventDefault();saveReward();}}>
-            <div style={{display:'flex',flexDirection:'column',gap:4}}>
-              <label htmlFor="rewardNameKey" style={{fontWeight:'bold'}}>{t('moderate.rewardNameKeyLabel')}</label>
-              <input id="rewardNameKey" type="text" placeholder={t('moderate.rewardNameKeyPlaceholder')} value={rewardForm.nameKey} onChange={e => setRewardForm((f: Reward) => ({...f, nameKey: e.target.value}))} />
+        {/* Reward-Formular als Modal */}
+        {rewardModalOpen && (
+          <div className="confirm-modal is-open">
+            <div className="modal-backdrop" onClick={() => setRewardModalOpen(false)} />
+            <div className="modal-card" style={{zIndex:10051}}>
+              <b style={{fontSize:'1.2em'}}>{rewardEdit ? t('moderate.editRewardTitle') : t('moderate.newRewardTitle')}</b>
+              <form style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:18,marginTop:16}} onSubmit={e => {e.preventDefault();saveReward();setRewardModalOpen(false);}}>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  <label htmlFor="rewardNameKey" style={{fontWeight:'bold'}}>{t('moderate.rewardNameKeyLabel')}</label>
+                  <input id="rewardNameKey" type="text" className="modal-input" placeholder={t('moderate.rewardNameKeyPlaceholder')} value={rewardForm.nameKey} onChange={e => setRewardForm((f: Reward) => ({...f, nameKey: e.target.value}))} />
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  <label htmlFor="rewardDescKey" style={{fontWeight:'bold'}}>{t('moderate.rewardDescKeyLabel')}</label>
+                  <input id="rewardDescKey" type="text" className="modal-input" placeholder={t('moderate.rewardDescKeyPlaceholder')} value={rewardForm.descKey} onChange={e => setRewardForm((f: Reward) => ({...f, descKey: e.target.value}))} />
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  <label htmlFor="rewardCost" style={{fontWeight:'bold'}}>{t('moderate.rewardCostLabel')}</label>
+                  <input id="rewardCost" type="number" className="modal-input" placeholder={t('moderate.rewardCostPlaceholder')} value={rewardForm.cost} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, cost: Number(e.target.value)}))} />
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  <label htmlFor="rewardType" style={{fontWeight:'bold'}}>{t('moderate.rewardTypeLabel')}</label>
+                  <input id="rewardType" type="text" className="modal-input" placeholder={t('moderate.rewardTypePlaceholder')} value={rewardForm.type} onChange={e => setRewardForm((f: Reward) => ({...f, type: e.target.value}))} />
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  <label htmlFor="rewardCooldown" style={{fontWeight:'bold'}}>{t('moderate.rewardCooldownLabel')}</label>
+                  <input id="rewardCooldown" type="number" className="modal-input" placeholder={t('moderate.rewardCooldownPlaceholder')} value={rewardForm.cooldown} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, cooldown: Number(e.target.value)}))} />
+                </div>
+                <div style={{display:'flex',flexDirection:'row',gap:12,alignItems:'center',marginTop:18,gridColumn:'span 2'}}>
+                  <button className="btn btn-primary" type="submit" disabled={rewardBusy || !rewardForm.nameKey || !rewardForm.type}>{t('moderate.saveRewardBtn')}</button>
+                  <button className="btn btn-secondary" type="button" onClick={() => { setRewardEdit(null); setRewardForm({ name: '', cost: 0, type: '', source: '', mediaurl: '', showyoutubevideo: false, description: '', customimageurl: '', text: '', duration: 0, onceperstream: false, cooldown: 0, nameKey: '', descKey: '' }); setRewardModalOpen(false); }}>{t('moderate.cancelRewardBtn')}</button>
+                </div>
+              </form>
             </div>
-            <div style={{display:'flex',flexDirection:'column',gap:4}}>
-              <label htmlFor="rewardDescKey" style={{fontWeight:'bold'}}>{t('moderate.rewardDescKeyLabel')}</label>
-              <input id="rewardDescKey" type="text" placeholder={t('moderate.rewardDescKeyPlaceholder')} value={rewardForm.descKey} onChange={e => setRewardForm((f: Reward) => ({...f, descKey: e.target.value}))} />
-            </div>
-            <div style={{display:'flex',flexDirection:'column',gap:4}}>
-              <label htmlFor="rewardCost" style={{fontWeight:'bold'}}>{t('moderate.rewardCostLabel')}</label>
-              <input id="rewardCost" type="number" placeholder={t('moderate.rewardCostPlaceholder')} value={rewardForm.cost} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, cost: Number(e.target.value)}))} />
-            </div>
-            <div style={{display:'flex',flexDirection:'column',gap:4}}>
-              <label htmlFor="rewardType" style={{fontWeight:'bold'}}>{t('moderate.rewardTypeLabel')}</label>
-              <input id="rewardType" type="text" placeholder={t('moderate.rewardTypePlaceholder')} value={rewardForm.type} onChange={e => setRewardForm((f: Reward) => ({...f, type: e.target.value}))} />
-            </div>
-            <div style={{display:'flex',flexDirection:'column',gap:4}}>
-              <label htmlFor="rewardCooldown" style={{fontWeight:'bold'}}>{t('moderate.rewardCooldownLabel')}</label>
-              <input id="rewardCooldown" type="number" placeholder={t('moderate.rewardCooldownPlaceholder')} value={rewardForm.cooldown} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, cooldown: Number(e.target.value)}))} />
-            </div>
-            <div style={{display:'flex',flexDirection:'row',gap:8,alignItems:'center',marginTop:22}}>
-              <button className="btn btn-primary" type="submit" disabled={rewardBusy || !rewardForm.nameKey || !rewardForm.type}>{t('moderate.saveRewardBtn')}</button>
-              {rewardEdit && <button className="btn btn-secondary" type="button" onClick={() => { setRewardEdit(null); setRewardForm({ nameKey: '', descKey: '', cost: 0, type: '', cooldown: 0 }) }}>{t('moderate.cancelRewardBtn')}</button>}
-            </div>
-          </form>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Anleitung */}

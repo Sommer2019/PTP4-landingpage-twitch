@@ -614,6 +614,14 @@
     "bar": {
       "name": "Reward Bar",
       "desc": "Another reward."
-    }
+    },
+    "rewardSourceLabel": "Source",
+    "rewardMediaUrlLabel": "Media URL",
+    "rewardShowYoutubeVideoLabel": "Show YouTube Video",
+    "rewardDescriptionLabel": "Description",
+    "rewardCustomImageUrlLabel": "Custom Image URL",
+    "rewardTextLabel": "TTS Text",
+    "rewardDurationLabel": "Duration (seconds)",
+    "rewardOncePerStreamLabel": "Once per stream"
   }
 }

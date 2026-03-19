@@ -603,6 +603,14 @@
     "bar": {
       "name": "Belohnig Bar",
       "desc": "No e Belohnig."
-    }
+    },
+    "rewardSourceLabel": "Quell",
+    "rewardMediaUrlLabel": "Media-URL",
+    "rewardShowYoutubeVideoLabel": "YouTube Video aazeige",
+    "rewardDescriptionLabel": "Beschrieb",
+    "rewardCustomImageUrlLabel": "Custom Image URL",
+    "rewardTextLabel": "TTS Text",
+    "rewardDurationLabel": "Dauer (Sekunde)",
+    "rewardOncePerStreamLabel": "Nur einisch pro Stream"
   }
 }
