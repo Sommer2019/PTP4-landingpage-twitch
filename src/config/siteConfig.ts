@@ -108,8 +108,8 @@ const siteConfig: SiteConfig = {
 
   // ── Twitch ──
   twitch: {
-    channel: 'lesommer2019',
-    chatFallbackUrl: 'https://www.twitch.tv/lesommer2019/chat',
+    channel: 'hd1920x1080',
+    chatFallbackUrl: 'https://www.twitch.tv/hd1920x1080/chat',
     icsUrl: '/api/calendar.ics',
   },
 

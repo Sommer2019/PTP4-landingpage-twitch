@@ -530,5 +530,17 @@
     "exclusionName": "Name",
     "exclusionTwitchId": "Twitch-ID",
     "exclusionSince": "Usgschlosse sit"
+  },
+  "pointsAndRewardSection": {
+    "deinePunkte": "Dini Punkt",
+    "punkte": "Punkt",
+    "jetztEinloesen": "Jetzt iilöse",
+    "laedt": "Lädt...",
+    "zurueck": "Zrugg",
+    "fehlerBeimLadenDerPunkte": "Fehler bim Lade vo de Punkt",
+    "fehlerBeimLadenDerRewards": "Fehler bim Lade vo de Rewards",
+    "fehlerBeimEinloesen": "Fehler bim Iilöse: {{msg}}",
+    "erfolgreichEingeloest": "Erfolgrich iiglöst!",
+    "deineNachricht": "Dini Nachricht..."
   }
 }

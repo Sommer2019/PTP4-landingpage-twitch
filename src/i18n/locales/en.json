@@ -541,5 +541,17 @@
     "exclusionName": "Name",
     "exclusionTwitchId": "Twitch ID",
     "exclusionSince": "Excluded since"
+  },
+  "pointsAndRewardSection": {
+    "deinePunkte": "Your points",
+    "punkte": "points",
+    "jetztEinloesen": "Redeem now",
+    "laedt": "Loading...",
+    "zurueck": "Back",
+    "fehlerBeimLadenDerPunkte": "Error loading points",
+    "fehlerBeimLadenDerRewards": "Error loading rewards",
+    "fehlerBeimEinloesen": "Error redeeming: {{msg}}",
+    "erfolgreichEingeloest": "Successfully redeemed!",
+    "deineNachricht": "Your message..."
   }
 }

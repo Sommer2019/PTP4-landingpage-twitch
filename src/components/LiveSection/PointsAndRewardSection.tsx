@@ -41,12 +41,12 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         .then(({ data, error }) => {
           if (error) {
             setPoints(0);
-            setStatus({ type: 'error', msg: 'Fehler beim Laden der Punkte' });
+            setStatus({ type: 'error', msg: t('Fehler beim Laden der Punkte') });
           } else {
             setPoints(data?.points ?? 0);
           }
         });
-  }, [user, loading]);
+  }, [user, loading, t]);
 
   // Rewards laden
   useEffect(() => {
@@ -55,11 +55,11 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         .select('*')
         .then(({ data, error }) => {
           if (error) {
-            setStatus({ type: 'error', msg: 'Fehler beim Laden der Rewards' });
+            setStatus({ type: 'error', msg: t('Fehler beim Laden der Rewards') });
           }
           setRewards(data || []);
         });
-  }, []);
+  }, [t]);
 
   const handleRedeem = async () => {
     if (!selectedRewardId) return;
@@ -77,7 +77,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
       },
     ]);
     if (insertError) {
-      setStatus({ type: 'error', msg: 'Fehler: ' + insertError.message });
+      setStatus({ type: 'error', msg: t('Fehler beim Einlösen: {{msg}}', { msg: insertError.message }) });
     } else {
       setStatus({ type: 'success', msg: t('Erfolgreich eingelöst!') });
       if (points !== null) setPoints(points - reward.cost);
@@ -109,7 +109,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
                       onClick={() => setSelectedRewardId(r.id)}
                   >
                     <div className="reward-card-title">{r.name}</div>
-                    <div className="reward-card-cost">{r.cost}</div>
+                    <div className="reward-card-cost">{t('{{cost}} Punkte', { cost: r.cost })}</div>
                   </button>
               ))}
             </div>
@@ -128,7 +128,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
                   {selectedReward ? selectedReward.name : ''}
                 </div>
                 <div className="reward-card-cost">
-                  {selectedReward ? `${selectedReward.cost} ${t('Punkte')}` : ''}
+                  {selectedReward ? t('{{cost}} Punkte', { cost: selectedReward.cost }) : ''}
                 </div>
               </div>
               {selectedReward && selectedReward.type === 'tts' && (
