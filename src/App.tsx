@@ -19,6 +19,7 @@ import ModerateStatisticsPage from './pages/ModerateStatisticsPage/ModerateStati
 import ModerateSettingsPage from './pages/ModerateSettingsPage'
 import OnlyBartPage from './pages/OnlyBartPage/OnlyBartPage'
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage'
+import ModerateAccountPage from './pages/ModerateAccountPage'
 import './App.css'
 import siteConfig from "./config/siteConfig.ts";
 import * as React from "react";
@@ -87,6 +88,8 @@ function App() {
                        element={<RedirectToHtml to={`https://www.twitch.tv/moderator/${channel}`}/>}/>
                 <Route path="/moderate/settings"
                        element={<BroadcasterRoute><ModerateSettingsPage/></BroadcasterRoute>}/>
+                <Route path="/moderate/account"
+                       element={<BroadcasterRoute><ModerateAccountPage/></BroadcasterRoute>}/>
 
                 {/* ── Alternative Pfade → Redirect ── */}
                 <Route path="/actuator/data" element={<Navigate to="/moderate/statistics" replace/>}/>

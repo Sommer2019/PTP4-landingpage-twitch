@@ -1,7 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import './NotFoundPage.css'
+
+// Minimal-Typdefinition für YT.Player (YouTube IFrame API)
+type YTPlayerEvents = {
+  onReady?: () => void
+  onStateChange?: (event: { data: number }) => void
+}
+interface YTPlayer {
+  unMute: () => void
+  setVolume: (v: number) => void
+  playVideo: () => void
+}
+interface YT {
+  Player: new (id: string, opts: { events: YTPlayerEvents }) => YTPlayer
+}
+declare global {
+  interface Window {
+    YT: YT
+    onYouTubeIframeAPIReady: () => void
+  }
+}
 
 export default function NotFoundPage() {
   const { t } = useTranslation()
@@ -15,6 +35,52 @@ export default function NotFoundPage() {
     setMsgIndex((prev) => (prev + 1) % messages.length)
     setTimeout(() => setSpin(false), 600)
   }
+
+  // YouTube-API: Unmute nach erstem User-Klick
+  useEffect(() => {
+    let player: YTPlayer | null = null
+    let apiLoaded = false
+    let clickHandler: (() => void) | null = null
+
+    function loadYouTubeAPI() {
+      if (apiLoaded) return
+      apiLoaded = true
+      const tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+      document.body.appendChild(tag)
+    }
+
+    // Wird von YouTube-API aufgerufen
+    window.onYouTubeIframeAPIReady = function () {
+      player = new window.YT.Player('yt-audio-bg', {
+        events: {
+          'onReady': () => {
+            // Unmute nach User-Interaktion
+            clickHandler = () => {
+              if (player) {
+                player.unMute()
+                player.setVolume(100)
+              }
+              // Nur einmal ausführen
+              if (clickHandler) window.removeEventListener('click', clickHandler)
+            }
+            window.addEventListener('click', clickHandler)
+          },
+          'onStateChange': (event: { data: number }) => {
+            // 0 = ended
+            if (event.data === 0 && player) {
+              player.playVideo()
+            }
+          }
+        }
+      })
+    }
+
+    loadYouTubeAPI()
+    return () => {
+      if (clickHandler) window.removeEventListener('click', clickHandler)
+    }
+  }, [])
 
   return (
     <main className="not-found">
@@ -56,7 +122,16 @@ export default function NotFoundPage() {
           {t('back')}
         </Link>
       </div>
+      {/* Unsichtbares YouTube-iframe für Hintergrundsound */}
+      <iframe
+        id="yt-audio-bg"
+        width="1"
+        height="1"
+        style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+        src="https://www.youtube.com/embed/eenDsLthMqU?autoplay=1&mute=1&controls=0&loop=1&playlist=eenDsLthMqU&enablejsapi=1"
+        title="YouTube audio background"
+        allow="autoplay"
+      />
     </main>
   )
 }
-

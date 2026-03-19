@@ -38,6 +38,11 @@ export default function ModeratePage() {
                         ⚙️ {t('moderate.settings')}
                     </Link>
                 )}
+                {isBroadcaster && (
+                    <Link to="/moderate/account" className="btn btn-secondary">
+                        👤 {t('moderate.accountManagement', 'Account-Management')}
+                    </Link>
+                )}
             </nav>
         </SubPage>
     )
