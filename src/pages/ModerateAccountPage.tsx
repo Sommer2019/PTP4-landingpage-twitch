@@ -182,9 +182,26 @@ export default function ModerateAccountPage() {
   }
 
   async function unbanAccount(twitch_user_id: string) {
-    if (!isBroadcaster) return
+    // Allow broadcaster or moderators to unban, but moderators may not unban other mods/broadcaster
+    if (!isBroadcaster && !isMod) {
+      showToast('Keine Berechtigung!')
+      return
+    }
     setBusy(true)
     try {
+      if (isMod && !isBroadcaster) {
+        // Check if target is a moderator or the broadcaster
+        const { data: modRow, error: modErr } = await supabase.from('moderators').select('twitch_user_id, is_broadcaster').eq('twitch_user_id', twitch_user_id).maybeSingle()
+        if (modErr) {
+          showToast('Fehler beim Prüfen des Benutzers: ' + getErrorMessage(modErr))
+          return
+        }
+        if (modRow) {
+          showToast('Moderatoren können keine Moderatoren oder den Broadcaster entbannen')
+          return
+        }
+      }
+
       const { error } = await supabase.from('banned_accounts').delete().eq('twitch_user_id', twitch_user_id)
       if (error) {
         showToast('Fehler beim Entbannen: ' + getErrorMessage(error))
