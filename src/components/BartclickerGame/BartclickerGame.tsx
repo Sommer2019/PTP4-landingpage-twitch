@@ -34,48 +34,49 @@ export default function BartclickerGame({ compact = false }: BartclickerGameProp
       </div>
     );
   }
-  // Language-aware compact number formatting using Intl. Falls back to simple formatting
-  // for environments where compact notation is not supported.
-  const getCompactFormatter = (maximumFractionDigits = 2) => {
+  // Custom language-aware unit formatter that provides more compact units
+  // and a predictable short scale (k, Mio, Mrd, Bio / K, M, B, T).
+  const formatWithUnits = (num: number, maximumFractionDigits = 2): string => {
     const locale = i18n?.language || undefined;
+    const isNegative = num < 0;
+    const abs = Math.abs(num);
+
+    // Very small numbers: keep integer display
+    if (abs < 1000) return (isNegative ? '-' : '') + Math.floor(abs).toString();
+
+    // Define unit suffixes per language (index = thousands power)
+    const enUnits = ['', 'K', 'M', 'B', 'T', 'P', 'E'];
+    const deUnits = ['', 'k', 'Mio', 'Mrd', 'Bio', 'Billi', 'Tril'];
+    const units = (i18n?.language || '').startsWith('de') ? deUnits : enUnits;
+
+    // Determine index (thousands groups)
+    const exp = Math.floor(Math.log10(abs) / 3);
+    const index = Math.min(exp, units.length - 1);
+    const value = abs / Math.pow(1000, index);
+
+    // Choose fraction precision depending on magnitude to avoid long decimals
+    let fractionDigits = maximumFractionDigits;
+    if (value >= 100) fractionDigits = 0;
+    else if (value >= 10) fractionDigits = Math.min(1, maximumFractionDigits);
+
     try {
-      // Use compact notation so abbreviations are localized (e.g. 'Mio.' in de, 'M' in en)
-      return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits });
+      const formatted = new Intl.NumberFormat(locale, { maximumFractionDigits: fractionDigits, minimumFractionDigits: 0 }).format(value);
+      const unit = units[index];
+      return (isNegative ? '-' : '') + (unit ? `${formatted} ${unit}` : formatted);
     } catch {
-      // Fallback: plain number formatter
-      return new Intl.NumberFormat(locale, { maximumFractionDigits });
+      // Fallback: manual formatting
+      const fixed = value.toFixed(fractionDigits);
+      const unit = units[index];
+      return (isNegative ? '-' : '') + (unit ? `${fixed} ${unit}` : fixed);
     }
   };
 
-  const compactFormatter = getCompactFormatter(2);
-  const compactFormatterTwo = getCompactFormatter(2);
-
-  const formatNumber = (num: number) => {
-    // For very small numbers, keep integer display
-    if (num < 1000) return Math.floor(num).toString();
-    // Let Intl handle localization/abbreviation (Mio, Mrd, etc.)
-    try {
-      return compactFormatter.format(num);
-    } catch {
-      // Safe fallback
-      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'b';
-      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'm';
-      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'k';
-      return Math.floor(num).toString();
-    }
-  };
+  const formatNumber = (num: number) => formatWithUnits(num, 2);
 
   const formatCPS = (num: number) => {
     // For small CPS, show with 2 decimals
-    if (num < 1000) return num.toFixed(2);
-    try {
-      return compactFormatterTwo.format(num);
-    } catch {
-      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'b';
-      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'm';
-      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'k';
-      return num.toFixed(2);
-    }
+    if (Math.abs(num) < 1000) return num.toFixed(2);
+    return formatWithUnits(num, 2);
   };
 
   const formatOfflineTime = (seconds: number): string => {
