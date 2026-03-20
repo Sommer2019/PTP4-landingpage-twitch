@@ -453,6 +453,7 @@ export default function ModerateAccountPage() {
         )}
 
         <div style={{display:'flex',flexDirection:'column',gap:6, width: isWide ? 120 : '100%'}}>
+          <label htmlFor="pointsButton" style={{fontWeight:'bold', visibility: 'hidden'}} aria-hidden />
           <button className="btn btn-primary" style={{ marginTop: isWide ? 0 : 8, width: isWide ? 'auto' : '100%' }} disabled={!pointsName.trim() || (pointsAction==='give' && (!pointsValue || pointsValue<=0)) || busy} onClick={handlePoints}>
             {pointsAction === 'reset' ? '🗑️' : '➕'} {pointsAction === 'reset' ? t('moderate.resetPoints') : t('moderate.givePoints')}
           </button>
