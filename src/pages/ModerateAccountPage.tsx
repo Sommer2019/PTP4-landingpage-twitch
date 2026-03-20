@@ -411,9 +411,7 @@ export default function ModerateAccountPage() {
           {banned.map((id) => (
             <li key={id} style={{display:'flex',alignItems:'center',gap:8}}>
               <span>{id}</span>
-              {isBroadcaster && (
                 <button className="btn btn-sm btn-secondary" onClick={() => unbanAccount(id)} disabled={busy}>{t('moderate.unbanBtn')}</button>
-              )}
             </li>
           ))}
         </ul>
