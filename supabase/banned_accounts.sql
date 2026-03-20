@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS banned_accounts (
   twitch_user_id text NOT NULL UNIQUE,
   display_name text,
   banned_by text NOT NULL, -- Twitch-User-ID des Bannenden
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 ALTER TABLE banned_accounts ENABLE ROW LEVEL SECURITY;
@@ -33,4 +34,15 @@ BEGIN
   );
 END;
 $$;
+
+-- Ensure updated_at column exists for older installations
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name='banned_accounts' AND column_name='updated_at'
+  ) THEN
+    ALTER TABLE banned_accounts ADD COLUMN updated_at timestamptz NOT NULL DEFAULT now();
+  END IF;
+END $$;
 

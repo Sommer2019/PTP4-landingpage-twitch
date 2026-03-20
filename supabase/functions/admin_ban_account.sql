@@ -37,8 +37,7 @@ insert into public.banned_accounts (twitch_user_id, display_name, banned_by)
 values (p_twitch_user_id, p_display_name, p_banned_by)
     on conflict (twitch_user_id) do update
                                         set display_name = excluded.display_name,
-                                        banned_by = excluded.banned_by,
-                                        updated_at = now();
+                                            banned_by = excluded.banned_by;
 end;
 $$ language plpgsql security definer;
 
