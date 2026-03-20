@@ -716,5 +716,9 @@
     "rewardTextLabel": "TTS Text",
     "rewardDurationLabel": "Dauer (Sekunden)",
     "rewardOncePerStreamLabel": "Nur einmal pro Stream"
+  },
+  "banned": {
+    "title": "Account gesperrt",
+    "message": "Dein Account wurde gesperrt. Bei Fragen wende dich bitte an den Support."
   }
 }

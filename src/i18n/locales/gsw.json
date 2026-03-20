@@ -703,5 +703,9 @@
     "rewardTextLabel": "TTS Text",
     "rewardDurationLabel": "Dauer (Sekunde)",
     "rewardOncePerStreamLabel": "Nur einisch pro Stream"
+  },
+  "banned": {
+    "title": "Account gsperrt",
+    "message": "Dinge Account isch gsperrt worde. Wenn du Froge hesch, meld di bim Support."
   }
 }
