@@ -331,7 +331,26 @@ export default function ModerateAccountPage() {
       // Call RPC that enforces admin permissions server-side (handles RLS)
       const { data, error } = await supabase.rpc('admin_delete_reward', { p_id: id })
       if (error) {
-        showToast('Fehler beim Löschen: ' + getErrorMessage(error))
+        const e = error as { code?: string; message?: string } | null
+        const msg = getErrorMessage(error)
+        // PostgREST returns PGRST202 when the function signature is not found in the schema cache
+        if (e?.code === 'PGRST202' || (e?.message && e.message.includes('Could not find the function')) || msg.includes('Could not find the function')) {
+          // Try a direct DELETE as a fallback. This may fail due to Row Level Security (RLS).
+          try {
+            const { error: delError } = await supabase.from('rewards').delete().eq('id', id)
+            if (!delError) {
+              showToast('Reward gelöscht (Direktlöschung). Hinweis: Falls es sich um RLS handelt, die zuständige DB-Funktion sollte in der DB angelegt werden.')
+              fetchRewards()
+            } else {
+              // Could not delete directly — likely RLS or permission issue. Show actionable instruction.
+              showToast('Fehler: Die RPC-Funktion `admin_delete_reward` ist nicht in der Datenbank vorhanden und Direktlöschung fehlgeschlagen. Bitte die SQL-Funktion aus `supabase/db_anleitung_allgemein.sql` in deiner Supabase-DB ausführen (SQL Editor) oder den DB-Administrator kontaktieren.')
+            }
+          } catch {
+            showToast('Fehler: Die RPC-Funktion `admin_delete_reward` ist nicht vorhanden und Direktlöschung ist fehlgeschlagen. Bitte die SQL-Funktion aus `supabase/db_anleitung_allgemein.sql` in deiner Supabase-DB ausführen.')
+          }
+        } else {
+          showToast('Fehler beim Löschen: ' + msg)
+        }
         return
       }
       if (data && typeof data === 'object' && 'error' in data) {
@@ -433,7 +452,7 @@ export default function ModerateAccountPage() {
           </div>
         )}
 
-        <div style={{ width: isWide ? 'auto' : '100%' }}>
+        <div style={{display:'flex',flexDirection:'column',gap:6, width: isWide ? 120 : '100%'}}>
           <button className="btn btn-primary" style={{ marginTop: isWide ? 0 : 8, width: isWide ? 'auto' : '100%' }} disabled={!pointsName.trim() || (pointsAction==='give' && (!pointsValue || pointsValue<=0)) || busy} onClick={handlePoints}>
             {pointsAction === 'reset' ? '🗑️' : '➕'} {pointsAction === 'reset' ? t('moderate.resetPoints') : t('moderate.givePoints')}
           </button>
