@@ -72,7 +72,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
           .eq('is_active', true)
           .limit(1)
         if (globalData && globalData.length > 0) {
-          const g = globalData[0] as any
+          const g = globalData[0] as { id?: string; redeemed_at?: string | null; expires_at?: string | null; is_active?: boolean; stream_id?: string | null };
           const expires = g.expires_at
           const now = Date.now()
           if (!expires || new Date(expires).getTime() > now) {
