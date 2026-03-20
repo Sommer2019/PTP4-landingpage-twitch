@@ -383,7 +383,7 @@ export default function ModerateAccountPage() {
           className="modal-input"
           style={{ minWidth: 220 }}
         />
-        <button className="btn btn-danger" disabled={!banName.trim() || !isBroadcaster || busy} onClick={banAccount}>
+        <button className="btn btn-danger" disabled={!banName.trim() || busy} onClick={banAccount}>
           🚫 {t('moderate.banBtn')}
         </button>
       </div>
