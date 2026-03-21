@@ -176,8 +176,8 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
     if (!selectedRewardId) return;
     const reward = rewards.find(r => r.id === selectedRewardId);
     if (!reward || !user) return;
-    // Wenn reward.istts true ist, muss der Nutzer Text eingeben
-    if (reward.istts && !ttsText) return;
+    // TTS-Text nur erforderlich, wenn istts true und KEIN vordefinierter Text
+    if (reward.istts && !reward.text && !ttsText) return;
     if (cooldownActive) return;
     setRedeemLoading(true);
     setStatus(null);
@@ -189,20 +189,27 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
       return s.replace(/%name%/g, username);
     }
 
-    const descriptionToInsert = (() => {
-      if (reward.istts) {
-        // Bei TTS: prefix aus reward.text voranstellen, dann Platzhalter ersetzen
+    // Beschreibung bestimmen
+    let descriptionToInsert: string | undefined = undefined;
+    let ttsToSend: string | null = null;
+    if (reward.istts) {
+      if (reward.text) {
+        // Wenn vordefinierter Text, diesen verwenden
+        descriptionToInsert = replaceNamePlaceholders(reward.text);
+        ttsToSend = null;
+      } else {
+        // Nutzertext verwenden
         const prefix = reward.text || reward.description || '';
         const combined = prefix && ttsText ? `${prefix} ${ttsText}` : (prefix || ttsText);
-        return replaceNamePlaceholders(combined);
+        descriptionToInsert = replaceNamePlaceholders(combined);
+        ttsToSend = ttsText || null;
       }
-      return replaceNamePlaceholders(reward.description);
-    })();
+    } else {
+      descriptionToInsert = replaceNamePlaceholders(reward.description);
+      ttsToSend = null;
+    }
 
-    // Verwende serverseitige RPC-Funktion 'redeem_reward' statt direktem Insert,
-    // damit Cooldown / once-per-stream zentral auf dem Server geprüft werden können.
     try {
-      // Versuche aktive Stream-Session aus der DB zu lesen und übergebe deren id an die RPC
       let streamId: string | null = null;
       try {
         const { data: sessions } = await supabase
@@ -215,7 +222,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
           streamId = sessions[0].id || null;
         }
       } catch {
-        // ignore errors — RPC hat bereits Fallback, RPC selbst versucht ebenfalls, aktive Session zu ermitteln
+        // ignore errors
       }
 
       const rpcParams: RedeemRewardParams = {
@@ -223,16 +230,14 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         p_reward_id: reward.id,
         p_description: descriptionToInsert,
         p_cost: reward.cost,
-        p_ttstext: ttsText || null,
+        p_ttstext: ttsToSend,
         p_stream_id: streamId
       };
       const { data, error: rpcError } = await supabase.rpc('redeem_reward', rpcParams as object);
       if (rpcError) {
         setStatus({ type: 'error', msg: t('Fehler beim Einlösen: {{msg}}', { msg: rpcError.message }) });
       } else if (data && typeof data === 'object') {
-        // Die RPC-Funktion gibt direkt ein JSON-Objekt zurück (nicht ein Array)
         if (data.error) {
-          // Die Funktion gibt kontrollierte Fehler zurück (z.B. cooldown_active)
           if (data.error === 'cooldown_active') {
             const rem = data.remaining || 0;
             setStatus({ type: 'error', msg: t('Cooldown aktiv. Noch {{sec}}s', { sec: rem }) });
@@ -243,8 +248,6 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
           }
         } else if (data.success) {
           setStatus({ type: 'success', msg: t('Erfolgreich eingelöst!') });
-          // Punkte werden von der RPC debitiert, daher neue Punkte laden
-          // oder lokal abziehen (RPC hat es bereits debitiert, also optional)
           if (points !== null) setPoints(points - reward.cost);
           setTtsText('');
           setCooldownActive(true);
@@ -307,26 +310,28 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
                   {selectedReward ? t('{{cost}} Punkte', { cost: selectedReward.cost }) : ''}
                 </div>
               </div>
-              {selectedReward && selectedReward.istts && (
-                  <textarea
-                      className="tts-input"
-                      placeholder={t('Deine Nachricht...')}
-                      value={ttsText}
-                      onChange={e => setTtsText(e.target.value)}
-                      rows={3}
-                      maxLength={200}
-                  />
+              {/* TTS-Inputfeld nur anzeigen, wenn istts true und KEIN vordefinierter Text */}
+              {selectedReward && selectedReward.istts && !selectedReward.text && (
+                <textarea
+                  className="tts-input"
+                  placeholder={t('Deine Nachricht...')}
+                  value={ttsText}
+                  onChange={e => setTtsText(e.target.value)}
+                  rows={3}
+                  maxLength={200}
+                />
               )}
               <button
                   className="btn btn-primary redeem-btn"
                   onClick={handleRedeem}
                   disabled={
-                      redeemLoading ||
-                      !selectedReward ||
-                      (selectedReward.istts && !ttsText) ||
-                      (points !== null && selectedReward && points < selectedReward.cost ) ||
-                      cooldownActive ||
-                      globalLockActive
+                    redeemLoading ||
+                    !selectedReward ||
+                    // TTS-Text nur erforderlich, wenn kein vordefinierter Text
+                    (selectedReward.istts && !selectedReward.text && !ttsText) ||
+                    (points !== null && selectedReward && points < selectedReward.cost ) ||
+                    cooldownActive ||
+                    globalLockActive
                   }
               >
                 {redeemLoading
