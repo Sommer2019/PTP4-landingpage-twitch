@@ -2,8 +2,8 @@ name: Fetch Twitch Clips & Start Round 1
 
 on:
   schedule:
-    - cron: '0 23 21 * *'        # 21st of every month at 23:00 UTC
-  workflow_dispatch:               # manual trigger
+    - cron: '59 23 21 * *'        
+  workflow_dispatch:               
 
 jobs:
   fetch-clips:
