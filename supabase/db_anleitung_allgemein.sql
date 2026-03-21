@@ -208,6 +208,17 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.admin_delete_reward(text) TO authenticated;
 
+                                                    -- SQL für einen automatischen Bereinigungsjob mit pg_cron
+-- Führt jede Minute das Löschen abgelaufener redeemed_global-Einträge aus
+
+SELECT cron.schedule('delete_expired_redeemed_global',
+                     '*/1 * * * *',
+                     $$DELETE FROM redeemed_global WHERE redeemed_at < (CURRENT_TIMESTAMP AT TIME ZONE 'UTC');$$
+);
+
+-- Hinweis: pg_cron muss installiert und aktiviert sein.
+-- Alternativ kann die Query auch als Supabase Edge Function ausgeführt werden.
+
 -- Hinweise:
 -- - Rewards werden in rewards.json gepflegt und mit obigem Befehl in die DB übernommen.
 -- - Das Overlay erkennt automatisch, wie der Reward angezeigt/abgespielt wird.
