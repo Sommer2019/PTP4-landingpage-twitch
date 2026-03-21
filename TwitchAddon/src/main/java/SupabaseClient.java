@@ -491,7 +491,7 @@ public class SupabaseClient {
                     .header("Content-Type", "application/json")
                     // return representation so we get the created row with id
                     .header("Prefer", "return=representation")
-                    .POST(BodyPublishers.ofString("[" + json.toString() + "]"))
+                    .POST(BodyPublishers.ofString("[" + json + "]"))
                     .timeout(Duration.ofSeconds(10))
                     .build();
 
