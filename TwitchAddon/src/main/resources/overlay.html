@@ -217,7 +217,7 @@
         isPlaying = false;
         pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
       }
-      if (reward.istts === true || reward.istts === 'true' || reward.istts === 1) {
+      if (reward.istts) {
         let text;
         console.log('[Overlay] TTS Reward erkannt. redeemed.ttstext:', redeemed.ttstext);
         if (reward.id === 'raid_leader' || reward.id === '11') {
@@ -232,6 +232,9 @@
         mediaDiv.innerHTML = getRewardTextHtml(text);
         if ('speechSynthesis' in window && text && String(text).trim().length > 0) {
           try {
+            // OBS Browser Fix: Stelle sicher dass Audio-Kontext aktiv ist
+            initAudioContext();
+
             window.speechSynthesis.cancel();
             const utter = new window.SpeechSynthesisUtterance(text);
             utter.lang = 'de-DE';
@@ -360,6 +363,66 @@
     }
     let lastRedeemTime = 0;
     const MIN_REDEEM_INTERVAL = 5000;
+
+    // OBS Browser Workaround: Initialisiere Web Audio Context
+    function initAudioContext() {
+      console.log('[Overlay] 🔊 Versuche Audio-Kontext zu initialisieren (OBS-Fix)');
+      try {
+        // Methode 1: Web Audio API Context starten
+        if (window.AudioContext || window.webkitAudioContext) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          const audioContext = new AudioContext();
+          if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+              console.log('[Overlay] ✅ Audio-Kontext aktiviert (resume erfolgreich)');
+            }).catch(e => {
+              console.log('[Overlay] ⚠️ Audio-Kontext resume fehlgeschlagen:', e);
+            });
+          } else {
+            console.log('[Overlay] ✅ Audio-Kontext bereits aktiv');
+          }
+        }
+
+        // Methode 2: speechSynthesis auch resumieren (für OBS)
+        if (window.speechSynthesis && window.speechSynthesis.resume) {
+          try {
+            window.speechSynthesis.resume();
+            console.log('[Overlay] ✅ speechSynthesis.resume() aufgerufen');
+          } catch (e) {
+            console.log('[Overlay] ⚠️ speechSynthesis.resume() nicht unterstützt');
+          }
+        }
+
+        // Methode 3: Erstelle einen sehr kurzen Audio-Chunk mit Web Audio API
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0, ctx.currentTime); // Stille!
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.001); // 1ms später stoppen
+          console.log('[Overlay] ✅ Web Audio Trick aufgerufen');
+        } catch (e) {
+          console.log('[Overlay] ⚠️ Web Audio Trick fehlgeschlagen:', e);
+        }
+      } catch (e) {
+        console.log('[Overlay] ⚠️ Audio-Kontext Initialization fehlgeschlagen:', e);
+      }
+    }
+
+    // Initialisiere auf Seitenload
+    window.addEventListener('load', initAudioContext);
+    window.addEventListener('DOMContentLoaded', initAudioContext);
+
+    // Auch über Click-Event (Fallback)
+    document.addEventListener('click', initAudioContext, { once: true });
+
+    // Zusätzlich nach Kurzverzögerung
+    setTimeout(initAudioContext, 100);
+    setTimeout(initAudioContext, 500);
+
     pollRedeemedRewards();
   </script>
 </body>

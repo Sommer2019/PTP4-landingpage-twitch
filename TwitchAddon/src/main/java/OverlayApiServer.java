@@ -17,7 +17,6 @@ public class OverlayApiServer {
         server.createContext("/api/rewards", new RewardsHandler());
         server.createContext("/api/redeem_check", new RedeemCheckHandler());
         server.createContext("/overlay.html", new StaticFileHandler("overlay.html", "text/html"));
-        server.createContext("/tts-test.html", new StaticFileHandler("tts-test.html", "text/html"));
         server.createContext("/media", new StaticDirHandler("media"));
         server.setExecutor(null);
         server.start();
@@ -133,26 +132,22 @@ public class OverlayApiServer {
                 exchange.getResponseBody().close();
                 return;
             }
-            String rewardId = redeemedReward.optString("reward_id", null);
-            String redeemedBy = redeemedReward.optString("twitch_user_id", null);
-            int redeemedCost = redeemedReward.optInt("cost", 0);
 
-            // Check once-per-stream
+            // DEPRECATED: Diese Prüfung sollte nur noch zur Info dienen.
+            // Die Cooldown/Once-Per-Stream Prüfung und Punkte-Debit erfolgen jetzt ALLE in der RPC-Funktion!
+            // Daher werden hier KEINE Punkte mehr automatisch zurückgegeben.
+
+            String rewardId = redeemedReward.optString("reward_id", null);
+
+            // Check once-per-stream (nur zur Info)
             boolean oncePerStream = supabaseClient.isRewardOncePerStream(rewardId);
             if (oncePerStream) {
                 boolean activeGlobal = supabaseClient.hasActiveGlobalRedemption(rewardId, null);
                 if (activeGlobal) {
-                    boolean deleted = supabaseClient.deleteRedeemedReward(id);
-                    boolean refunded = false;
-                    if (redeemedBy != null && redeemedCost > 0) {
-                        supabaseClient.addOrUpdatePoints(redeemedBy, redeemedBy, redeemedCost, "Refund blocked redemption");
-                        refunded = true;
-                    }
                     JSONObject resp = new JSONObject();
                     resp.put("allowed", false);
                     resp.put("error", "once_per_stream_active");
-                    resp.put("deleted", deleted);
-                    resp.put("refunded", refunded);
+                    resp.put("info", "RPC sollte dies bereits blockiert haben. Punkte wurden NICHT zurückgegeben (RPC handhabt Debit).");
                     String respStr = resp.toString();
                     exchange.getResponseHeaders().add("Content-Type", "application/json");
                     exchange.sendResponseHeaders(200, respStr.length());
@@ -162,25 +157,18 @@ public class OverlayApiServer {
                 }
             }
 
-            // Check global cooldown
+            // Check global cooldown (nur zur Info)
             long lastGlobal = supabaseClient.getLastGlobalRedemptionTimestamp(rewardId);
             int cooldown = supabaseClient.getRewardCooldownFromDb(rewardId);
             long now = System.currentTimeMillis();
             if (lastGlobal > 0) {
                 long globalElapsed = (now - lastGlobal) / 1000L;
                 if (cooldown > 0 && globalElapsed < cooldown) {
-                    boolean deleted = supabaseClient.deleteRedeemedReward(id);
-                    boolean refunded = false;
-                    if (redeemedBy != null && redeemedCost > 0) {
-                        supabaseClient.addOrUpdatePoints(redeemedBy, redeemedBy, redeemedCost, "Refund blocked redemption");
-                        refunded = true;
-                    }
                     JSONObject resp = new JSONObject();
                     resp.put("allowed", false);
                     resp.put("error", "cooldown_active");
                     resp.put("remaining", cooldown - globalElapsed);
-                    resp.put("deleted", deleted);
-                    resp.put("refunded", refunded);
+                    resp.put("info", "RPC sollte dies bereits blockiert haben. Punkte wurden NICHT zurückgegeben (RPC handhabt Debit).");
                     String respStr = resp.toString();
                     exchange.getResponseHeaders().add("Content-Type", "application/json");
                     exchange.sendResponseHeaders(200, respStr.length());

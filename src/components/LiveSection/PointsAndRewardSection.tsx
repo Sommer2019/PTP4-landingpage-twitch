@@ -243,6 +243,8 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
           }
         } else if (data.success) {
           setStatus({ type: 'success', msg: t('Erfolgreich eingelöst!') });
+          // Punkte werden von der RPC debitiert, daher neue Punkte laden
+          // oder lokal abziehen (RPC hat es bereits debitiert, also optional)
           if (points !== null) setPoints(points - reward.cost);
           setTtsText('');
           setCooldownActive(true);
