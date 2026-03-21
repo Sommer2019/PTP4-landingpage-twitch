@@ -19,6 +19,7 @@ public class OverlayApiServer {
         server.createContext("/overlay.html", new StaticFileHandler("overlay.html", "text/html"));
         server.createContext("/tts-test.html", new StaticFileHandler("tts-test.html", "text/html"));
         server.createContext("/media", new StaticDirHandler("media"));
+        server.createContext("/api/tts", new TtsProxyHandler());
         server.setExecutor(null);
         server.start();
     }
