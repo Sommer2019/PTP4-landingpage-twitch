@@ -459,6 +459,35 @@
     "technicalHintPoints": "Punkte werde direkt i de Datenbank ändere.",
     "technicalHintRewards": "Belohnige werde sofort überno.",
     "technicalHintBanned": "Gspärri Accounts chönd jederziit entsperrt werde."
+    ,
+    "noPermission": "Kei Berechtigig",
+    "couldNotFetchTwitchId": "Konnte Twitch-ID nöd abrufe",
+    "cannotBanYourself": "Du chasch di selber nöd sperre",
+    "errorCheckingUser": "Fähler bim Prüefe vom Benutzer: {{msg}}",
+    "modsCanOnlyBanUsers": "Moderatore chönd nur normale Benutzer sperre",
+    "modsCannotUnbanModsOrBroadcaster": "Moderatore chönd kei Moderatore oder de Broadcaster entsperre",
+    "errorBanning": "Fähler bim Sperre: {{msg}}",
+    "accountBanned": "Account gspärret!",
+    "errorUnbanning": "Fähler bim Entsperre: {{msg}}",
+    "accountUnbanned": "Account entsperrt!",
+    "invalidTwitchIdReceived": "Ungültigi Twitch-ID debi",
+    "errorResettingPoints": "Fähler bim Lösche vo de Punkte: {{msg}}",
+    "pointsReset": "Punkte glöscht!",
+    "pleaseEnterValidPoints": "Bitte gib en gültige Punktewert i",
+    "errorFetchingPoints": "Fähler bim Holen vo de Punkte: {{msg}}",
+    "errorGivingPoints": "Fähler bim Vergäbe vo de Punkte: {{msg}}",
+    "pointsGiven": "Punkte vergä!",
+    "errorPointsAction": "Fähler bi de Punkte-Aktion: {{msg}}",
+    "errorSavingReward": "Fähler bim Speichere: {{msg}}",
+    "rewardSaved": "Reward gspeichert!",
+    "rewardDeletedFallback": "Reward glöscht (Direktlöschung). Falls s RLS isch, muess d'DB-Funktion i Supabase aagleit werde.",
+    "rpcMissingAndDeleteFailed": "Fähler: RPC-Funktion `admin_delete_reward` nöd in de DB gfundä und Direktlöschung isch fehlgschlage. Bitte üs de SQL i `supabase/db_anleitung_allgemein.sql` usführe oder DB-Administrator kontakte.",
+    "rpcMissingAndDeleteFailedShort": "Fähler: RPC-Funktion `admin_delete_reward` fehlt und Direktlöschung isch fehlgschlage. Bitte `supabase/db_anleitung_allgemein.sql` usführe.",
+    "errorDeletingReward": "Fähler bim Lösche vo de Reward: {{msg}}",
+    "rewardDeleted": "Reward glöscht!"
+    ,
+    "rlsBanPolicy": "Fähler: Direkti Iifüegig wird dur RLS blockiert. Bitte d'RPC `admin_ban_account` i de DB aalege oder d'Policies aapasse.",
+    "rlsUnbanPolicy": "Fähler: Direkti Löschung wird dur RLS blockiert. Bitte d'RPC `admin_unban_account` i de DB aalege oder d'Policies aapasse."
   },
   "clipVotingPage": {
     "title": "Clip vom Monet – Voting",
@@ -674,5 +703,9 @@
     "rewardTextLabel": "TTS Text",
     "rewardDurationLabel": "Dauer (Sekunde)",
     "rewardOncePerStreamLabel": "Nur einisch pro Stream"
+  },
+  "banned": {
+    "title": "Account gsperrt",
+    "message": "Dinge Account isch gsperrt worde. Wenn du Froge hesch, meld di bim Support."
   }
 }

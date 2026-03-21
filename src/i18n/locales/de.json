@@ -472,6 +472,35 @@
     "technicalHintPoints": "Punkte werden direkt in der Datenbank geändert.",
     "technicalHintRewards": "Belohnungen werden sofort übernommen.",
     "technicalHintBanned": "Gebannte Accounts können jederzeit entbannt werden."
+    ,
+    "noPermission": "Keine Berechtigung",
+    "couldNotFetchTwitchId": "Konnte Twitch-ID nicht abrufen",
+    "cannotBanYourself": "Du kannst dich nicht selbst bannen",
+    "errorCheckingUser": "Fehler beim Prüfen des Benutzers: {{msg}}",
+    "modsCanOnlyBanUsers": "Moderatoren können nur normale Benutzer bannen",
+    "modsCannotUnbanModsOrBroadcaster": "Moderatoren können keine Moderatoren oder den Broadcaster entbannen",
+    "errorBanning": "Fehler beim Bannen: {{msg}}",
+    "accountBanned": "Account gebannt!",
+    "errorUnbanning": "Fehler beim Entbannen: {{msg}}",
+    "accountUnbanned": "Account entbannt!",
+    "invalidTwitchIdReceived": "Ungültige Twitch-ID erhalten",
+    "errorResettingPoints": "Fehler beim Punkte löschen: {{msg}}",
+    "pointsReset": "Punkte gelöscht!",
+    "pleaseEnterValidPoints": "Bitte gültigen Punktewert eingeben",
+    "errorFetchingPoints": "Fehler beim Punkte holen: {{msg}}",
+    "errorGivingPoints": "Fehler beim Punkte vergeben: {{msg}}",
+    "pointsGiven": "Punkte vergeben!",
+    "errorPointsAction": "Fehler bei Punkte-Aktion: {{msg}}",
+    "errorSavingReward": "Fehler beim Speichern: {{msg}}",
+    "rewardSaved": "Reward gespeichert!",
+    "rewardDeletedFallback": "Reward gelöscht (Direktlöschung). Hinweis: Falls es sich um RLS handelt, die zuständige DB-Funktion sollte in der DB angelegt werden.",
+    "rpcMissingAndDeleteFailed": "Fehler: Die RPC-Funktion `admin_delete_reward` ist nicht in der Datenbank vorhanden und Direktlöschung fehlgeschlagen. Bitte die SQL-Funktion aus `supabase/db_anleitung_allgemein.sql` in deiner Supabase-DB ausführen (SQL Editor) oder den DB-Administrator kontaktieren.",
+    "rpcMissingAndDeleteFailedShort": "Fehler: Die RPC-Funktion `admin_delete_reward` ist nicht vorhanden und Direktlöschung ist fehlgeschlagen. Bitte die SQL-Funktion aus `supabase/db_anleitung_allgemein.sql` in deiner Supabase-DB ausführen.",
+    "errorDeletingReward": "Fehler beim Löschen: {{msg}}",
+    "rewardDeleted": "Reward gelöscht!"
+    ,
+    "rlsBanPolicy": "Fehler: Direkte Einfügung blockiert (RLS). Bitte die RPC-Funktion `admin_ban_account` in der DB anlegen oder entsprechende Policies anpassen.",
+    "rlsUnbanPolicy": "Fehler: Direkte Löschung blockiert (RLS). Bitte die RPC-Funktion `admin_unban_account` in der DB anlegen oder entsprechende Policies anpassen."
   },
   "clipVotingPage": {
     "title": "Clip des Monats – Voting",
@@ -687,5 +716,9 @@
     "rewardTextLabel": "TTS Text",
     "rewardDurationLabel": "Dauer (Sekunden)",
     "rewardOncePerStreamLabel": "Nur einmal pro Stream"
+  },
+  "banned": {
+    "title": "Account gesperrt",
+    "message": "Dein Account wurde gesperrt. Bei Fragen wende dich bitte an den Support."
   }
 }

@@ -23,6 +23,8 @@ import ModerateAccountPage from './pages/ModerateAccountPage'
 import './App.css'
 import siteConfig from "./config/siteConfig.ts";
 import * as React from "react";
+import { useIsBanned } from './hooks/useIsBanned';
+import { useTranslation } from 'react-i18next';
 
 // Komponente für echte Browser-Redirects zu statischen HTML-Dateien
 const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
@@ -58,6 +60,31 @@ const ExternalRedirectHandler = () => {
 };
 
 function App() {
+    const { isBanned, loading: banLoading } = useIsBanned();
+    const { t } = useTranslation();
+
+    useLayoutEffect(() => {
+        // Hier könnte man Analytics oder andere Effekte triggern
+    }, []);
+
+    if (banLoading) {
+        return (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <div className="auth-spinner" />
+                <p>{t('auth.loading')}</p>
+            </div>
+        );
+    }
+    if (isBanned) {
+        return (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <div className="auth-gate-icon" style={{ fontSize: 48 }}>⛔</div>
+                <h1>{t('banned.title', 'Account gesperrt')}</h1>
+                <p>{t('banned.message', 'Dein Account wurde gesperrt. Bei Fragen wende dich bitte an den Support.')}</p>
+            </div>
+        );
+    }
+
     return (
         <BrowserRouter>
             <SettingsBar/>

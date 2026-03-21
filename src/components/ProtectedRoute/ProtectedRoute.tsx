@@ -8,9 +8,10 @@ interface ProtectedRouteProps {
   children: ReactNode
 }
 
+
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading, signInWithTwitch } = useAuth()
-  const { t } = useTranslation()
+  const { user, loading, signInWithTwitch } = useAuth();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -20,7 +21,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           <p>{t('auth.loading')}</p>
         </div>
       </SubPage>
-    )
+    );
   }
 
   if (!user) {
@@ -38,9 +39,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           </button>
         </div>
       </SubPage>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
-

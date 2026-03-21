@@ -9,10 +9,11 @@ interface ModeratorRouteProps {
   children: ReactNode
 }
 
+
 export default function ModeratorRoute({ children }: ModeratorRouteProps) {
-  const { user, loading: authLoading, signInWithTwitch } = useAuth()
-  const { isMod, loading: modLoading } = useIsModerator()
-  const { t } = useTranslation()
+  const { user, loading: authLoading, signInWithTwitch } = useAuth();
+  const { isMod, loading: modLoading } = useIsModerator();
+  const { t } = useTranslation();
 
   if (authLoading || modLoading) {
     return (
@@ -22,7 +23,7 @@ export default function ModeratorRoute({ children }: ModeratorRouteProps) {
           <p>{t('auth.loading')}</p>
         </div>
       </SubPage>
-    )
+    );
   }
 
   if (!user) {
@@ -40,7 +41,7 @@ export default function ModeratorRoute({ children }: ModeratorRouteProps) {
           </button>
         </div>
       </SubPage>
-    )
+    );
   }
 
   if (!isMod) {
@@ -52,9 +53,8 @@ export default function ModeratorRoute({ children }: ModeratorRouteProps) {
           <p>{t('moderate.forbiddenHint')}</p>
         </div>
       </SubPage>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
-

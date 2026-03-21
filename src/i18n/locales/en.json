@@ -470,6 +470,35 @@
     "technicalHintPoints": "Points are changed directly in the database.",
     "technicalHintRewards": "Rewards are applied immediately.",
     "technicalHintBanned": "Banned accounts can be unbanned at any time."
+    ,
+    "noPermission": "No permission",
+    "couldNotFetchTwitchId": "Could not fetch Twitch ID",
+    "cannotBanYourself": "You cannot ban yourself",
+    "errorCheckingUser": "Error checking user: {{msg}}",
+    "modsCanOnlyBanUsers": "Moderators can only ban regular users",
+    "modsCannotUnbanModsOrBroadcaster": "Moderators cannot unban other moderators or the broadcaster",
+    "errorBanning": "Error banning: {{msg}}",
+    "accountBanned": "Account banned!",
+    "errorUnbanning": "Error unbanning: {{msg}}",
+    "accountUnbanned": "Account unbanned!",
+    "invalidTwitchIdReceived": "Invalid Twitch ID received",
+    "errorResettingPoints": "Error resetting points: {{msg}}",
+    "pointsReset": "Points reset!",
+    "pleaseEnterValidPoints": "Please enter a valid points value",
+    "errorFetchingPoints": "Error fetching points: {{msg}}",
+    "errorGivingPoints": "Error giving points: {{msg}}",
+    "pointsGiven": "Points given!",
+    "errorPointsAction": "Error during points action: {{msg}}",
+    "errorSavingReward": "Error saving reward: {{msg}}",
+    "rewardSaved": "Reward saved!",
+    "rewardDeletedFallback": "Reward deleted (direct delete). Note: If this is an RLS issue, create the DB function in Supabase.",
+    "rpcMissingAndDeleteFailed": "Error: RPC function `admin_delete_reward` not found in DB and direct delete failed. Run the SQL in `supabase/db_anleitung_allgemein.sql` or contact the DB admin.",
+    "rpcMissingAndDeleteFailedShort": "Error: RPC function `admin_delete_reward` missing and direct delete failed. Run the SQL in `supabase/db_anleitung_allgemein.sql`.",
+    "errorDeletingReward": "Error deleting reward: {{msg}}",
+    "rewardDeleted": "Reward deleted!"
+    ,
+    "rlsBanPolicy": "Error: direct insert blocked by RLS. Please create the RPC `admin_ban_account` in the DB or adjust policies.",
+    "rlsUnbanPolicy": "Error: direct delete blocked by RLS. Please create the RPC `admin_unban_account` in the DB or adjust policies."
   },
   "clipVotingPage": {
     "title": "Clip of the Month – Voting",
@@ -685,5 +714,9 @@
     "rewardTextLabel": "TTS Text",
     "rewardDurationLabel": "Duration (seconds)",
     "rewardOncePerStreamLabel": "Once per stream"
+  },
+  "banned": {
+    "title": "Account banned",
+    "message": "Your account has been banned. If you have questions, please contact support."
   }
 }
