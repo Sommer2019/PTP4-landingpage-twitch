@@ -217,7 +217,7 @@
         isPlaying = false;
         pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
       }
-      if (reward.istts) {
+      if (reward.istts === true || reward.istts === 'true' || reward.istts === 1) {
         let text;
         console.log('[Overlay] TTS Reward erkannt. redeemed.ttstext:', redeemed.ttstext);
         if (reward.id === 'raid_leader' || reward.id === '11') {
