@@ -27,7 +27,6 @@ interface Reward {
     onceperstream?: boolean;
     cooldown?: number;
     istts?: boolean;
-    streamdeckaction?: string;
 }
 
 
@@ -59,8 +58,7 @@ export default function ModerateAccountPage() {
     duration: 0,
     onceperstream: false,
     cooldown: 0,
-    istts: false,
-    streamdeckaction: ''
+    istts: false
   }
 
   const [rewardForm, setRewardForm] = useState<Reward>(defaultReward)
@@ -82,7 +80,6 @@ export default function ModerateAccountPage() {
         case 'description':
         case 'imageurl':
         case 'text':
-        case 'streamdeckaction':
           merged[key] = val as string
           break
         case 'cost':
@@ -600,12 +597,6 @@ export default function ModerateAccountPage() {
                   <input id="rewardText" type="text" className="modal-input" placeholder={t('moderate.rewardTextPlaceholder') || ''} value={rewardForm.text} onChange={e => setRewardForm((f: Reward) => ({...f, text: e.target.value}))} />
                 </div>
 
-                {/* streamdeckaction */}
-                <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                  <label htmlFor="rewardStreamdeckaction" style={{fontWeight:'bold'}}>{t('moderate.rewardStreamdeckactionLabel') || 'Stream Deck Aktion'}</label>
-                  <input id="rewardStreamdeckaction" type="text" className="modal-input" placeholder={t('moderate.rewardStreamdeckactionPlaceholder') || ''} value={rewardForm.streamdeckaction} onChange={e => setRewardForm((f: Reward) => ({...f, streamdeckaction: e.target.value}))} />
-                </div>
-
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
                   <label style={{fontWeight:'bold'}}>{t('moderate.rewardIsTtsLabel') || 'Text-to-Speech'}</label>
                   <label style={{display:'flex',alignItems:'center',gap:8}}>
@@ -614,23 +605,26 @@ export default function ModerateAccountPage() {
                   </label>
                 </div>
 
-                {/* duration / once per stream */}
-                <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                  <label htmlFor="rewardDuration" style={{fontWeight:'bold'}}>{t('moderate.rewardDurationLabel') || 'Duration (s)'}</label>
-                  <input id="rewardDuration" type="number" className="modal-input" placeholder={t('moderate.rewardDurationPlaceholder') || ''} value={rewardForm.duration} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, duration: Number(e.target.value)}))} />
+
+                {/* duration & cooldown nebeneinander */}
+                <div style={{display:'flex',flexDirection:'row',gap:18,gridColumn: isWide ? 'span 1' : 'span 2'}}>
+                  <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
+                    <label htmlFor="rewardDuration" style={{fontWeight:'bold'}}>{t('moderate.rewardDurationLabel') || 'Duration (s)'}</label>
+                    <input id="rewardDuration" type="number" className="modal-input" placeholder={t('moderate.rewardDurationPlaceholder') || ''} value={rewardForm.duration} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, duration: Number(e.target.value)}))} />
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
+                    <label htmlFor="rewardCooldown" style={{fontWeight:'bold'}}>{t('moderate.rewardCooldownLabel')}</label>
+                    <input id="rewardCooldown" type="number" className="modal-input" placeholder={t('moderate.rewardCooldownPlaceholder')} title={t('moderate.rewardCooldownHint')} value={rewardForm.cooldown} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, cooldown: Number(e.target.value)}))} />
+                  </div>
                 </div>
+
+                {/* once per stream */}
                 <div style={{display:'flex',flexDirection:'column',gap:6, gridColumn: isWide ? 'span 1' : 'span 2'}}>
                   <label style={{fontWeight:'bold'}}>{t('moderate.rewardOncePerStreamLabel') || 'Einmal pro Stream'}</label>
                   <label style={{display:'flex',alignItems:'center',gap:8}}>
                     <input type="checkbox" checked={!!rewardForm.onceperstream} onChange={e => setRewardForm((f: Reward) => ({...f, onceperstream: e.target.checked}))} />
                     <span style={{fontSize:12,color:'var(--muted-color,#666)'}}>{t('moderate.rewardOncePerStreamHint') || ''}</span>
                   </label>
-                </div>
-
-                {/* cooldown */}
-                <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                  <label htmlFor="rewardCooldown" style={{fontWeight:'bold'}}>{t('moderate.rewardCooldownLabel')}</label>
-                  <input id="rewardCooldown" type="number" className="modal-input" placeholder={t('moderate.rewardCooldownPlaceholder')} title={t('moderate.rewardCooldownHint')} value={rewardForm.cooldown} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, cooldown: Number(e.target.value)}))} />
                 </div>
 
                 <div style={{display:'flex',flexDirection:'row',gap:12,alignItems:'center',marginTop:18,gridColumn: isWide ? 'span 3' : 'span 2'}}>

@@ -64,17 +64,6 @@ public class OverlayApiServer {
                     return;
                 }
 
-                // Prüfe auf streamdeckaction.text
-                if (redeemedReward.has("streamdeckaction")) {
-                    JSONObject streamdeckaction = redeemedReward.optJSONObject("streamdeckaction");
-                    if (streamdeckaction != null) {
-                        String text = streamdeckaction.optString("text", "");
-                        if (text != null && !text.isEmpty()) {
-                            StreamdeckTrigger.triggerStreamDeckAction(text);
-                        }
-                    }
-                }
-
                 String rewardId = redeemedReward.getString("reward_id");
                 String redeemedBy = redeemedReward.optString("twitch_user_id", null);
 
@@ -228,12 +217,10 @@ public class OverlayApiServer {
     static class StaticFileHandler implements HttpHandler {
         private final String resourcePath;
         private final String contentType;
-
         public StaticFileHandler(String resourcePath, String contentType) {
             this.resourcePath = resourcePath;
             this.contentType = contentType;
         }
-
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
@@ -257,11 +244,9 @@ public class OverlayApiServer {
 
     static class StaticDirHandler implements HttpHandler {
         private final String resourceDir;
-
         public StaticDirHandler(String resourceDir) {
             this.resourceDir = resourceDir;
         }
-
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             String uri = exchange.getRequestURI().getPath();
