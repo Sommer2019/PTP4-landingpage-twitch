@@ -30,6 +30,12 @@ function buildStoreLinks(gameName: string): StoreLink[] {
       className: 'store-badge store-badge--twitch',
     },
     {
+      id: 'steam',
+      labelKey: 'currentGame.stores.steam',
+      url: `https://store.steampowered.com/search/?term=${q}`,
+      className: 'store-badge store-badge--steam',
+    },
+    {
       id: 'epic',
       labelKey: 'currentGame.stores.epic',
       url: `https://store.epicgames.com/browse?q=${q}`,
@@ -38,7 +44,7 @@ function buildStoreLinks(gameName: string): StoreLink[] {
     {
       id: 'nintendo',
       labelKey: 'currentGame.stores.nintendo',
-      url: `https://www.nintendo.de/Suche/Suche.html#q=${q}`,
+      url: `https://www.nintendo.com/de-de/Suche-/Suche-299117.html?q=${q}`,
       className: 'store-badge store-badge--nintendo',
     },
     {
