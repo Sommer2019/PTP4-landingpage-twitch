@@ -135,7 +135,7 @@ export default function LiveSection() {
 
                 {/* ── Current Game (only while live) ── */}
                 <CurrentGame isLive={showStream}/>
-
+                <p></p>
                 {/* ── Player + Chat nur wenn live ── */}
                 {showStream && (
                     <div className="embed-row">
@@ -169,6 +169,7 @@ export default function LiveSection() {
                         </div>
                     </div>
                 )}
+                <p></p>
                 {/* Punkte & Rewards auf exakt gleicher Breite wie embed-row */}
                 <div className="points-reward-section-wrapper">
                     <PointsAndRewardSection isLive={showStream}/>
