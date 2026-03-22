@@ -27,7 +27,7 @@
 
 .current-game__label {
   font-size: 0.75rem;
-  color: var(--text-secondary, #aaa);
+  color: var(--color-muted, #aaa);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
@@ -36,10 +36,14 @@
 .current-game__name {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text, #fff);
+  color: var(--color-text, #213547);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .current-game__name {
+  color: #e6eef8;
 }
 
 .current-game__stores {
