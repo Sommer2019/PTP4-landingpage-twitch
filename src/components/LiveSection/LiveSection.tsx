@@ -165,13 +165,14 @@ export default function LiveSection() {
                 </a>
               </div>
             </div>
+            {/* Punkte & Rewards auf exakt gleicher Breite wie embed-row */}
+            <div className="points-reward-section-wrapper">
+              <PointsAndRewardSection isLive={showStream} />
+            </div>
           </div>
         )}
       </div>
-      {/* Punkte & Rewards auf exakt gleicher Breite wie embed-row */}
-      <div className="points-reward-section-wrapper">
-        <PointsAndRewardSection isLive={showStream} />
-      </div>
+
     </section>
   )
 }
