@@ -116,50 +116,62 @@ export default function LiveSection() {
   const showStream = isLive
 
   return (
-      <section className="live-section" aria-label="Live Stream">
-        <div className="embed-card">
-          <a
-              href={`https://www.twitch.tv/${channel}`}
-              target="_blank"
-              rel="noopener noreferrer"
-          >
-            <div className="embed-title">
-              {showStream ? t('live.title') : t('live.offlineTitle')}
+    <section className="live-section" aria-label="Live Stream">
+      <div className="embed-card">
+        <a
+          href={`https://www.twitch.tv/${channel}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <div className="embed-title">
+            {showStream ? t('live.title') : t('live.offlineTitle')}
+          </div>
+        </a>
+
+        {/* ── Offline → nächster Termin ── */}
+        {!showStream && <NextStream />}
+
+        {/* ── Current Game (only while live) ── */}
+        <CurrentGame isLive={showStream} />
+
+        {/* ── Player + Chat nur wenn live ── */}
+        {showStream && (
+          <div className="embed-row">
+            <div
+              className="embed-player"
+              ref={playerContainerRef}
+              style={{ minHeight: 400 }}
+            >
+              {/* Fallback Overlay falls Player nicht lädt */}
+              <noscript>
+                <div style={{color: '#fff', textAlign: 'center', padding: '1rem'}}>
+                  {t('live.playerNoJS', 'Bitte aktiviere JavaScript, um den Stream zu sehen.')}
+                </div>
+              </noscript>
             </div>
-          </a>
-
-          {/* ── Offline → nächster Termin ── */}
-          {!showStream && <NextStream />}
-
-          {/* ── Current Game (only while live) ── */}
-          <CurrentGame isLive={showStream} />
-
-          {/* ── Player + Chat (immer im DOM für Erkennung, versteckt wenn offline) ── */}
-          <div className={`embed-row${showStream ? '' : ' embed-row--hidden'}`}>
-            <div className="embed-player" ref={playerContainerRef} />
-
             <div className="embed-chat">
-              {showStream && (
-                  <iframe
-                      src={`https://www.twitch.tv/embed/${channel}/chat?parent=${parent}&darkpopout`}
-                      title="Twitch Chat"
-                      allow="autoplay; fullscreen; clipboard-write"
-                  />
-              )}
+              <iframe
+                src={`https://www.twitch.tv/embed/${channel}/chat?parent=${parent}&darkpopout`}
+                title="Twitch Chat"
+                allow="autoplay; fullscreen"
+              />
               <div className="chat-fallback">
                 <a
-                    href={chatFallbackUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  href={chatFallbackUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   {t('live.chatFallback')}
                 </a>
               </div>
             </div>
           </div>
-          {/* Punkte & Rewards direkt unter dem Chat anzeigen */}
-          <PointsAndRewardSection isLive={showStream} />
-        </div>
-      </section>
+        )}
+      </div>
+      {/* Punkte & Rewards auf exakt gleicher Breite wie embed-row */}
+      <div className="points-reward-section-wrapper">
+        <PointsAndRewardSection isLive={showStream} />
+      </div>
+    </section>
   )
 }

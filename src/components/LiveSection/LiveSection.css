@@ -120,3 +120,28 @@
   }
 }
 
+.points-reward-section-wrapper {
+  max-width: 100%;
+  margin: 0 auto;
+  /* Gleiche Breite wie .embed-row (Stream+Chat) */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+@media (min-width: 901px) {
+  .points-reward-section-wrapper {
+    width: 100%;
+    max-width: 900px;
+    /* Passe ggf. an die Breite deiner .embed-row an */
+  }
+}
+
+@media (max-width: 900px) {
+  .points-reward-section-wrapper {
+    max-width: 100%;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

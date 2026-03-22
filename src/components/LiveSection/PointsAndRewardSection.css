@@ -3,9 +3,25 @@
   border: 1px solid var(--box-border);
   border-radius: 16px;
   padding: 20px;
-  max-width: 400px;
+  max-width: none;
   width: 100%;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+@media (min-width: 901px) {
+  /* Auf Desktop: Punkte-Section auf volle Breite von Stream+Chat */
+  .points-reward-section {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Auf Tablet/Mobile: wieder max-width */
+  .points-reward-section {
+    max-width: 400px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -65,6 +81,27 @@
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 8px;
+  min-width: 0;
+  min-height: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 600px) {
+  .reward-card {
+    padding: 4px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+    min-height: 48px;
+    min-width: 48px;
+    max-width: 100%;
+  }
+  .reward-card-title {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+  }
+  .reward-card-cost {
+    font-size: 0.65rem;
+  }
 }
 
 .reward-card:hover {
