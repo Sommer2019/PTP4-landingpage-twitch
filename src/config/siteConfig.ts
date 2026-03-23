@@ -208,7 +208,7 @@ const siteConfig: SiteConfig = {
       titleKey: 'links.streamelements.title',
       descKey: 'links.streamelements.desc',
       url: '/streamelements',
-      icon: '/img/logos/StreamElements.png',
+      icon: '/img/logos/StreamElements.webp',
       target: '_self',
     },
     {
@@ -216,7 +216,7 @@ const siteConfig: SiteConfig = {
       titleKey: 'links.clipdesmonats.title',
       descKey: 'links.clipdesmonats.desc',
       url: '/clipdesmonats',
-      icon: '/img/logos/cdm.png',
+      icon: '/img/logos/cdm.webp',
       target: '_self',
     },
     {
@@ -248,7 +248,7 @@ const siteConfig: SiteConfig = {
       titleKey: 'links.onlybart.title',
       descKey: 'links.onlybart.desc',
       url: '/onlybart',
-      icon: '/img/logos/OB.png',
+      icon: '/img/logos/OB.webp',
       target: '_self',
     },
     {
@@ -334,7 +334,7 @@ const siteConfig: SiteConfig = {
       titleKey: 'partners.yvolve.title',
       descKey: 'partners.yvolve.desc',
       url: 'https://yvolve.shop/?bg_ref=cnbZIhbZxH',
-      icon: '/img/logos/Evolve.png',
+      icon: '/img/logos/Evolve.webp',
       target: '_blank',
       discountCode: 'FullHD',
     },
@@ -342,7 +342,7 @@ const siteConfig: SiteConfig = {
       id: 'nclip',
       titleKey: 'partners.nclip.title',
       url: 'https://nclip.io/page/hd1920x1080',
-      icon: '/img/logos/NClip.png',
+      icon: '/img/logos/NClip.webp',
       target: '_blank',
     },
     {
@@ -350,7 +350,7 @@ const siteConfig: SiteConfig = {
       titleKey: 'partners.frugends.title',
       descKey: 'partners.frugends.desc',
       url: 'https://frugends.com/?srsltid=AfmBOoqjyBjbK5TWs0tAS4ELgV93XqTXzl84OChVKd93OVkjeWfH8wFT',
-      icon: '/img/logos/Frugends.png',
+      icon: '/img/logos/Frugends.webp',
       target: '_blank',
       discountCode: 'FullHD',
     },
@@ -367,7 +367,7 @@ const siteConfig: SiteConfig = {
   
   onlyBart: {
     title: 'OnlyBart',
-    logoUrl: '/img/logos/OB.png'
+    logoUrl: '/img/logos/OB.webp'
   }
 }
 

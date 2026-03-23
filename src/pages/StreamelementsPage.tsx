@@ -43,7 +43,7 @@ export default function StreamelementsPage() {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <img src="/img/logos/StreamElements.png" alt="StreamElements" className="se-donate-icon" />
+        <img src="/img/logos/StreamElements.webp" alt="StreamElements" className="se-donate-icon" />
         <div>
           <strong>StreamElements</strong><br />
           <span style={{ fontSize: '13px', color: 'var(--muted)' }}>
