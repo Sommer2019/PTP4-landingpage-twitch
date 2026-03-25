@@ -24,11 +24,11 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
     position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--box-gradient, #181028);
+    top: 56px; /* Platz für Kopfzeile, ggf. anpassen */
+    z-index: 1100;
+    background: var(--box-gradient, #181028) !important;
     /* Optional: Schatten für bessere Sichtbarkeit */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .stat-box {
@@ -107,6 +107,14 @@
     }
     .click-area {
         min-height: 240px;
+    }
+
+    .bartclicker-header {
+        position: sticky;
+        top: 56px;
+        z-index: 1100;
+        background: var(--box-gradient, #181028) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 }
 .click-button:hover:not(:disabled) .beard-svg {
@@ -882,9 +890,10 @@
         align-items: center;
         justify-content: space-around;
         position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        top: 56px;
+        z-index: 1100;
+        background: var(--box-gradient, #181028) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
     .stat-box {
