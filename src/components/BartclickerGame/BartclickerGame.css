@@ -13,8 +13,9 @@
 
 .auto-upgrade-row {
     display: flex;
+    justify-content: flex-start;
     align-items: center;
-    gap: 4px;
+    margin-bottom: 4px;
 }
 
 .button-group-vertical {
@@ -1259,10 +1260,6 @@
   color: #bbb;
 }
 
-[data-theme='light'] .auto-upgrade-checkbox span {
-  color: #7c4dff;
-}
-
 .auto-upgrade-btn {
   display: inline-flex;
   border: none;
@@ -1283,7 +1280,3 @@
   color: #fff;
 }
 
-/* Entferne Checkbox-Styles, da nicht mehr benötigt */
-.auto-upgrade-checkbox-desktop {
-  display: none !important;
-}
