@@ -353,15 +353,13 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                 const isChecked = gameState.click_upgrade_buyer_items?.includes(item.id);
                                 return (
                                     <div key={item.id} className="shop-item shop-item">
-                                        <div className="item-header item-header">
-                                            <span className="item-icon">{item.icon}</span>
-                                            <div className="item-info">
-                                                <h4 className="item-name">{item.name}</h4>
-                                                <p className="item-cps">{item.cps?.toFixed(1)}/s</p>
-                                            </div>
-                                            <span className="item-count">×{item.count}</span>
+                                        <span className="item-icon">{item.icon}</span>
+                                        <div className="item-info">
+                                            <h4 className="item-name">{item.name}</h4>
+                                            <p className="item-cps">{item.cps?.toFixed(1)}/s</p>
                                         </div>
-                                        {gameState.click_upgrade_buyer_enabled && (
+                                        <span className="item-count">×{item.count}</span>
+                                        {gameState.click_upgrade_buyer_enabled ? (
                                             <div className="auto-upgrade-row">
                                                 <button
                                                     className={`auto-upgrade-btn${isChecked ? ' active' : ''}`}
@@ -369,12 +367,11 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                                     onClick={() => toggleAutoUpgradeItem(item.id)}
                                                     aria-pressed={!!isChecked}
                                                     type="button"
-                                                    style={{marginLeft: 6}}
                                                 >
                                                     🤖
                                                 </button>
                                             </div>
-                                        )}
+                                        ) : <div />}
                                         <div className="button-group button-group">
                                             <button
                                                 className="buy-button"
@@ -405,15 +402,13 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                 const isChecked = gameState.click_upgrade_buyer_items?.includes(item.id);
                                 return (
                                     <div key={item.id} className="shop-item shop-item">
-                                        <div className="item-header item-header">
-                                            <span className="item-icon">{item.icon}</span>
-                                            <div className="item-info">
-                                                <h4 className="item-name">{item.name}</h4>
-                                                <p className="item-power">+{item.clickPower}</p>
-                                            </div>
-                                            <span className="item-count">×{item.count}</span>
+                                        <span className="item-icon">{item.icon}</span>
+                                        <div className="item-info">
+                                            <h4 className="item-name">{item.name}</h4>
+                                            <p className="item-power">+{item.clickPower}</p>
                                         </div>
-                                        {gameState.click_upgrade_buyer_enabled && (
+                                        <span className="item-count">×{item.count}</span>
+                                        {gameState.click_upgrade_buyer_enabled ? (
                                             <div className="auto-upgrade-row">
                                                 <button
                                                     className={`auto-upgrade-btn${isChecked ? ' active' : ''}`}
@@ -421,12 +416,11 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                                     onClick={() => toggleAutoUpgradeItem(item.id)}
                                                     aria-pressed={!!isChecked}
                                                     type="button"
-                                                    style={{marginLeft: 6}}
                                                 >
                                                     🤖
                                                 </button>
                                             </div>
-                                        )}
+                                        ) : <div />}
                                         <div className="button-group button-group">
                                             <button
                                                 className="buy-button"

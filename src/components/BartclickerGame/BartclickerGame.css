@@ -122,14 +122,12 @@
 }
 
 .beard-svg {
-    width: 100%; /* Nutzt jetzt die 280px des Buttons voll aus */
+    width: 100%;
     height: 100%;
     display: block;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-    /* ENTFERNE das padding: 290px 0 5px 0; <- Das war der Übeltäter! */
 }
 
-/* Fix für Mobile */
 @media (max-width: 480px) {
 
     .item-name {
@@ -348,8 +346,8 @@
     border: 1px solid var(--box-border);
     border-radius: 8px;
     padding: 10px;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 40px 1fr 48px 48px 1fr;
     align-items: center;
     gap: 10px;
     transition: all 0.2s;
