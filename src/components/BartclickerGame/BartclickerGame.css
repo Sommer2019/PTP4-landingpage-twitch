@@ -129,7 +129,7 @@
 }
 
 @media (max-width: 480px) {
-
+    .item-count,
     .item-name {
         display: none !important;
     }
