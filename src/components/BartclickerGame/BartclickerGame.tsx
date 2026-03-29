@@ -501,7 +501,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                         <p className="relic-effect">{relic.effect}</p>
                                         {isUnlocked ? (
                                             <div
-                                                className="relic-unlocked">✅ {t('bartclicker.relics.unlocked')}</div>) : (
+                                                className="relic-unlocked">{t('bartclicker.relics.unlocked')}</div>) : (
                                             <button
                                                 className="buy-button"
                                                 onClick={() => unlockRelic(relic.id)}
@@ -532,7 +532,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                    style={{fontSize: '0.9rem'}}>{t('bartclicker.autobuyer.youHave', {count: gameState.rebirth_count})}</p>
                                 {gameState.rebirth_count >= 10 && (
                                     <p className="highlight-warning" style={{fontSize: '0.8rem'}}>
-                                        Multiplier nach Kauf: ×{formatNumber(Math.pow(2, gameState.rebirth_count - 10))}
+                                        {t('bartclicker.autobuyer.multiplierAfterPurchase', {multiplier: formatNumber(Math.pow(2, gameState.rebirth_count - 10))})}
                                     </p>
                                 )}
                                 {/* Autobuyer-Button: Nach Kauf als Toggle anzeigen, sonst Kauf-Button */}

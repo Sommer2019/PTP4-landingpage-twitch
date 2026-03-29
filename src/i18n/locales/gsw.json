@@ -594,7 +594,8 @@
       "autoClickerDisable": "❌ Deaktiviere",
       "upgradebuyer": "📈 Auto-Upgrade Chäufer",
       "upgradebuyerDesc": "Choscht: 10 Rebirths",
-      "youHave": "Du häsch: {{count}} Rebirths"
+      "youHave": "Du häsch: {{count}} Rebirths",
+      "multiplierAfterPurchase": "Multiplier nach Chauf: ×{{multiplier}}"
     },
     "leaderboard": {
       "title": "🏆 Top Spiiler",
