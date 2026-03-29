@@ -563,7 +563,8 @@
       "button": "🔄 Rebirth",
       "description": "Verdoppel dine Multiplikator und fang vo vorne aa! Dim Bart wird länger!",
       "multiplierBoost": "Multiplikator ×{{multiplier}}",
-      "cost": "Choscht: {{cost}} Barthaare"
+      "cost": "Choscht: {{cost}} Barthaare",
+      "spendWarning": "⚠️ Rebirths usgäh senkt din Multiplikator! (Aktuell:"
     },
     "booster": {
       "turboBoost": "Turbo-Boost",

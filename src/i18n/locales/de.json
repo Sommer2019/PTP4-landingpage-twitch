@@ -590,7 +590,8 @@
       "button": "🔄 Rebirth",
       "description": "Verdopple deinen Multiplikator und starte von vorne! Dein Bart wird länger!",
       "multiplierBoost": "Multiplikator ×{{multiplier}}",
-      "cost": "Kosten: {{cost}} Barthaare"
+      "cost": "Kosten: {{cost}} Barthaare",
+      "spendWarning": "⚠️ Rebirths ausgeben senkt deinen Multiplikator! (Aktuell:"
     },
     "booster": {
       "turboBoost": "Turbo-Boost",

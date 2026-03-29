@@ -574,7 +574,8 @@
       "button": "🔄 Rebirth",
       "description": "Double your multiplier and start fresh! Your beard will grow longer!",
       "multiplierBoost": "Multiplier ×{{multiplier}}",
-      "cost": "Cost: {{cost}} beard hairs"
+      "cost": "Cost: {{cost}} beard hairs",
+      "spendWarning": "⚠️ Spending rebirths lowers your multiplier! (Current:"
     },
     "booster": {
       "turboBoost": "Turbo Boost",
