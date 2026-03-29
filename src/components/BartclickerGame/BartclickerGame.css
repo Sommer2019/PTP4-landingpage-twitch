@@ -24,6 +24,7 @@
     gap: 4px;
     align-items: stretch;
 }
+
 .bartclicker-game {
     display: flex;
     flex-direction: column;
@@ -55,7 +56,7 @@
     background: var(--box-gradient, #181028) !important;
     background-color: #181028 !important;
     /* Optional: Schatten für bessere Sichtbarkeit */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .stat-box {
@@ -102,7 +103,7 @@
 }
 
 .click-button {
-    width: 280px;  /* Etwas größer für bessere Klickbarkeit */
+    width: 280px; /* Etwas größer für bessere Klickbarkeit */
     height: 280px;
     background: transparent;
     border: none;
@@ -110,16 +111,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.1s ease-out; /* Hier nur Dauer und Kurve */    padding: 0;
+    transition: transform 0.1s ease-out; /* Hier nur Dauer und Kurve */
+    padding: 0;
     overflow: visible;
     position: relative;
 }
 
 .click-button:active {
-    transform: scale(0.92); /* Schrumpft beim Klick leicht */}
+    transform: scale(0.92); /* Schrumpft beim Klick leicht */
+}
 
 .beard-svg {
-    width: 100%;    /* Nutzt jetzt die 280px des Buttons voll aus */
+    width: 100%; /* Nutzt jetzt die 280px des Buttons voll aus */
     height: 100%;
     display: block;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
@@ -128,14 +131,21 @@
 
 /* Fix für Mobile */
 @media (max-width: 480px) {
-            .autobuyer-card {
-                min-height: 90px;
-                padding: 20px 12px;
-            }
+
+    .item-name {
+        display: none !important;
+    }
+
+    .autobuyer-card {
+        min-height: 90px;
+        padding: 20px 12px;
+    }
+
     .click-button {
         width: 220px;
         height: 220px;
     }
+
     .click-area {
         min-height: 240px;
     }
@@ -146,9 +156,10 @@
         z-index: 200;
         background: var(--box-gradient, #181028) !important;
         background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 }
+
 .click-button:hover:not(:disabled) .beard-svg {
     filter: drop-shadow(0 0 20px rgba(124, 77, 255, 0.6));
 }
@@ -178,10 +189,18 @@
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-    75% { transform: translateX(-4px); }
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-6px);
+    }
+    50% {
+        transform: translateX(6px);
+    }
+    75% {
+        transform: translateX(-4px);
+    }
 }
 
 .click-blocked-warning {
@@ -198,8 +217,14 @@
 }
 
 @keyframes fadeInWarning {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Tabs */
@@ -545,8 +570,12 @@
 }
 
 @keyframes pulse-timer {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
 
 .active-debuffs-banner {
@@ -880,6 +909,7 @@
         max-height: 60vh;
         overflow-y: auto;
     }
+
     .shop-subtabs, .tabs {
         overflow-x: visible;
         flex-wrap: wrap;
@@ -907,7 +937,7 @@
         z-index: 200;
         background: var(--box-gradient, #181028) !important;
         background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     .stat-box {
@@ -948,6 +978,7 @@
         overflow-x: visible;
         flex-wrap: wrap;
     }
+
     .shop-subtabs {
         display: flex;
         gap: 4px;
@@ -1004,7 +1035,6 @@
 }
 
 
-
 /* Offline Earnings Notification Banner */
 .offline-earnings-banner {
     display: flex;
@@ -1019,8 +1049,14 @@
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .offline-earnings-icon {
@@ -1082,13 +1118,14 @@
 [data-theme="light"] .bartclicker-header {
     background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%) !important;
     border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 12px 0 rgba(124,77,255,0.06), 0 1.5px 0 #e0e0e0;
+    box-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
 }
+
 [data-theme="dark"] .bartclicker-header {
     background: var(--box-gradient, #181028) !important;
     background-color: #181028 !important;
     border-bottom: 1px solid #222;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 @media (max-width: 480px) {
@@ -1098,18 +1135,20 @@
         z-index: 200;
         background: var(--box-gradient, #181028) !important;
         background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
+
     [data-theme="light"] .bartclicker-header {
         background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%) !important;
         border-bottom: 1px solid #e0e0e0;
-        box-shadow: 0 2px 12px 0 rgba(124,77,255,0.06), 0 1.5px 0 #e0e0e0;
+        box-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
     }
+
     [data-theme="dark"] .bartclicker-header {
         background: var(--box-gradient, #181028) !important;
         background-color: #181028 !important;
         border-bottom: 1px solid #222;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 }
 
@@ -1119,25 +1158,32 @@
     border: 1px solid #bdb6e6;
     color: #2d2150;
 }
+
 [data-theme='light'] .booster-card:hover {
     background: rgba(124, 77, 255, 0.13);
 }
+
 [data-theme='light'] .booster-card.booster-active {
     background: rgba(76, 175, 80, 0.10);
     border-color: #7edc8a;
 }
+
 [data-theme='light'] .booster-card h3 {
     color: #7c4dff;
 }
+
 [data-theme='light'] .booster-effect {
     color: #4a3a7a;
 }
+
 [data-theme='light'] .booster-risk {
     color: #e65100;
 }
+
 [data-theme='light'] .booster-timer {
     color: #388e3c;
 }
+
 [data-theme='light'] .active-debuffs-banner .debuff-pill {
     background: #ffeaea;
     border: 1px solid #ff8a80;
@@ -1149,16 +1195,20 @@
     border: 1px solid #bdb6e6;
     color: #2d2150;
 }
+
 [data-theme='light'] .relic-card.unlocked {
     background: #e8f5e9;
     border-color: #7edc8a;
 }
+
 [data-theme='light'] .relic-card h3 {
     color: #7c4dff;
 }
+
 [data-theme='light'] .relic-effect {
     color: #4a3a7a;
 }
+
 [data-theme='light'] .relic-unlocked {
     background: #d0f8ce;
     color: #388e3c;
@@ -1169,9 +1219,11 @@
     border: 1px solid #bdb6e6;
     color: #2d2150;
 }
+
 [data-theme='light'] .autobuyer-card h3 {
     color: #7c4dff;
 }
+
 [data-theme='light'] .autobuyer-card p {
     color: #4a3a7a;
 }
@@ -1181,22 +1233,27 @@
     border: 1px solid #ffe082;
     color: #795548;
 }
+
 [data-theme='light'] .offline-earnings-dismiss {
     background: #ffe082;
     color: #795548;
 }
+
 [data-theme='light'] .rebirth-section {
     background: linear-gradient(135deg, #fffde7 0%, #ede7f6 100%);
     border: 2px solid #ffd700;
     color: #795548;
 }
+
 [data-theme='light'] .rebirth-info {
     color: #7c4dff;
 }
+
 [data-theme='light'] .rebirth-button {
     background: linear-gradient(135deg, #ffd700, #fffde7);
     color: #2d2150;
 }
+
 [data-theme='light'] .rebirth-button:disabled {
     background: #eee;
     color: #bbb;
@@ -1205,6 +1262,7 @@
 [data-theme='light'] .shop-content {
     background: #faf9ff;
 }
+
 [data-theme='light'] .booster-content-wrapper,
 [data-theme='light'] .relics-grid,
 [data-theme='light'] .autobuyer-content {
@@ -1217,15 +1275,18 @@
     color: #2d2150;
     border: 1px solid #bdb6e6;
 }
+
 [data-theme='light'] .buy-button:disabled {
     background: #f5f5f5;
     color: #bbb;
 }
+
 [data-theme='light'] .max-button {
     background: #e1bee7;
     color: #2d2150;
     border: 1px solid #bdb6e6;
 }
+
 [data-theme='light'] .max-button:disabled {
     background: #f5f5f5;
     color: #bbb;
@@ -1246,6 +1307,7 @@
     cursor: pointer;
     outline: none;
 }
+
 .auto-upgrade-btn.active {
     background: #a259e6;
     color: #fff;

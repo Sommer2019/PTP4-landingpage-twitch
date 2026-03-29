@@ -356,7 +356,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                         <div className="item-header item-header">
                                             <span className="item-icon">{item.icon}</span>
                                             <div className="item-info">
-                                                <h4>{item.name}</h4>
+                                                <h4 className="item-name">{item.name}</h4>
                                                 <p className="item-cps">{item.cps?.toFixed(1)}/s</p>
                                             </div>
                                             <span className="item-count">×{item.count}</span>
@@ -408,7 +408,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                         <div className="item-header item-header">
                                             <span className="item-icon">{item.icon}</span>
                                             <div className="item-info">
-                                                <h4>{item.name}</h4>
+                                                <h4 className="item-name">{item.name}</h4>
                                                 <p className="item-power">+{item.clickPower}</p>
                                             </div>
                                             <span className="item-count">×{item.count}</span>
