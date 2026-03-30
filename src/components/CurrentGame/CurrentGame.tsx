@@ -62,15 +62,46 @@ function buildStoreLinks(gameName: string): StoreLink[] {
   ]
 }
 
+function checkStoreResult(store: StoreLink): Promise<boolean> {
+  switch (store.id) {
+    case 'steam':
+      return fetch(store.url)
+        .then(res => res.text())
+        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
+    case 'epic':
+      return fetch(store.url)
+        .then(res => res.text())
+        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
+    case 'nintendo':
+      return fetch(store.url)
+        .then(res => res.text())
+        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
+    case 'psstore':
+      return fetch(store.url)
+        .then(res => res.text())
+        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
+    case 'xbox':
+      return fetch(store.url)
+        .then(res => res.text())
+        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
+    case 'twitch':
+      return Promise.resolve(true);
+    default:
+      return Promise.resolve(true);
+  }
+}
+
 export default function CurrentGame({ isLive }: CurrentGameProps) {
   const { t } = useTranslation()
   const [game, setGame] = useState<GameInfo | null>(null)
   const [loading, setLoading] = useState(false)
+  const [visibleStores, setVisibleStores] = useState<StoreLink[]>([])
+  const [checkingStores, setCheckingStores] = useState(false)
 
   useEffect(() => {
     if (!isLive) {
       setGame(null)
-      console.log('[CurrentGame] Nicht live, setGame(null)')
+      setVisibleStores([])
       return
     }
 
@@ -130,15 +161,35 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
     }
   }, [isLive])
 
+  useEffect(() => {
+    if (!game || !game.gameName) {
+      setVisibleStores([])
+      return
+    }
+    const storeLinks = buildStoreLinks(game.gameName)
+    setCheckingStores(true)
+    Promise.all(
+      storeLinks.map(async (store) => {
+        try {
+          const hasResult = await checkStoreResult(store)
+          return hasResult ? store : null
+        } catch {
+          return null
+        }
+      })
+    ).then(results => {
+      setVisibleStores(results.filter(Boolean) as StoreLink[])
+      setCheckingStores(false)
+    })
+  }, [game])
+
   // Debug-Ausgabe für Render-Entscheidung
   if (!isLive) console.log('[CurrentGame] Render: nicht live')
   if (loading) console.log('[CurrentGame] Render: loading')
   if (!game) console.log('[CurrentGame] Render: kein game')
   if (game && !game.gameName) console.log('[CurrentGame] Render: gameName fehlt')
 
-  if (!isLive || loading || !game || !game.gameName) return null
-
-  const storeLinks = buildStoreLinks(game.gameName)
+  if (!isLive || loading || !game || !game.gameName || checkingStores) return null
 
   return (
     <div className="current-game" aria-label={t('currentGame.label')}>
@@ -156,7 +207,7 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
         <div className="current-game__label">{t('currentGame.nowPlaying')}</div>
         <div className="current-game__name">{game.gameName}</div>
         <div className="current-game__stores" aria-label={t('currentGame.storesLabel')}>
-          {storeLinks.map((s) => (
+          {visibleStores.map((s) => (
             <a
               key={s.id}
               href={s.url}
