@@ -4,8 +4,20 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
 const app = express();
 app.use(express.json());
+
+// Middleware zum Prüfen des API-Keys
+app.use((req, res, next) => {
+    const userKey = req.headers['x-api-key'];
+    if (userKey === SUPABASE_SERVICE_ROLE_KEY) {
+        next();
+    } else {
+        res.status(401).send('Nicht autorisiert!');
+    }
+});
 
 // Discord Client Setup
 const client = new Client({
