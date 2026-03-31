@@ -55,6 +55,25 @@ async function sbDelete(table, query) {
   if (!res.ok) throw new Error(`DELETE ${table}: ${res.status} ${await res.text()}`)
 }
 
+// ── Notify Discord via render endpoint ──────────────────
+
+async function notifyDiscord(endpoint) {
+  await new Promise(resolve => setTimeout(resolve, 120_000))
+  try {
+    const res = await fetch(`https://ptp4-landingpage-twitch-hd.onrender.com${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': SUPABASE_SERVICE_ROLE_KEY,
+      },
+    })
+    if (!res.ok) console.warn(`Discord notify ${endpoint}: ${res.status}`)
+    else console.log(`Discord notified: ${endpoint}`)
+  } catch (err) {
+    console.warn(`Discord notify failed (${endpoint}):`, err.message)
+  }
+}
+
 // ── Get top N clips by vote count for a round ───────────
 
 async function getTopClips(roundId, n) {
@@ -67,6 +86,7 @@ async function getTopClips(roundId, n) {
 async function completeRound2(round) {
   await sbPatch('voting_rounds', `id=eq.${round.id}`, { status: 'completed' })
   console.log(`Completed round2 ${round.id}`)
+  notifyDiscord('/ende-runde-2')
 
   const top = await getTopClips(round.id, 1)
   if (top.length === 0) { console.log('No votes – no winner'); return }
@@ -143,6 +163,7 @@ async function runAuto() {
       // Complete round 1 → create pending round 2 with top 10
       await sbPatch('voting_rounds', `id=eq.${round.id}`, { status: 'completed' })
       console.log(`Completed round1 ${round.id}`)
+      notifyDiscord('/ende-runde-1')
 
       const top10 = await getTopClips(round.id, 10)
       if (top10.length === 0) { console.log('No clips/votes in round1'); continue }
@@ -171,6 +192,7 @@ async function runAuto() {
         try {
           await sbPost('yearly_winners', { year: round.year, clip_id: top[0].clip_id })
           console.log(`Yearly winner ${round.year}: ${top[0].title}`)
+          notifyDiscord('/ende-jahr')
         } catch (err) { console.warn('Yearly winner error:', err.message) }
       }
     }
@@ -193,6 +215,7 @@ async function runAuto() {
         ends_at: endsAtFixed,
       })
       console.log(`Auto-started round2 ${r2.id}, ends ${endsAtFixed}`)
+      notifyDiscord('/start-runde-2')
     }
   }
 
@@ -223,6 +246,7 @@ async function runAuto() {
           try { await sbPost('round_clips', { round_id: yearlyRound.id, clip_id: w.clip_id }) } catch { /* dup */ }
         }
         console.log(`Created yearly round ${yearlyRound.id} with ${winners.length} clips`)
+        notifyDiscord('/start-jahr')
       }
     }
   }
@@ -246,6 +270,7 @@ async function manualStartRound2() {
     ends_at: endsAt,
   })
   console.log(`Manually started round2 ${r2.id}, ends ${endsAt}`)
+  notifyDiscord('/start-runde-2')
 }
 
 async function manualEndRound2() {
@@ -253,6 +278,7 @@ async function manualEndRound2() {
     'status=eq.active&type=eq.round2&order=created_at.desc&limit=1')
   if (active.length === 0) { console.log('No active round2 found'); return }
   await completeRound2(active[0])
+  // notifyDiscord('/ende-runde-2') wird bereits in completeRound2() aufgerufen
 }
 
 async function manualStartYearly() {
@@ -280,6 +306,7 @@ async function manualStartYearly() {
     try { await sbPost('round_clips', { round_id: yearlyRound.id, clip_id: w.clip_id }) } catch { /* dup */ }
   }
   console.log(`Created yearly round ${yearlyRound.id} with ${winners.length} clips`)
+  notifyDiscord('/start-jahr')
 }
 
 async function manualEndYearly() {
@@ -294,6 +321,7 @@ async function manualEndYearly() {
     try {
       await sbPost('yearly_winners', { year: round.year, clip_id: top[0].clip_id })
       console.log(`Yearly winner ${round.year}: ${top[0].title}`)
+      notifyDiscord('/ende-jahr')
     } catch (err) { console.warn('Yearly winner error:', err.message) }
   }
 }
