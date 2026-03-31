@@ -73,7 +73,7 @@ app.post('/ende-jahr', (_req: Request, res: Response) => {
 });
 
 // Bot starten
-client.once('ready', () => {
+client.once('clientReady', () => {
     console.log(`Eingeloggt als ${client.user?.tag}`);
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server läuft auf Port ${PORT}`);
