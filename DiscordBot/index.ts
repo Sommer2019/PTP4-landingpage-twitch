@@ -26,7 +26,7 @@ const client = new Client({
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Hilfsfunktion zum Nachrichtensenden
 const sendDiscordMessage = async (message: string) => {
@@ -75,8 +75,8 @@ app.post('/ende-jahr', (_req: Request, res: Response) => {
 // Bot starten
 client.once('ready', () => {
     console.log(`Eingeloggt als ${client.user?.tag}`);
-    app.listen(PORT, () => {
-        console.log(`API-Server läuft auf Port ${PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server läuft auf Port ${PORT}`);
     });
 });
 
