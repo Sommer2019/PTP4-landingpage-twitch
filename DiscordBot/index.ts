@@ -78,6 +78,10 @@ client.once('ready', () => {
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server läuft auf Port ${PORT}`);
     });
+    // Dieser Endpunkt sagt Render: "Ich lebe!"
+    app.get('/', (req, res) => {
+        res.status(200).send('OK');
+    });
 });
 
 client.login(DISCORD_TOKEN);
