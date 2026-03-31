@@ -86,7 +86,6 @@ async function getTopClips(roundId, n) {
 async function completeRound2(round) {
   await sbPatch('voting_rounds', `id=eq.${round.id}`, { status: 'completed' })
   console.log(`Completed round2 ${round.id}`)
-  notifyDiscord('/ende-runde-2')
 
   const top = await getTopClips(round.id, 1)
   if (top.length === 0) { console.log('No votes – no winner'); return }
@@ -102,6 +101,9 @@ async function completeRound2(round) {
   } catch (err) {
     console.warn('Monthly winner already exists or error:', err.message)
   }
+
+  notifyDiscord('/ende-runde-2')
+}
 }
 
 // ── Cleanup old data ─────────────────────────────────────
