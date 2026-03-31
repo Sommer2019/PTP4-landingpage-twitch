@@ -104,7 +104,6 @@ async function completeRound2(round) {
 
   notifyDiscord('/ende-runde-2')
 }
-}
 
 // ── Cleanup old data ─────────────────────────────────────
 
