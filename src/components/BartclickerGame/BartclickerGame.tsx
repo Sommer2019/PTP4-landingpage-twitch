@@ -90,7 +90,9 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
             'Nonagint', 'Unnonagint', 'Duononagint', 'Trenonagint', 'Quattuornonagint', 'Quinnonagint', 'Sexnonagint', 'Septnonagint', 'Oktononagint', 'Nonnonagint',
             '∞'
         ];
-        const units = (i18n?.language || '').startsWith('de') ? deUnits : enUnits;
+        // If mobile, prefer shorter enUnits even in German to prevent text overflow on buttons
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
+        const units = ((i18n?.language || '').startsWith('de') && !isMobile) ? deUnits : enUnits;
 
         // Index berechnen (je 10^3)
         const exp = Math.floor(Math.log10(abs) / 3);
