@@ -244,7 +244,7 @@ ALTER FUNCTION "public"."admin_delete_reward"("p_id" "text") OWNER TO "postgres"
 CREATE
 OR REPLACE FUNCTION "public"."admin_end_round2"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_round  record;
@@ -300,7 +300,7 @@ ALTER FUNCTION "public"."admin_end_round2"() OWNER TO "postgres";
 CREATE
 OR REPLACE FUNCTION "public"."admin_end_yearly"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_round  record;
@@ -355,7 +355,7 @@ ALTER FUNCTION "public"."admin_end_yearly"() OWNER TO "postgres";
 CREATE
 OR REPLACE FUNCTION "public"."admin_start_round2"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_round record;
@@ -395,7 +395,7 @@ ALTER FUNCTION "public"."admin_start_round2"() OWNER TO "postgres";
 CREATE
 OR REPLACE FUNCTION "public"."admin_start_yearly"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_year    integer := extract(year from now())::integer;
