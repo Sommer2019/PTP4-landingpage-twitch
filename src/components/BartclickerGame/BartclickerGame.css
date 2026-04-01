@@ -135,7 +135,8 @@
     }
 
     .autobuyer-card {
-        min-height: 90px;
+        min-height: unset;
+        height: auto;
         padding: 20px 12px;
     }
 
@@ -1002,10 +1003,16 @@
         width: 100%;
     }
 
-    .buy-button {
+    .buy-button,
+    .max-button {
         width: 100%;
         min-width: unset;
         padding: 8px 12px;
+    }
+
+    .button-group {
+        flex-direction: column;
+        width: 100%;
     }
 
     .booster-grid,
