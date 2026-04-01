@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render } from '../../test/testUtils'
 import userEvent from '@testing-library/user-event'
 import CookieBanner from './CookieBanner'
@@ -30,11 +30,8 @@ describe('CookieBanner', () => {
   it('hides itself and stores rejected consent when reject button is clicked', async () => {
     const user = userEvent.setup()
     const { container, getByRole } = render(<CookieBanner />)
-    await user.click(getByRole('button', { name: /ablehnen|reject/i }))
+    await user.click(getByRole('button', { name: /ablehnen|reject|decline/i }))
     expect(container.querySelector('.cookie-banner')).toBeNull()
     expect(localStorage.getItem('cookie-consent')).toBe('rejected')
   })
 })
-
-// Suppress unneeded vi warning in test output
-vi.stubGlobal('console', { ...console, warn: vi.fn() })

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { render } from '../test/testUtils'
-import SectionBox from '../components/SectionBox/SectionBox'
+import { render } from '../../test/testUtils'
+import SectionBox from './SectionBox'
 
 describe('SectionBox', () => {
   it('renders children', () => {

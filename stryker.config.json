@@ -1,0 +1,24 @@
+{
+  "$schema": "https://stryker-mutator.io/schemas/stryker-schema.json#",
+  "testRunner": "vitest",
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.app.json",
+  "mutate": [
+    "src/lib/**/*.ts",
+    "src/components/**/*.{ts,tsx}",
+    "!src/**/*.test.{ts,tsx}",
+    "!src/test/**"
+  ],
+  "reporters": ["html", "clear-text", "progress"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/report.html"
+  },
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": null
+  },
+  "vitest": {
+    "configFile": "vite.config.ts"
+  }
+}
