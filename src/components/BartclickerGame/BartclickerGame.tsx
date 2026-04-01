@@ -78,16 +78,16 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
             '∞'
         ];
         const deUnits = [
-            '', 'k', 'Mio', 'Mrd', 'Bio', 'Billi', 'Tril', 'Quadr', 'Quint', 'Sext', 'Sept', 'Okt', 'Non',
-            'Dezi', 'Undezi', 'Duodezi', 'Tredezi', 'Quattuord', 'Quinzezi', 'Sexdezi', 'Septdezi', 'Oktdezi', 'Nondezi',
-            'Vigint', 'Unvigint', 'Duovigint', 'Trevigint', 'Quattuorvigint', 'Quinvigint', 'Sexvigint', 'Septvigint', 'Oktvigint', 'Nonvigint',
-            'Trigint', 'Untrigint', 'Duotrigint', 'Tretrigint', 'Quattuortrigint', 'Quintrigint', 'Sextrigint', 'Septtrigint', 'Okttrigint', 'Nontrigint',
-            'Quadragint', 'Unquadragint', 'Duoquadragint', 'Trequadragint', 'Quattuorquadragint', 'Quinquadragint', 'Sexquadragint', 'Septquadragint', 'Oktquadragint', 'Nonquadragint',
-            'Quinquagint', 'Unquinquagint', 'Duoquinquagint', 'Trequinquagint', 'Quattuorquinquagint', 'Quinquinquagint', 'Sexquinquagint', 'Septquinquagint', 'Oktquinquagint', 'Nonquinquagint',
-            'Sexagint', 'Unsexagint', 'Duosexagint', 'Tresexagint', 'Quattuorsexagint', 'Quinsexagint', 'Sexsexagint', 'Septsexagint', 'Oktsexagint', 'Nonsexagint',
-            'Septuagint', 'Unseptuagint', 'Duoseptuagint', 'Treseptuagint', 'Quattuorseptuagint', 'Quinseptuagint', 'Sexseptuagint', 'Septseptuagint', 'Oktseptuagint', 'Nonseptuagint',
-            'Octogint', 'Unoctogint', 'Duooctogint', 'Treoctogint', 'Quattuoroctogint', 'Quinoctogint', 'Sexoctogint', 'Septoctogint', 'Oktoctogint', 'Nonoctogint',
-            'Nonagint', 'Unnonagint', 'Duononagint', 'Trenonagint', 'Quattuornonagint', 'Quinnonagint', 'Sexnonagint', 'Septnonagint', 'Oktononagint', 'Nonnonagint',
+            '', 'k', 'Mio', 'Mrd', 'Bio', 'Brd', 'Tril', 'Quad', 'Quin', 'Sext', 'Sept', 'Okt', 'Non',
+            'Dez', 'Udez', 'Ddez', 'Tdez', 'Qtde', 'Qnde', 'Sxde', 'Spde', 'Okde', 'Node',
+            'Vig', 'Uvig', 'Dvig', 'Tvig', 'Qtvg', 'Qnvg', 'Sxvg', 'Spvg', 'Okvg', 'Novg',
+            'Trig', 'Utrg', 'Dtrg', 'Ttrg', 'Qttr', 'Qnti', 'Sxtr', 'Sptr', 'Oktg', 'Notg',
+            'Quad', 'Uqad', 'Dqad', 'Tqad', 'Qtqa', 'Qnqa', 'Sxqa', 'Spqa', 'Okqa', 'Noqa',
+            'Quin', 'Uqui', 'Dqui', 'Tqui', 'Qtqu', 'Qnqu', 'Sxqu', 'Spqu', 'Okqu', 'Noqu',
+            'Sexa', 'Usex', 'Dsex', 'Tsex', 'Qtsx', 'Qnsx', 'Sxsx', 'Spsx', 'Oksx', 'Nosx',
+            'Sept', 'Usep', 'Dsep', 'Tsep', 'Qtsp', 'Qnsp', 'Sxsp', 'Spsp', 'Oksp', 'Nosp',
+            'Okto', 'Uokt', 'Dokt', 'Tokt', 'Qtok', 'Qnok', 'Sxok', 'Spok', 'Okok', 'Nook',
+            'Nona', 'Unon', 'Dnon', 'Tnon', 'Qtno', 'Qnno', 'Sxno', 'Spno', 'Okno', 'Nono',
             '∞'
         ];
         // If mobile, prefer shorter enUnits even in German to prevent text overflow on buttons
