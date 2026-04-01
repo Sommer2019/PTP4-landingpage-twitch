@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
@@ -178,6 +179,18 @@ function make404Plugin(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), calendarIcsPlugin(), make404Plugin()],
+
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/test/**', 'src/main.tsx', 'src/vite-env.d.ts'],
+    },
+  },
   // Für GitHub Pages mit Custom Domain (z.B. hd1920x1080.de): base: '/'
   // Für GitHub Pages OHNE Custom Domain: base: '/repo-name/'
   base: '/',
