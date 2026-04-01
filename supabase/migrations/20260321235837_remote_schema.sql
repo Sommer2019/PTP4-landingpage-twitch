@@ -244,7 +244,7 @@ ALTER FUNCTION "public"."admin_delete_reward"("p_id" "text") OWNER TO "postgres"
 CREATE
 OR REPLACE FUNCTION "public"."admin_end_round2"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_round  record;
@@ -288,7 +288,7 @@ v_winner IS NOT NULL THEN
     ON CONFLICT (year, month) DO NOTHING;
 END IF;
   PERFORM
-clipvoting.schedule_discord_notify('/ende-jahr');
+clipvoting.schedule_discord_notify('/ende-runde-2');
 RETURN jsonb_build_object('success', true, 'winner_clip_id', v_winner.clip_id);
 END;
 $$;
@@ -300,7 +300,7 @@ ALTER FUNCTION "public"."admin_end_round2"() OWNER TO "postgres";
 CREATE
 OR REPLACE FUNCTION "public"."admin_end_yearly"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_round  record;
@@ -343,7 +343,7 @@ v_winner IS NOT NULL THEN
     ON CONFLICT (year) DO NOTHING;
 END IF;
   PERFORM
-clipvoting.schedule_discord_notify('/ende-runde-2');
+clipvoting.schedule_discord_notify('/ende-jahr');
 RETURN jsonb_build_object('success', true, 'winner_clip_id', v_winner.clip_id);
 END;
 $$;
@@ -355,7 +355,7 @@ ALTER FUNCTION "public"."admin_end_yearly"() OWNER TO "postgres";
 CREATE
 OR REPLACE FUNCTION "public"."admin_start_round2"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_round record;
@@ -383,6 +383,7 @@ SET status    = 'active',
     ends_at   = now() + interval '24 hours'
 WHERE id = v_round.id;
 
+PERFORM clipvoting.schedule_discord_notify('/start-runde-2');
 RETURN jsonb_build_object('success', true, 'round_id', v_round.id);
 END;
 $$;
@@ -394,7 +395,7 @@ ALTER FUNCTION "public"."admin_start_round2"() OWNER TO "postgres";
 CREATE
 OR REPLACE FUNCTION "public"."admin_start_yearly"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'clipvoting', 'public'
     AS $$
 DECLARE
 v_year    integer := extract(year from now())::integer;
@@ -430,6 +431,7 @@ FROM monthly_winners mw
 WHERE (mw.year = v_year - 1 AND mw.month = 12)
    OR (mw.year = v_year AND mw.month <= 11) ON CONFLICT DO NOTHING;
 
+PERFORM clipvoting.schedule_discord_notify('/start-jahr');
 RETURN jsonb_build_object('success', true, 'round_id', v_round.id);
 END;
 $$;
