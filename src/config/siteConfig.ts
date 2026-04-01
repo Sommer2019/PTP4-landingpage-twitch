@@ -96,6 +96,7 @@ export interface SiteConfig {
   moderatorLink: Link
   copyrightHolder: string
   onlyBart: OnlyBartConfig  // Should contain the default "OnlyBart" for this project
+  redirects: Record<string, string> // Add redirects here
 }
 
 const siteConfig: SiteConfig = {
@@ -368,6 +369,35 @@ const siteConfig: SiteConfig = {
   onlyBart: {
     title: 'OnlyBart',
     logoUrl: '/img/logos/OB.webp'
+  },
+
+  // ── Redirects ──
+  redirects: {
+    "/instagram": "https://www.instagram.com/hd1920x1080/",
+    "/insta":  "https://www.instagram.com/hd1920x1080/",
+    "/yt":  "https://youtube.com/@hawedereplus",
+    "/youtube":  "https://youtube.com/@hawedereplus",
+    "/tiktok":  "https://tiktok.com/@hd1920x1080",
+    "/nclip":  "https://nclip.io/page/hd1920x1080",
+    "/puzzle":  "http://tng.gl/c/hd1920x1080",
+    "/tanggle":  "http://tng.gl/c/hd1920x1080",
+    "/discord":   "https://discord.gg/Zp5KNqCHzc",
+    "/dc":   "https://discord.gg/Zp5KNqCHzc",
+    "/bc":   "https://hd1920x1080.de/games/bartclicker",
+    "/bartclicker":   "https://hd1920x1080.de/games/bartclicker",
+    "/cdm":   "https://www.hd1920x1080.de/clipdesmonats",
+    "/cdj":   "https://www.hd1920x1080.de/clipdesjahres",
+    "/rp":   "https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip",
+    "/ressourcepack":   "https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip",
+    "/twitch":   "https://www.twitch.tv/hd1920x1080",
+    "/se":   "https://www.hd1920x1080.de/streamelements",
+    "/s":   "https://www.hd1920x1080.de/streamplan",
+    "/ob":   "https://www.hd1920x1080.de/onlybart",
+    "/c/instagram": "https://www.instagram.com/hawedereshorts/",
+    "/c/insta":  "https://www.instagram.com/hawedereshorts/",
+    "/c/yt":  "https://www.youtube.com/@lesommer2019",
+    "/c/youtube":  "https://www.youtube.com/@lesommer2019",
+    "/c/tiktok":  "https://www.tiktok.com/@hawedereshorts"
   }
 }
 

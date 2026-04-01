@@ -3656,7 +3656,7 @@ v_run_at  timestamptz := now() + interval '120 seconds';
   v_jobname text        := 'discord_notify_' || replace(p_endpoint, '/', '_') || '_' || extract(epoch from now())::bigint;
   v_key     text;
 BEGIN
-  -- Key aus Vault laden
+  -- Key aus Vault laden TODO CHANGE URL ON DEPLOY
 SELECT decrypted_secret INTO v_key
 FROM vault.decrypted_secrets
 WHERE name = 'discord_api_key'

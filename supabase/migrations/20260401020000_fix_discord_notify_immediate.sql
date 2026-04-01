@@ -24,6 +24,7 @@ BEGIN
 
   -- Wir senden den Request sofort asynchron über pg_net,
   -- anstatt mühsam cron Jobs zu erstellen, die oft wegen Timezones (UTC) nie auslösen.
+  -- TODO CHANGEIT ON DEPLOY: Ersetze den URL mit der tatsächlichen URL des Discord-Notify-Endpoints.
   PERFORM net.http_post(
     url     := 'https://ptp4-landingpage-twitch-hd.onrender.com' || p_endpoint,
     headers := jsonb_build_object(

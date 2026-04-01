@@ -34,9 +34,10 @@ const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
     return null
 }
 const {channel} = siteConfig.twitch
-const {impressum} = siteConfig
+const {impressum, redirects} = siteConfig
 const getLink = (platform: string) => siteConfig.links.find(l => l.id === platform)?.url || "/";
 const externalRedirects: Record<string, string> = {
+    ...redirects,
     "/insta": getLink("instagram"),
     "/instagram": getLink("instagram"),
     "/yt": getLink("youtube"),
@@ -53,6 +54,9 @@ const ExternalRedirectHandler = () => {
     useLayoutEffect(() => {
         const target = externalRedirects[pathname];
         if (target) {
+            // Wenn der Link intern ist (fängt mit / an, aber nicht //) dann nutzen wir location.href,
+            // was zu einem vollen Reload führt, oder wir machen einen React Router Redirect.
+            // Die redirects im siteConfig sind meist extern (http...).
             window.location.href = target;
         }
     }, [pathname]);
@@ -120,7 +124,7 @@ function App() {
                 <Route path="/moderate/account"
                        element={<ModeratorRoute><ModerateAccountPage/></ModeratorRoute>}/>
 
-                {/* ── Alternative Pfade → Redirect ── */}
+                {/* ── Alternative Pfade (werden nun auch großteils oben im externalRedirects / siteConfig behandelt, aber hier als Fallbacks falls intern gewünscht) ── */}
                 <Route path="/actuator/data" element={<Navigate to="/moderate/statistics" replace/>}/>
                 <Route path="/se" element={<Navigate to="/streamelements" replace/>}/>
                 <Route path="/s" element={<Navigate to="/streamplan" replace/>}/>
@@ -132,7 +136,7 @@ function App() {
                 <Route path="/onlybart" element={<OnlyBartPage/>}/>
                 <Route path="/onlybart/*" element={<Navigate to="/onlybart" replace/>}/>
 
-                {/* ── Custom Wünsche ── */}
+                {/* ── Custom Wünsche (werden nun ebenfalls über siteConfig externalRedirects abgefangen) ── */}
                 <Route path="/rp" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/ressourcepack" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/tanggle" element={<RedirectToHtml to="http://tng.gl/c/hd1920x1080"/>}/>

@@ -1,23 +1,26 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
-    <!-- Meta-Refresh entfernt, damit SPA-Fallback funktioniert -->
-    <script>
-      // SPA-Fallback für GitHub Pages
-      // Leitet auf die aktuelle Pfad-URL weiter, ohne Hash!
-      (function() {
-        const pathname = window.location.pathname;
-        const search = window.location.search;
-        // Nur weiterleiten, wenn nicht auf der Root-Seite
-        if (pathname !== '/') {
-          window.location.replace(window.location.origin + pathname + search);
-        }
-      })();
-    </script>
+    <meta charset="utf-8">
     <title>Redirecting...</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      const segmentCount = 0;
+      const l = window.location;
+      let newPath = l.pathname.split("/").slice(0, 1 + segmentCount).join("/");
+      if (newPath === "") { newPath = "/"; }
+      let route = l.pathname.slice(1).split("/").slice(segmentCount).join("/");
+      if (route.charAt(0) !== "/") { route = "/" + route; }
+      l.replace(
+        l.protocol + "//" + l.hostname + (l.port ? ":" + l.port : "") +
+        newPath + "?" + route.replace(/&/g, "~and~") +
+        (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
+        l.hash
+      );
+    </script>
   </head>
   <body>
-    <h1>Redirecting...</h1>
-    <p>Falls du nicht automatisch weitergeleitet wirst, <a href="/">hier klicken</a>.</p>
   </body>
 </html>

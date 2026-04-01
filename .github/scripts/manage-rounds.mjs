@@ -55,7 +55,7 @@ async function sbDelete(table, query) {
   if (!res.ok) throw new Error(`DELETE ${table}: ${res.status} ${await res.text()}`)
 }
 
-// ── Notify Discord via render endpoint ──────────────────
+// ── Notify Discord via render endpoint ────────────────── TODO CHANGEIT IF NEEDED
 
 async function notifyDiscord(endpoint) {
   await new Promise(resolve => setTimeout(resolve, 120_000))
@@ -206,7 +206,6 @@ async function runAuto() {
 
     if (pendingR2.length > 0) {
       const r2 = pendingR2[0]
-      const endsAt = `${r2.year}-${String(r2.month === 12 ? 1 : r2.month + 1).padStart(2, '0')}-20T23:59:59Z`
       const endsYear = r2.month === 12 ? r2.year + 1 : r2.year
       const endsAtFixed = `${endsYear}-${String(r2.month === 12 ? 1 : r2.month + 1).padStart(2, '0')}-20T23:59:59Z`
 
