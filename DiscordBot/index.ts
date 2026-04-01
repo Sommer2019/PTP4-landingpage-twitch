@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 
 // Middleware zum Prüfen des API-Keys
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: express.NextFunction) => {
     const userKey = req.headers['x-api-key'];
     if (userKey === SUPABASE_SERVICE_ROLE_KEY) {
         next();
@@ -72,15 +72,16 @@ app.post('/ende-jahr', (_req: Request, res: Response) => {
     res.status(200).send({ status: 'Gesendet' });
 });
 
+// Health check endpoint (vor dem client.login)
+app.get('/', (_req: Request, res: Response) => {
+    res.status(200).send('OK');
+});
+
 // Bot starten
 client.once('clientReady', () => {
     console.log(`Eingeloggt als ${client.user?.tag}`);
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server läuft auf Port ${PORT}`);
-    });
-    // Dieser Endpunkt sagt Render: "Ich lebe!"
-    app.get('/', (req, res) => {
-        res.status(200).send('OK');
     });
 });
 

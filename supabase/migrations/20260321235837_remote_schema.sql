@@ -269,7 +269,8 @@ v_round IS NULL THEN
 END IF;
 
 UPDATE clipvoting.voting_rounds
-SET status = 'completed'
+SET status = 'completed',
+    ends_at = now()
 WHERE id = v_round.id;
 
 -- Gewinner ermitteln
@@ -325,7 +326,8 @@ v_round IS NULL THEN
 END IF;
 
 UPDATE clipvoting.voting_rounds
-SET status = 'completed'
+SET status = 'completed',
+    ends_at = now()
 WHERE id = v_round.id;
 
 SELECT rc.clip_id
