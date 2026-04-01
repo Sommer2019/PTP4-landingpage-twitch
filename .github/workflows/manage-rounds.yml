@@ -31,7 +31,7 @@ jobs:
 
       - name: Run round management
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ACTION: ${{ github.event.inputs.action || 'auto' }}
         run: node .github/scripts/manage-rounds.mjs
