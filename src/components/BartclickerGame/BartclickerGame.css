@@ -1,3 +1,102 @@
+/* ── BartclickerGame theme vars ── */
+[data-theme="dark"] {
+    --bc-header-bg: var(--box-gradient);
+    --bc-header-border: #222;
+    --bc-header-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    --bc-surface-card-bg: rgba(50, 50, 70, 0.5);
+    --bc-surface-card-border: #333;
+    --bc-surface-card-color: inherit;
+    --bc-muted-text: #b0b0b0;
+    --bc-heading-gold-color: #ffd700;
+    --bc-booster-bg: rgba(124, 77, 255, 0.15);
+    --bc-booster-border: #7c4dff;
+    --bc-booster-hover-bg: rgba(124, 77, 255, 0.25);
+    --bc-booster-active-bg: rgba(76, 175, 80, 0.15);
+    --bc-booster-active-border: #4caf50;
+    --bc-booster-risk: #ff8a65;
+    --bc-booster-timer: #4caf50;
+    --bc-debuff-bg: rgba(244, 67, 54, 0.2);
+    --bc-debuff-border: #f44336;
+    --bc-debuff-color: #ff8a80;
+    --bc-relic-unlocked-bg: rgba(76, 175, 80, 0.15);
+    --bc-relic-unlocked-border: #4caf50;
+    --bc-relic-unlocked-badge-bg: rgba(76, 175, 80, 0.2);
+    --bc-relic-unlocked-badge-color: #4caf50;
+    --bc-offline-bg: linear-gradient(135deg, #1a1a3e, #2a2a5e);
+    --bc-offline-border: #4a4aff;
+    --bc-offline-color: inherit;
+    --bc-offline-dismiss-bg: none;
+    --bc-offline-dismiss-border: #555;
+    --bc-offline-dismiss-color: #999;
+    --bc-rebirth-bg: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(124, 77, 255, 0.15));
+    --bc-rebirth-color: inherit;
+    --bc-rebirth-info-color: #b0b0b0;
+    --bc-rebirth-btn-bg: linear-gradient(135deg, #ffd700, #ffed4e);
+    --bc-rebirth-btn-color: #000;
+    --bc-rebirth-btn-disabled-bg: #333;
+    --bc-rebirth-btn-disabled-color: #666;
+    --bc-shop-bg: transparent;
+    --bc-buy-btn-bg: var(--accent);
+    --bc-buy-btn-color: var(--color-btn-bg);
+    --bc-buy-btn-border: none;
+    --bc-buy-btn-disabled-bg: var(--color-btn-bg);
+    --bc-buy-btn-disabled-color: var(--color-muted);
+    --bc-max-btn-bg: #5c4dcc;
+    --bc-max-btn-color: white;
+    --bc-max-btn-border: none;
+    --bc-max-btn-disabled-bg: #333;
+    --bc-max-btn-disabled-color: #666;
+}
+
+[data-theme="light"] {
+    --bc-header-bg: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%);
+    --bc-header-border: #e0e0e0;
+    --bc-header-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
+    --bc-surface-card-bg: #f7f6fd;
+    --bc-surface-card-border: #bdb6e6;
+    --bc-surface-card-color: #2d2150;
+    --bc-muted-text: #4a3a7a;
+    --bc-heading-gold-color: #7c4dff;
+    --bc-booster-bg: rgba(124, 77, 255, 0.07);
+    --bc-booster-border: #bdb6e6;
+    --bc-booster-hover-bg: rgba(124, 77, 255, 0.13);
+    --bc-booster-active-bg: rgba(76, 175, 80, 0.10);
+    --bc-booster-active-border: #7edc8a;
+    --bc-booster-risk: #e65100;
+    --bc-booster-timer: #388e3c;
+    --bc-debuff-bg: #ffeaea;
+    --bc-debuff-border: #ff8a80;
+    --bc-debuff-color: #c62828;
+    --bc-relic-unlocked-bg: #e8f5e9;
+    --bc-relic-unlocked-border: #7edc8a;
+    --bc-relic-unlocked-badge-bg: #d0f8ce;
+    --bc-relic-unlocked-badge-color: #388e3c;
+    --bc-offline-bg: #fffbe6;
+    --bc-offline-border: #ffe082;
+    --bc-offline-color: #795548;
+    --bc-offline-dismiss-bg: #ffe082;
+    --bc-offline-dismiss-border: #ffe082;
+    --bc-offline-dismiss-color: #795548;
+    --bc-rebirth-bg: linear-gradient(135deg, #fffde7 0%, #ede7f6 100%);
+    --bc-rebirth-color: #795548;
+    --bc-rebirth-info-color: #7c4dff;
+    --bc-rebirth-btn-bg: linear-gradient(135deg, #ffd700, #fffde7);
+    --bc-rebirth-btn-color: #2d2150;
+    --bc-rebirth-btn-disabled-bg: #eee;
+    --bc-rebirth-btn-disabled-color: #bbb;
+    --bc-shop-bg: #faf9ff;
+    --bc-buy-btn-bg: #ede7f6;
+    --bc-buy-btn-color: #2d2150;
+    --bc-buy-btn-border: 1px solid #bdb6e6;
+    --bc-buy-btn-disabled-bg: #f5f5f5;
+    --bc-buy-btn-disabled-color: #bbb;
+    --bc-max-btn-bg: #e1bee7;
+    --bc-max-btn-color: #2d2150;
+    --bc-max-btn-border: 1px solid #bdb6e6;
+    --bc-max-btn-disabled-bg: #f5f5f5;
+    --bc-max-btn-disabled-color: #bbb;
+}
+
 .shop-item-vertical {
     flex-direction: column;
     align-items: stretch;
@@ -53,10 +152,9 @@
     position: sticky;
     top: 56px; /* Platz für Kopfzeile, ggf. anpassen */
     z-index: 200;
-    background: var(--box-gradient, #181028) !important;
-    background-color: #181028 !important;
-    /* Optional: Schatten für bessere Sichtbarkeit */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    background: var(--bc-header-bg);
+    border-bottom: 1px solid var(--bc-header-border);
+    box-shadow: var(--bc-header-shadow);
 }
 
 .stat-box {
@@ -153,9 +251,6 @@
         position: sticky;
         top: 56px;
         z-index: 200;
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 }
 
@@ -310,6 +405,10 @@
     max-height: none;
 }
 
+.shop-content {
+    background: var(--bc-shop-bg);
+}
+
 .shop-content::-webkit-scrollbar,
 .booster-content::-webkit-scrollbar,
 .relics-content::-webkit-scrollbar,
@@ -409,9 +508,9 @@
 
 .buy-button {
     padding: 6px 12px;
-    background: var(--accent);
-    color: var(--color-btn-bg);
-    border: none;
+    background: var(--bc-buy-btn-bg);
+    color: var(--bc-buy-btn-color);
+    border: var(--bc-buy-btn-border);
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
@@ -424,9 +523,9 @@
 
 .max-button {
     padding: 6px 10px;
-    background: #5c4dcc;
-    color: white;
-    border: none;
+    background: var(--bc-max-btn-bg);
+    color: var(--bc-max-btn-color);
+    border: var(--bc-max-btn-border);
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
@@ -441,8 +540,8 @@
 }
 
 .buy-button:disabled {
-    background: var(--color-btn-bg);
-    color: var(--color-muted);
+    background: var(--bc-buy-btn-disabled-bg);
+    color: var(--bc-buy-btn-disabled-color);
     cursor: not-allowed;
     opacity: 0.5;
 }
@@ -453,8 +552,8 @@
 }
 
 .max-button:disabled {
-    background: #333;
-    color: #666;
+    background: var(--bc-max-btn-disabled-bg);
+    color: var(--bc-max-btn-disabled-color);
     cursor: not-allowed;
     opacity: 0.5;
 }
@@ -463,7 +562,8 @@
 .rebirth-section {
     margin-top: 20px;
     padding: 15px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(124, 77, 255, 0.15));
+    background: var(--bc-rebirth-bg);
+    color: var(--bc-rebirth-color);
     border: 2px solid #ffd700;
     border-radius: 8px;
     text-align: center;
@@ -472,8 +572,8 @@
 .rebirth-button {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(135deg, #ffd700, #ffed4e);
-    color: #000;
+    background: var(--bc-rebirth-btn-bg);
+    color: var(--bc-rebirth-btn-color);
     border: none;
     border-radius: 6px;
     font-weight: 900;
@@ -489,8 +589,8 @@
 }
 
 .rebirth-button:disabled {
-    background: #333;
-    color: #666;
+    background: var(--bc-rebirth-btn-disabled-bg);
+    color: var(--bc-rebirth-btn-disabled-color);
     cursor: not-allowed;
     opacity: 0.5;
     transform: none;
@@ -499,7 +599,7 @@
 
 .rebirth-info {
     font-size: 0.9rem;
-    color: #b0b0b0;
+    color: var(--bc-rebirth-info-color);
     margin: 0;
 }
 
@@ -517,8 +617,9 @@
 }
 
 .booster-card {
-    background: rgba(124, 77, 255, 0.15);
-    border: 1px solid #7c4dff;
+    background: var(--bc-booster-bg);
+    border: 1px solid var(--bc-booster-border);
+    color: var(--bc-surface-card-color);
     border-radius: 8px;
     padding: 15px;
     text-align: center;
@@ -526,14 +627,14 @@
 }
 
 .booster-card:hover {
-    background: rgba(124, 77, 255, 0.25);
+    background: var(--bc-booster-hover-bg);
     transform: translateY(-2px);
     box-shadow: 0 0 15px rgba(124, 77, 255, 0.4);
 }
 
 .booster-card.booster-active {
-    background: rgba(76, 175, 80, 0.15);
-    border-color: #4caf50;
+    background: var(--bc-booster-active-bg);
+    border-color: var(--bc-booster-active-border);
     box-shadow: 0 0 12px rgba(76, 175, 80, 0.4);
 }
 
@@ -545,25 +646,25 @@
 .booster-card h3 {
     font-size: 1rem;
     margin: 8px 0;
-    color: #ffd700;
+    color: var(--bc-heading-gold-color);
 }
 
 .booster-effect {
     font-size: 0.85rem;
-    color: #b0b0b0;
+    color: var(--bc-muted-text);
     margin: 8px 0;
 }
 
 .booster-risk {
     font-size: 0.75rem;
-    color: #ff8a65;
+    color: var(--bc-booster-risk);
     margin: 4px 0 8px;
 }
 
 .booster-timer {
     font-size: 1rem;
     font-weight: bold;
-    color: #4caf50;
+    color: var(--bc-booster-timer);
     margin-top: 8px;
     animation: pulse-timer 1s ease-in-out infinite;
 }
@@ -584,12 +685,12 @@
 }
 
 .debuff-pill {
-    background: rgba(244, 67, 54, 0.2);
-    border: 1px solid #f44336;
+    background: var(--bc-debuff-bg);
+    border: 1px solid var(--bc-debuff-border);
     border-radius: 20px;
     padding: 4px 12px;
     font-size: 0.8rem;
-    color: #ff8a80;
+    color: var(--bc-debuff-color);
 }
 
 /* Relics Grid */
@@ -600,8 +701,9 @@
 }
 
 .relic-card {
-    background: rgba(50, 50, 70, 0.5);
-    border: 1px solid #333;
+    background: var(--bc-surface-card-bg);
+    border: 1px solid var(--bc-surface-card-border);
+    color: var(--bc-surface-card-color);
     border-radius: 8px;
     padding: 15px;
     text-align: center;
@@ -609,8 +711,8 @@
 }
 
 .relic-card.unlocked {
-    background: rgba(76, 175, 80, 0.15);
-    border-color: #4caf50;
+    background: var(--bc-relic-unlocked-bg);
+    border-color: var(--bc-relic-unlocked-border);
     box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
 }
 
@@ -628,28 +730,29 @@
 .relic-card h3 {
     font-size: 1rem;
     margin: 8px 0;
-    color: #ffd700;
+    color: var(--bc-heading-gold-color);
 }
 
 .relic-effect {
     font-size: 0.85rem;
-    color: #b0b0b0;
+    color: var(--bc-muted-text);
     margin: 8px 0;
 }
 
 .relic-unlocked {
     padding: 8px;
-    background: rgba(76, 175, 80, 0.2);
+    background: var(--bc-relic-unlocked-badge-bg);
     border-radius: 6px;
-    color: #4caf50;
+    color: var(--bc-relic-unlocked-badge-color);
     font-weight: 600;
     margin-top: 10px;
 }
 
 /* Auto-Buyer */
 .autobuyer-card {
-    background: rgba(50, 50, 70, 0.5);
-    border: 1px solid #333;
+    background: var(--bc-surface-card-bg);
+    border: 1px solid var(--bc-surface-card-border);
+    color: var(--bc-surface-card-color);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 12px;
@@ -657,13 +760,13 @@
 
 .autobuyer-card h3 {
     margin: 0 0 8px 0;
-    color: #7c4dff;
+    color: var(--accent);
     font-size: 1rem;
 }
 
 .autobuyer-card p {
     margin: 8px 0;
-    color: #b0b0b0;
+    color: var(--bc-muted-text);
     font-size: 0.9rem;
 }
 
@@ -923,8 +1026,9 @@
 
     .bartclicker-header {
         grid-template-columns: 1fr;
-        background: rgba(124, 77, 255, 0.1);
-        border: 1px solid #7c4dff;
+        background: var(--bc-header-bg);
+        border-bottom: 1px solid var(--bc-header-border);
+        box-shadow: var(--bc-header-shadow);
         border-radius: 8px;
         padding: 8px;
         display: flex;
@@ -934,9 +1038,6 @@
         position: sticky;
         top: 56px;
         z-index: 200;
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     .stat-box {
@@ -1045,8 +1146,9 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
-    border: 1px solid #4a4aff;
+    background: var(--bc-offline-bg);
+    border: 1px solid var(--bc-offline-border);
+    color: var(--bc-offline-color);
     border-radius: 10px;
     padding: 12px 16px;
     margin-bottom: 16px;
@@ -1087,10 +1189,10 @@
 }
 
 .offline-earnings-dismiss {
-    background: none;
-    border: 1px solid #555;
+    background: var(--bc-offline-dismiss-bg);
+    border: 1px solid var(--bc-offline-dismiss-border);
     border-radius: 50%;
-    color: #999;
+    color: var(--bc-offline-dismiss-color);
     cursor: pointer;
     font-size: 0.9rem;
     height: 24px;
@@ -1120,182 +1222,6 @@
     font-weight: bold;
 }
 
-[data-theme="light"] .bartclicker-header {
-    background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%) !important;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
-}
-
-[data-theme="dark"] .bartclicker-header {
-    background: var(--box-gradient, #181028) !important;
-    background-color: #181028 !important;
-    border-bottom: 1px solid #222;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-@media (max-width: 480px) {
-    .bartclicker-header {
-        position: sticky;
-        top: 56px;
-        z-index: 200;
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    }
-
-    [data-theme="light"] .bartclicker-header {
-        background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%) !important;
-        border-bottom: 1px solid #e0e0e0;
-        box-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
-    }
-
-    [data-theme="dark"] .bartclicker-header {
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
-        border-bottom: 1px solid #222;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    }
-}
-
-/* Whitemode Styles für Booster, Relikte, Autobuyer, Offline */
-[data-theme='light'] .booster-card {
-    background: rgba(124, 77, 255, 0.07);
-    border: 1px solid #bdb6e6;
-    color: #2d2150;
-}
-
-[data-theme='light'] .booster-card:hover {
-    background: rgba(124, 77, 255, 0.13);
-}
-
-[data-theme='light'] .booster-card.booster-active {
-    background: rgba(76, 175, 80, 0.10);
-    border-color: #7edc8a;
-}
-
-[data-theme='light'] .booster-card h3 {
-    color: #7c4dff;
-}
-
-[data-theme='light'] .booster-effect {
-    color: #4a3a7a;
-}
-
-[data-theme='light'] .booster-risk {
-    color: #e65100;
-}
-
-[data-theme='light'] .booster-timer {
-    color: #388e3c;
-}
-
-[data-theme='light'] .active-debuffs-banner .debuff-pill {
-    background: #ffeaea;
-    border: 1px solid #ff8a80;
-    color: #c62828;
-}
-
-[data-theme='light'] .relic-card {
-    background: #f7f6fd;
-    border: 1px solid #bdb6e6;
-    color: #2d2150;
-}
-
-[data-theme='light'] .relic-card.unlocked {
-    background: #e8f5e9;
-    border-color: #7edc8a;
-}
-
-[data-theme='light'] .relic-card h3 {
-    color: #7c4dff;
-}
-
-[data-theme='light'] .relic-effect {
-    color: #4a3a7a;
-}
-
-[data-theme='light'] .relic-unlocked {
-    background: #d0f8ce;
-    color: #388e3c;
-}
-
-[data-theme='light'] .autobuyer-card {
-    background: #f7f6fd;
-    border: 1px solid #bdb6e6;
-    color: #2d2150;
-}
-
-[data-theme='light'] .autobuyer-card h3 {
-    color: #7c4dff;
-}
-
-[data-theme='light'] .autobuyer-card p {
-    color: #4a3a7a;
-}
-
-[data-theme='light'] .offline-earnings-banner {
-    background: #fffbe6;
-    border: 1px solid #ffe082;
-    color: #795548;
-}
-
-[data-theme='light'] .offline-earnings-dismiss {
-    background: #ffe082;
-    color: #795548;
-}
-
-[data-theme='light'] .rebirth-section {
-    background: linear-gradient(135deg, #fffde7 0%, #ede7f6 100%);
-    border: 2px solid #ffd700;
-    color: #795548;
-}
-
-[data-theme='light'] .rebirth-info {
-    color: #7c4dff;
-}
-
-[data-theme='light'] .rebirth-button {
-    background: linear-gradient(135deg, #ffd700, #fffde7);
-    color: #2d2150;
-}
-
-[data-theme='light'] .rebirth-button:disabled {
-    background: #eee;
-    color: #bbb;
-}
-
-[data-theme='light'] .shop-content {
-    background: #faf9ff;
-}
-
-[data-theme='light'] .booster-content-wrapper,
-[data-theme='light'] .relics-grid,
-[data-theme='light'] .autobuyer-content {
-    background: transparent;
-}
-
-/* Optional: Buttons und Inputs für Whitemode anpassen */
-[data-theme='light'] .buy-button {
-    background: #ede7f6;
-    color: #2d2150;
-    border: 1px solid #bdb6e6;
-}
-
-[data-theme='light'] .buy-button:disabled {
-    background: #f5f5f5;
-    color: #bbb;
-}
-
-[data-theme='light'] .max-button {
-    background: #e1bee7;
-    color: #2d2150;
-    border: 1px solid #bdb6e6;
-}
-
-[data-theme='light'] .max-button:disabled {
-    background: #f5f5f5;
-    color: #bbb;
-}
 
 .auto-upgrade-btn {
     display: inline-flex;
