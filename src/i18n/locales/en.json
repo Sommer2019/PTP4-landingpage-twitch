@@ -619,9 +619,9 @@
       "empty": "📊 No players on the leaderboard yet"
     },
     "buttons": {
-      "buy": "Buy",
       "max": "Max",
-      "cost": "Cost: {cost}"
+      "buy": "Buy",
+      "unlocked": "Unlocked"
     },
     "offline": {
       "shopTitle": "🌙 Offline Earnings Upgrades",
@@ -639,12 +639,7 @@
       "youHave": "You have: {{count}} Rebirths"
     },
     "autoBuyTitle": "Auto buy",
-    "clickBlocked": "Clicking is currently blocked!",
-    "buttons": {
-      "max": "Max",
-      "buy": "Buy",
-      "unlocked": "Unlocked"
-    }
+    "clickBlocked": "Clicking is currently blocked!"
   },
   "onlybart": {
     "filter": {
@@ -672,6 +667,10 @@
     "comment": {
       "placeholder": "Write a comment...",
       "send": "send"
+    },
+    "image": {
+      "close": "Close",
+      "viewFullSize": "View full size"
     }
   },
   "common": {

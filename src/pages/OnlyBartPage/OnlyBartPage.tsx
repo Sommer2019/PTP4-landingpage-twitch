@@ -183,6 +183,15 @@ function PostCard({post, access, onDelete, onLikeChange}: {
     const [hasLiked, setHasLiked] = useState(post.user_has_liked || false)
     const [hasSuperliked, setHasSuperliked] = useState(post.user_has_superliked || false)
     const [commentsCount, setCommentsCount] = useState(post.comments_count || 0)
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setLightboxUrl(null)
+        }
+        document.addEventListener('keydown', handleKeyDown)
+        return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [])
 
     const loadComments = useCallback(async () => {
         // 1. Kommentare laden (ohne Join)
@@ -387,7 +396,37 @@ function PostCard({post, access, onDelete, onLikeChange}: {
             </div>
 
             {post.type === 'image' && post.media_url && (
-                <img src={post.media_url} alt="Post media" className="post-media"/>
+                <button
+                    className="post-media-btn"
+                    onClick={() => setLightboxUrl(post.media_url)}
+                    title={t('onlybart.image.viewFullSize', 'View full size')}
+                >
+                    <img src={post.media_url} alt="Post media" className="post-media"/>
+                </button>
+            )}
+
+            {lightboxUrl && (
+                <div
+                    className="lightbox-backdrop"
+                    onClick={() => setLightboxUrl(null)}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={t('onlybart.image.viewFullSize', 'View full size')}
+                >
+                    <button
+                        className="lightbox-close"
+                        onClick={() => setLightboxUrl(null)}
+                        aria-label={t('onlybart.image.close', 'Close')}
+                    >
+                        ×
+                    </button>
+                    <img
+                        src={lightboxUrl}
+                        alt="Full size"
+                        className="lightbox-img"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
             )}
 
             {post.type === 'video' && post.video_url && (
