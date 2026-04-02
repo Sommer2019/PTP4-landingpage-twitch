@@ -2,6 +2,26 @@
 // Alle Texte, Links, Bilder und Codes an EINER Stelle änderbar.
 // Kann später durch einen DB/API-Fetch ersetzt werden.
 // ────────────────────────────────────────────────────────────────────
+//
+// ── Modular defaults ─────────────────────────────────────────────────
+// Change these values here to configure the page without setting env vars.
+// Each value can still be overridden at deploy time via the corresponding
+// VITE_* environment variable (see .env.example).
+// ─────────────────────────────────────────────────────────────────────
+
+/** StreamElements channel ID as it appears in the donation URL:
+ *  https://streamelements.com/<STREAMELEMENTS_CHANNEL>/tip
+ *  Override at deploy time via VITE_STREAMELEMENTS_CHANNEL. */
+const STREAMELEMENTS_CHANNEL =
+  (import.meta.env.VITE_STREAMELEMENTS_CHANNEL as string | undefined) ?? 'hd1920x1080-5003'
+
+/** BCP-47 language codes enabled in the UI language selector.
+ *  Every listed code must have a matching src/i18n/locales/<code>.json file.
+ *  Override at deploy time via VITE_LANGUAGES (comma-separated, e.g. "de,en"). */
+const LANGUAGES: string[] =
+  (import.meta.env.VITE_LANGUAGES as string | undefined)
+    ?.split(',').map((l) => l.trim()).filter(Boolean)
+  ?? ['de', 'en', 'gsw']
 
 export interface LinkItem {
   id: string
@@ -181,8 +201,8 @@ const siteConfig: SiteConfig = {
 
   // ── StreamElements / Donations ──
   streamelements: {
-    // Override via VITE_STREAMELEMENTS_CHANNEL (e.g. "mychannelname-1234")
-    donationUrl: `https://streamelements.com/${(import.meta.env.VITE_STREAMELEMENTS_CHANNEL as string | undefined) ?? 'your-channel-id'}/tip`,
+    // Change STREAMELEMENTS_CHANNEL above, or set VITE_STREAMELEMENTS_CHANNEL in your .env.
+    donationUrl: `https://streamelements.com/${STREAMELEMENTS_CHANNEL}/tip`,
     triggers: [
       { id: 'taschengeld', price: '1€ – 1,19€', amountValue: 1.00, descKey: 'donations.taschengeld.desc', textKey: 'donations.taschengeld.text' },
       { id: 'tts', price: 'ab 1,20€', amountValue: 1.20, descKey: 'donations.tts.desc', textKey: 'donations.tts.text' },
@@ -383,12 +403,8 @@ const siteConfig: SiteConfig = {
   accentColor: (import.meta.env.VITE_ACCENT_COLOR as string | undefined) ?? '#7C4DFF',
 
   // ── Supported UI languages ──
-  // Set VITE_LANGUAGES to a comma-separated list (e.g. "de,en") to restrict available languages.
-  // Every code listed here must have a matching src/i18n/locales/<code>.json file.
-  languages: ((import.meta.env.VITE_LANGUAGES as string | undefined) ?? 'de,en,gsw')
-    .split(',')
-    .map((l) => l.trim())
-    .filter(Boolean),
+  // Change LANGUAGES above, or set VITE_LANGUAGES in your .env.
+  languages: LANGUAGES,
 
   // ── Redirects ──
   redirects: {
