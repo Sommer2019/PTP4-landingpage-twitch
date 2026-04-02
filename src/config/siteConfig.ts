@@ -23,6 +23,11 @@ const LANGUAGES: string[] =
     ?.split(',').map((l) => l.trim()).filter(Boolean)
   ?? ['de', 'en', 'gsw']
 
+/** Primary brand / accent color (CSS hex value, e.g. '#7C4DFF').
+ *  Override at deploy time via VITE_ACCENT_COLOR. */
+const ACCENT_COLOR =
+  (import.meta.env.VITE_ACCENT_COLOR as string | undefined) ?? '#7C4DFF'
+
 export interface LinkItem {
   id: string
   /** i18n key for the card title, e.g. "links.youtube.title" */
@@ -399,8 +404,8 @@ const siteConfig: SiteConfig = {
   },
 
   // ── Brand color ──
-  // Set VITE_ACCENT_COLOR in your .env to change the primary accent/brand color site-wide.
-  accentColor: (import.meta.env.VITE_ACCENT_COLOR as string | undefined) ?? '#7C4DFF',
+  // Change ACCENT_COLOR above, or set VITE_ACCENT_COLOR in your .env.
+  accentColor: ACCENT_COLOR,
 
   // ── Supported UI languages ──
   // Change LANGUAGES above, or set VITE_LANGUAGES in your .env.
