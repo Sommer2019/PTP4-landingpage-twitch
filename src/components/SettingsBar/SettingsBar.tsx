@@ -3,6 +3,7 @@ import { FaHome } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '../../context/useTheme.ts'
 import ProfileButton from '../ProfileButton/ProfileButton.tsx'
+import siteConfig from '../../config/siteConfig.ts'
 import './SettingsBar.css'
 
 const themeIcons: Record<string, string> = {
@@ -13,19 +14,21 @@ const themeIcons: Record<string, string> = {
 
 const themeOrder = ['system', 'light', 'dark'] as const
 
-const languageFlags: Record<string, string> = {
-  de: '🇩🇪',
-  en: '🇬🇧',
-  gsw: '🇨🇭',
+/** Metadata for every language code we might encounter. */
+const KNOWN_LANGUAGES: Record<string, { flag: string; label: string }> = {
+  de:  { flag: '🇩🇪', label: 'Deutsch' },
+  en:  { flag: '🇬🇧', label: 'English' },
+  gsw: { flag: '🇨🇭', label: 'Schweizerdeutsch' },
 }
 
-const langOrder = ['de', 'en', 'gsw'] as const
-type Lang = (typeof langOrder)[number]
+/** Active languages configured in siteConfig (driven by VITE_LANGUAGES). */
+const activeLangs = siteConfig.languages
 
-function getCurrentLang(language: string): Lang {
-  if (language?.startsWith('gsw')) return 'gsw'
-  if (language?.startsWith('de')) return 'de'
-  return 'en'
+function getCurrentLang(language: string): string {
+  for (const code of activeLangs) {
+    if (language?.startsWith(code)) return code
+  }
+  return activeLangs[0] ?? ''
 }
 
 export default function SettingsBar() {
@@ -43,7 +46,8 @@ export default function SettingsBar() {
   }
 
   const currentLang = getCurrentLang(i18n.language)
-  const nextLang = langOrder[(langOrder.indexOf(currentLang) + 1) % langOrder.length]
+  const currentIdx = activeLangs.indexOf(currentLang)
+  const nextLang = activeLangs[(currentIdx + 1) % activeLangs.length] ?? activeLangs[0]
 
   return (
     <div className="settings-bar">
@@ -66,9 +70,14 @@ export default function SettingsBar() {
           onChange={(e) => changeLanguage(e.target.value)}
           title={t('settings.language')}
         >
-          <option value="de">🇩🇪 Deutsch</option>
-          <option value="en">🇬🇧 English</option>
-          <option value="gsw">🇨🇭 Schweizerdeutsch</option>
+          {activeLangs.map((code) => {
+            const meta = KNOWN_LANGUAGES[code] ?? { flag: '🌐', label: code.toUpperCase() }
+            return (
+              <option key={code} value={code}>
+                {meta.flag} {meta.label}
+              </option>
+            )
+          })}
         </select>
 
         <button
@@ -76,7 +85,7 @@ export default function SettingsBar() {
           onClick={() => changeLanguage(nextLang)}
           title={t('settings.language')}
         >
-          {languageFlags[currentLang]}
+          {(KNOWN_LANGUAGES[currentLang] ?? { flag: '🌐' }).flag}
         </button>
       </div>
     </div>

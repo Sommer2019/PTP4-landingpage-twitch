@@ -97,6 +97,12 @@ export interface SiteConfig {
   copyrightHolder: string
   onlyBart: OnlyBartConfig  // Should contain the default "OnlyBart" for this project
   redirects: Record<string, string> // Add redirects here
+  /** Primary accent / brand color as a CSS hex value (e.g. "#7C4DFF").
+   *  Override with the VITE_ACCENT_COLOR environment variable. */
+  accentColor: string
+  /** List of BCP-47 language codes enabled for the UI language selector.
+   *  Override with a comma-separated VITE_LANGUAGES environment variable, e.g. "de,en". */
+  languages: string[]
 }
 
 const siteConfig: SiteConfig = {
@@ -175,7 +181,8 @@ const siteConfig: SiteConfig = {
 
   // ── StreamElements / Donations ──
   streamelements: {
-    donationUrl: 'https://streamelements.com/hd1920x1080-5003/tip',
+    // Override via VITE_STREAMELEMENTS_CHANNEL (e.g. "mychannelname-1234")
+    donationUrl: `https://streamelements.com/${(import.meta.env.VITE_STREAMELEMENTS_CHANNEL as string | undefined) ?? 'your-channel-id'}/tip`,
     triggers: [
       { id: 'taschengeld', price: '1€ – 1,19€', amountValue: 1.00, descKey: 'donations.taschengeld.desc', textKey: 'donations.taschengeld.text' },
       { id: 'tts', price: 'ab 1,20€', amountValue: 1.20, descKey: 'donations.tts.desc', textKey: 'donations.tts.text' },
@@ -370,6 +377,18 @@ const siteConfig: SiteConfig = {
     title: 'OnlyBart',
     logoUrl: '/img/logos/OB.webp'
   },
+
+  // ── Brand color ──
+  // Set VITE_ACCENT_COLOR in your .env to change the primary accent/brand color site-wide.
+  accentColor: (import.meta.env.VITE_ACCENT_COLOR as string | undefined) ?? '#7C4DFF',
+
+  // ── Supported UI languages ──
+  // Set VITE_LANGUAGES to a comma-separated list (e.g. "de,en") to restrict available languages.
+  // Every code listed here must have a matching src/i18n/locales/<code>.json file.
+  languages: ((import.meta.env.VITE_LANGUAGES as string | undefined) ?? 'de,en,gsw')
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean),
 
   // ── Redirects ──
   redirects: {

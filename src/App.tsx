@@ -136,13 +136,7 @@ function App() {
                 <Route path="/onlybart" element={<OnlyBartPage/>}/>
                 <Route path="/onlybart/*" element={<Navigate to="/onlybart" replace/>}/>
 
-                {/* ── Custom Wünsche (werden nun ebenfalls über siteConfig externalRedirects abgefangen) ── */}
-                <Route path="/rp" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
-                <Route path="/ressourcepack" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
-                <Route path="/tanggle" element={<RedirectToHtml to="http://tng.gl/c/hd1920x1080"/>}/>
-                <Route path="/puzzle" element={<RedirectToHtml to="http://tng.gl/c/hd1920x1080"/>}/>
-                <Route path="/nclip" element={<RedirectToHtml to="https://nclip.io/page/hd1920x1080"/>}/>
-
+                {/* ── Custom Wünsche (werden über siteConfig.redirects abgefangen) ── */}
                 <Route path="*" element={<NotFoundPage/>}/>
             </Routes>
             <CookieBanner/>
