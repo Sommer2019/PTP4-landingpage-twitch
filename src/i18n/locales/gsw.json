@@ -608,9 +608,9 @@
       "empty": "📊 No keini Spiiler uf de Ranglischte"
     },
     "buttons": {
-      "buy": "Chaufe",
       "max": "Max",
-      "cost": "Choscht: {cost}"
+      "buy": "Chaufe",
+      "unlocked": "Freiggschaltet"
     },
     "offline": {
       "shopTitle": "🌙 Offline-Verdienst Upgrades",
@@ -628,12 +628,7 @@
       "youHave": "Du häsch: {{count}} Rebirths"
     },
     "autoBuyTitle": "Automatisch chaufe",
-    "clickBlocked": "Klickä isch aktuell blockiert!",
-    "buttons": {
-      "max": "Max",
-      "buy": "Chaufe",
-      "unlocked": "Freiggschaltet"
-    }
+    "clickBlocked": "Klickä isch aktuell blockiert!"
   },
   "onlybart": {
     "filter": {
@@ -661,6 +656,10 @@
     "comment": {
       "placeholder": "Schriib e Kommentar...",
       "send": "Sende"
+    },
+    "image": {
+      "close": "Zueemache",
+      "viewFullSize": "In voller Größi aazeige"
     }
   },
   "common": {

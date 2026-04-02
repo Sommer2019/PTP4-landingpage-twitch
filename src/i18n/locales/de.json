@@ -297,7 +297,6 @@
     "requiredTitle": "Authentifizierung erforderlich",
     "requiredMsg": "Bitte logge dich ein, um fortzufahren."
   },
-
   "error": {
     "title": "Zugriff verweigert",
     "forbidden": "Diese Seite ist für dich nicht verfügbar."
@@ -412,40 +411,28 @@
     "newRewardTitle": "Neue Belohnung",
     "rewardNameKeyPlaceholder": "Name-Key eingeben",
     "rewardDescKeyPlaceholder": "Beschreibung-Key eingeben",
-
     "rewardNameLabel": "Name",
     "rewardNamePlaceholder": "Angezeigten Namen eingeben",
-
     "rewardDescriptionLabel": "Beschreibung",
     "rewardDescriptionPlaceholder": "Beschreibung der Belohnung eingeben",
-
     "rewardSourceLabel": "Quelle",
     "rewardSourcePlaceholder": "z. B. 'local', 'youtube' oder 'tts'",
-
     "rewardMediaurlLabel": "Media-URL",
     "rewardMediaurlPlaceholder": "URL zu Audio/Video (falls vorhanden)",
-
     "rewardShowMediaLabel": "Medium anzeigen",
     "rewardShowMediaHint": "Wenn aktiviert, wird das Medium (z. B. YouTube-Video) angezeigt bzw. abgespielt (falls unterstützt)",
-
     "rewardImageLabel": "Image-URL",
     "rewardImagePlaceholder": "URL für ein Bild eingeben",
-
     "rewardIsTtsLabel": "Text-to-Speech",
     "rewardIsTtsHint": "Wenn aktiviert, wird der Text per TTS abgespielt",
-
     "rewardShowYoutubeVideoLabel": "YouTube-Video anzeigen",
     "rewardShowYoutubeVideoHint": "Wenn aktiviert, wird das YouTube-Video im Stream/Overlay angezeigt/abgespielt (falls unterstützt)",
-
     "rewardCustomImageLabel": "Custom Image URL",
     "rewardCustomImagePlaceholder": "URL für ein benutzerdefiniertes Bild",
-
     "rewardTextLabel": "Text",
     "rewardTextPlaceholder": "Text eingeben (z. B. für TTS)",
-
     "rewardDurationLabel": "Dauer (Sekunden)",
     "rewardDurationPlaceholder": "Dauer in Sekunden (z. B. 60)",
-
     "rewardOncePerStreamLabel": "Nur einmal pro Stream",
     "rewardOncePerStreamHint": "Wenn aktiviert, kann die Belohnung pro Stream nur einmal eingelöst werden",
     "rewardCostPlaceholder": "Kosten eingeben",
@@ -480,8 +467,7 @@
     "technicalHint": "Technischer Hinweis:",
     "technicalHintPoints": "Punkte werden direkt in der Datenbank geändert.",
     "technicalHintRewards": "Belohnungen werden sofort übernommen.",
-    "technicalHintBanned": "Gebannte Accounts können jederzeit entbannt werden."
-    ,
+    "technicalHintBanned": "Gebannte Accounts können jederzeit entbannt werden.",
     "noPermission": "Keine Berechtigung",
     "couldNotFetchTwitchId": "Konnte Twitch-ID nicht abrufen",
     "cannotBanYourself": "Du kannst dich nicht selbst bannen",
@@ -635,9 +621,9 @@
       "empty": "📊 Noch keine Spieler auf der Rangliste"
     },
     "buttons": {
-      "buy": "Kaufen",
       "max": "Max",
-      "cost": "Kosten: {cost}"
+      "buy": "Kaufen",
+      "unlocked": "Freigeschaltet"
     },
     "offline": {
       "shopTitle": "🌙 Offline-Verdienst Upgrades",
@@ -655,12 +641,7 @@
       "youHave": "Du hast: {{count}} Rebirths"
     },
     "autoBuyTitle": "Automatisch kaufen",
-    "clickBlocked": "Klicken ist aktuell blockiert!",
-    "buttons": {
-      "max": "Max",
-      "buy": "Kaufen",
-      "unlocked": "Freigeschaltet"
-    }
+    "clickBlocked": "Klicken ist aktuell blockiert!"
   },
   "onlybart": {
     "filter": {
@@ -688,6 +669,10 @@
     "comment": {
       "placeholder": "Schreibe einen Kommentar...",
       "send": "Senden"
+    },
+    "image": {
+      "close": "Schließen",
+      "viewFullSize": "In voller Größe anzeigen"
     }
   },
   "common": {
