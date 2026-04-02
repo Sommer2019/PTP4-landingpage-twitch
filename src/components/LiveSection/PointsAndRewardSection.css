@@ -182,19 +182,19 @@
 [data-theme="dark"] .reward-card,
 [data-theme="dark"] .selected-reward-info,
 [data-theme="dark"] .tts-input {
-  color: var(--reward-card-dark-text) !important;
-  background: var(--reward-card-dark-bg) !important;
-  border-color: var(--reward-card-dark-border) !important;
+  color: var(--reward-card-dark-text);
+  background: var(--reward-card-dark-bg);
+  border-color: var(--reward-card-dark-border);
 }
 [data-theme="dark"] .reward-card-cost,
 [data-theme="dark"] .back-btn {
-  color: var(--reward-card-dark-muted) !important;
+  color: var(--reward-card-dark-muted);
 }
 [data-theme="dark"] .reward-card-title {
-  color: #fff !important;
+  color: #fff;
 }
 [data-theme="dark"] .tts-input {
-  color: #fff !important;
-  background: #23233a !important;
-  border-color: #4d4d7c !important;
+  color: #fff;
+  background: #23233a;
+  border-color: #4d4d7c;
 }

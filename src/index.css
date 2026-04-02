@@ -7,6 +7,7 @@
   --card-bg: rgba(255, 255, 255, 0.02);
   --box-gradient: linear-gradient(180deg, rgba(124, 77, 255, 0.16), rgba(0, 0, 0, 0.12));
   --box-border: rgba(124, 77, 255, 0.06);
+  --settingsbar-height: 64px;
   font-family: Inter, 'Segoe UI', Arial, Helvetica, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -54,12 +55,12 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   min-width: 320px;
-  padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
+  padding-top: var(--settingsbar-height);
 }
 
 @media (max-width: 720px) {
   body {
-    padding-top: 0 !important;
+    padding-top: 0;
   }
 }
 

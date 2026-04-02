@@ -33,8 +33,11 @@
   border-color: rgba(124, 77, 255, 0.25);
 }
 .clip-card--voted {
-  border-color: var(--accent) !important;
+  border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.35);
+}
+.clip-card--voted:hover {
+  border-color: var(--accent);
 }
 .clip-card__body {
   padding: 12px 14px;

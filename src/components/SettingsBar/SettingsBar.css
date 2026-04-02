@@ -10,9 +10,7 @@
   background: var(--color-bg, #18181b);
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   padding: 1rem 1rem 1rem 1rem;
-  top: 0 !important;
-  /* Höhe als Variable für globalen Abstand bereitstellen */
-  --settingsbar-height: calc(2rem + 24px); /* 2rem Padding (oben+unten) + ca. 24px Zeilenhöhe */
+  top: 0;
 }
 
 .settings-left {
@@ -34,13 +32,12 @@
 @media (max-width: 720px) {
   .settings-bar {
     position: sticky;
-    top: 0 !important;
+    top: 0;
     z-index: 1001;
     background: var(--color-bg, #18181b);
     justify-content: space-between;
     padding: 1rem 1rem 1rem 1rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    --settingsbar-height: calc(2rem + 24px); /* gleiche Höhe wie Desktop */
   }
 
   .settings-left {

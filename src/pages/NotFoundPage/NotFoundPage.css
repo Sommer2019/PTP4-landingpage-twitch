@@ -4,12 +4,12 @@
   justify-content: center;
   min-height: 80vh;
   padding: 24px 20px;
-  padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
+  padding-top: var(--settingsbar-height);
 }
 
 @media (max-width: 720px) {
   .not-found {
-    padding-top: 0 !important;
+    padding-top: 0;
   }
 }
 

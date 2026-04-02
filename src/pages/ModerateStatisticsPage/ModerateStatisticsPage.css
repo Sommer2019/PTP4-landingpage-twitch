@@ -1,7 +1,7 @@
 .moderate-stats-intro {
   color: var(--muted);
   margin-bottom: 16px;
-  padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
+  padding-top: var(--settingsbar-height);
 }
 
 .moderate-stats-toolbar {

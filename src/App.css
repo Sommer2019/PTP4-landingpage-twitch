@@ -6,12 +6,12 @@
   max-width: 980px;
   margin: 0 auto;
   padding: 12px 20px;
-  padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
+  padding-top: var(--settingsbar-height);
 }
 
 @media (max-width: 720px) {
   .landing-container {
-    padding-top: 0 !important;
+    padding-top: 0;
   }
 }
 
