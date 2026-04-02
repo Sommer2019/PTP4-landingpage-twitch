@@ -1,3 +1,24 @@
+/* ── iCal component theming vars ── */
+[data-theme="dark"] {
+  --ical-hint-color: #fff;
+  --ical-modal-bg: #232336;
+  --ical-modal-color: #f3f3f3;
+  --ical-input-bg: #181828;
+  --ical-input-color: #fff;
+  --ical-input-border: #444;
+  --ical-copy-bg: #333;
+}
+
+[data-theme="light"] {
+  --ical-hint-color: var(--accent, #6c63ff);
+  --ical-modal-bg: #fff;
+  --ical-modal-color: #222;
+  --ical-input-bg: #f7f7f7;
+  --ical-input-color: #222;
+  --ical-input-border: #ccc;
+  --ical-copy-bg: #eee;
+}
+
 .streamplan-filters {
   display: flex;
   flex-wrap: wrap;
@@ -136,11 +157,8 @@
   border: none;
   cursor: pointer;
   padding: 8px;
-  color: var(--accent, #6c63ff);
+  color: var(--ical-hint-color, var(--accent, #6c63ff));
   transition: color 0.2s;
-}
-[data-theme="dark"] .ical-hint-btn {
-  color: #fff;
 }
 .ical-hint-btn:focus {
   outline: 2px solid var(--accent, #6c63ff);
@@ -160,8 +178,8 @@
   justify-content: center;
 }
 .streamplan-ical-modal .ical-modal-content {
-  background: #fff;
-  color: #222;
+  background: var(--ical-modal-bg, #fff);
+  color: var(--ical-modal-color, #222);
   border-radius: 10px;
   padding: 24px;
   min-width: 320px;
@@ -170,28 +188,16 @@
   position: relative;
   transition: background 0.2s, color 0.2s;
 }
-[data-theme="dark"] .streamplan-ical-modal .ical-modal-content {
-  background: #232336;
-  color: #f3f3f3;
-}
 .streamplan-ical-modal input[type="text"] {
-  background: #f7f7f7;
-  color: #222;
-  border: 1px solid #ccc;
-}
-[data-theme="dark"] .streamplan-ical-modal input[type="text"] {
-  background: #181828;
-  color: #fff;
-  border: 1px solid #444;
+  background: var(--ical-input-bg, #f7f7f7);
+  color: var(--ical-input-color, #222);
+  border: 1px solid var(--ical-input-border, #ccc);
 }
 .streamplan-ical-modal .ical-copy-btn {
-  background: #eee;
+  background: var(--ical-copy-bg, #eee);
   border: none;
   border-radius: 4px;
   padding: 6px;
   cursor: pointer;
   transition: background 0.2s;
-}
-[data-theme="dark"] .streamplan-ical-modal .ical-copy-btn {
-  background: #333;
 }

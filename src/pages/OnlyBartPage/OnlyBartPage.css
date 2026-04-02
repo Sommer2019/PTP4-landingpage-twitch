@@ -1,7 +1,40 @@
+/* ── OnlyBartPage theme vars (nur wirklich komponentenspezifische Werte) ── */
+[data-theme="dark"] {
+  --ob-surface: #111;
+  --ob-surface-border: #222;
+  --ob-input-bg: #222;
+  --ob-filter-border: #333;
+  --ob-filter-hover-bg: #333;
+  --ob-avatar-bg: #333;
+  --ob-date-color: #666;
+  --ob-media-bg: #000;
+  --ob-action-hover-color: #fff;
+  --ob-comments-bg: #0a0a0a;
+  --ob-author-color: #ddd;
+  --ob-comment-color: inherit;
+  --ob-input-border: none;
+}
+
+[data-theme="light"] {
+  --ob-surface: #ffffff;
+  --ob-surface-border: #dde0e8;
+  --ob-input-bg: #e8e8ec;
+  --ob-filter-border: #ccc;
+  --ob-filter-hover-bg: #d8d8e0;
+  --ob-avatar-bg: #ccc;
+  --ob-date-color: #888;
+  --ob-media-bg: #e8e8ec;
+  --ob-action-hover-color: #111;
+  --ob-comments-bg: #f0f0f5;
+  --ob-author-color: #333;
+  --ob-comment-color: #444;
+  --ob-input-border: 1px solid #ccc;
+}
+
 .onlybart-container {
   min-height: 100vh;
-  background-color: #000; /* Dark theme base */
-  color: #fff;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   padding-bottom: 80px;
 }
 
@@ -12,7 +45,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #000;
+  background-color: var(--color-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,9 +85,9 @@
 }
 
 .filter-btn {
-  background: #222;
-  border: 1px solid #333;
-  color: #aaa;
+  background: var(--ob-input-bg);
+  border: 1px solid var(--ob-filter-border);
+  color: var(--color-muted);
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -68,10 +101,14 @@
   border-color: #00bcd4;
 }
 
+.filter-btn:hover {
+  background: var(--ob-filter-hover-bg);
+}
+
 /* Post Styles */
 .post-card {
-  background: #111;
-  border: 1px solid #222;
+  background: var(--ob-card-bg);
+  border: 1px solid var(--ob-card-border);
   border-radius: 12px;
   margin-bottom: 20px;
   overflow: hidden;
@@ -88,7 +125,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #333;
+  background: var(--ob-avatar-bg);
 }
 
 .post-meta {
@@ -103,7 +140,7 @@
 
 .post-date {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--ob-date-color);
 }
 
 .post-content {
@@ -115,7 +152,7 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  background: #000;
+  background: var(--ob-media-bg);
   display: block;
 }
 
