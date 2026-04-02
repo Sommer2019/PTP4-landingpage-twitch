@@ -86,7 +86,7 @@
 
 .stat-label {
     font-size: 0.8rem;
-    color: var(--color-muted);
+    color: var(--muted);
     margin: 0 0 0 0;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -147,15 +147,6 @@
 
     .click-area {
         min-height: 240px;
-    }
-
-    .bartclicker-header {
-        position: sticky;
-        top: 56px;
-        z-index: 200;
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 }
 
@@ -240,7 +231,7 @@
 .tab-button {
     padding: 10px 20px;
     background: transparent;
-    color: var(--color-muted);
+    color: var(--muted);
     border: none;
     border-bottom: 2px solid transparent;
     cursor: pointer;
@@ -273,7 +264,7 @@
 .shop-subtab {
     padding: 8px 16px;
     background: var(--card-bg);
-    color: var(--color-muted);
+    color: var(--muted);
     border: 1px solid var(--box-border);
     border-radius: 6px;
     cursor: pointer;
@@ -442,7 +433,7 @@
 
 .buy-button:disabled {
     background: var(--color-btn-bg);
-    color: var(--color-muted);
+    color: var(--muted);
     cursor: not-allowed;
     opacity: 0.5;
 }
@@ -923,7 +914,6 @@
 
     .bartclicker-header {
         grid-template-columns: 1fr;
-        background: rgba(124, 77, 255, 0.1);
         border: 1px solid #7c4dff;
         border-radius: 8px;
         padding: 8px;
@@ -1112,7 +1102,7 @@
 }
 
 .muted-text {
-    color: var(--color-muted) !important;
+    color: var(--muted) !important;
 }
 
 .gold-text {
@@ -1140,19 +1130,6 @@
         z-index: 200;
         background: var(--box-gradient, #181028) !important;
         background-color: #181028 !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    }
-
-    [data-theme="light"] .bartclicker-header {
-        background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%) !important;
-        border-bottom: 1px solid #e0e0e0;
-        box-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
-    }
-
-    [data-theme="dark"] .bartclicker-header {
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
-        border-bottom: 1px solid #222;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 }

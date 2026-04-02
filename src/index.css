@@ -24,7 +24,6 @@
   --color-link-hover: #9b7aff;
   --color-btn-bg: #1a1a1a;
   --color-border: transparent;
-  --color-muted: #9aa0a6;
 }
 
 /* ── Light theme ── */
@@ -35,7 +34,6 @@
   --color-link-hover: #6a3de8;
   --color-btn-bg: #ffffff;
   --color-border: #ddd;
-  --color-muted: #666;
   --muted: #666;
   --box-gradient: linear-gradient(180deg, rgba(124, 77, 255, 0.08), rgba(255, 255, 255, 0.9));
   --box-border: rgba(124, 77, 255, 0.12);

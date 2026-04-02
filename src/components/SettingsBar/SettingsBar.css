@@ -36,11 +36,6 @@
     position: sticky;
     top: 0 !important;
     z-index: 1001;
-    background: var(--color-bg, #18181b);
-    justify-content: space-between;
-    padding: 1rem 1rem 1rem 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    --settingsbar-height: calc(2rem + 24px); /* gleiche Höhe wie Desktop */
   }
 
   .settings-left {
@@ -76,7 +71,7 @@
 }
 
 .settings-btn:hover {
-  border-color: #646cff;
+  border-color: var(--accent);
 }
 
 .settings-select {
@@ -91,7 +86,7 @@
 }
 
 .settings-select:hover {
-  border-color: #646cff;
+  border-color: var(--accent);
 }
 
 .settings-home-link {
@@ -104,7 +99,7 @@
 }
 
 .settings-home-link:hover {
-  color: #646cff;
+  color: var(--accent);
 }
 
 @media (max-width: 720px) {

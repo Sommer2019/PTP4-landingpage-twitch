@@ -5,7 +5,7 @@
 
 .next-stream-label {
   font-size: 0.85rem;
-  color: var(--color-muted);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 6px;
@@ -45,7 +45,7 @@
 .next-stream-fallback {
   padding: 24px 16px;
   text-align: center;
-  color: var(--color-muted);
+  color: var(--muted);
 }
 
 .next-stream-fallback a {
