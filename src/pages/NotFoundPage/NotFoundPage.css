@@ -7,9 +7,9 @@
   padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
 }
 
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .not-found {
-    padding-top: 0 !important;
+    padding-top: 0;
   }
 }
 
@@ -101,7 +101,7 @@
   100% { transform: rotate(0deg) scale(1); }
 }
 
-@media (max-width: 520px) {
+@media screen and (max-width: 520px) {
   .not-found-four {
     font-size: 5rem;
   }

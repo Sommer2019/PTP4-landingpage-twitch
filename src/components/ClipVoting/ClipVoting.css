@@ -33,7 +33,7 @@
   border-color: rgba(124, 77, 255, 0.25);
 }
 .clip-card--voted {
-  border-color: var(--accent) !important;
+  border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.35);
 }
 .clip-card__body {
@@ -205,7 +205,7 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .clip-grid {
     grid-template-columns: 1fr;
   }

@@ -8,23 +8,23 @@
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
-@media (min-width: 901px) {
-  /* Auf Desktop: Punkte-Section auf volle Breite von Stream+Chat */
+@media screen and (min-width: 901px) {
+  /* Desktop: Punkte-Sektion auf volle Breite */
   .points-reward-section {
     max-width: none;
     width: 100%;
   }
 }
 
-@media (max-width: 900px) {
-  /* Auf Tablet/Mobile: wieder max-width */
+@media screen and (max-width: 900px) {
+  /* Tablet/Mobile: max-width begrenzen */
   .points-reward-section {
     max-width: 400px;
     margin: 0 auto;
   }
 }
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
   .points-reward-section {
     padding: 8px;
   }
@@ -57,13 +57,13 @@
   padding-right: 4px;
 }
 
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
   .reward-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
   .reward-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -86,7 +86,7 @@
   font-size: 1rem;
 }
 
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
   .reward-card {
     padding: 4px;
     font-size: 0.75rem;
@@ -157,7 +157,7 @@
   color: var(--color-text);
   border: 2px solid var(--box-border);
   border-radius: 10px;
-  padding: 12px; /* Größeres Textfeld */
+  padding: 12px;
   font-size: 1rem;
 }
 
@@ -182,22 +182,22 @@
 [data-theme="dark"] .reward-card,
 [data-theme="dark"] .selected-reward-info,
 [data-theme="dark"] .tts-input {
-  color: var(--reward-card-dark-text) !important;
-  background: var(--reward-card-dark-bg) !important;
-  border-color: var(--reward-card-dark-border) !important;
+  color: var(--reward-card-dark-text);
+  background: var(--reward-card-dark-bg);
+  border-color: var(--reward-card-dark-border);
 }
 [data-theme="dark"] .reward-card-cost,
 [data-theme="dark"] .back-btn {
-  color: var(--reward-card-dark-muted) !important;
+  color: var(--reward-card-dark-muted);
 }
 [data-theme="dark"] .reward-card-title {
-  color: #fff !important;
+  color: #fff;
 }
 [data-theme="dark"] .tts-input {
-  color: #fff !important;
-  background: #23233a !important;
-  border-color: #4d4d7c !important;
+  color: #fff;
+  background: #23233a;
+  border-color: #4d4d7c;
 }
 [data-theme="dark"] .points-amount {
-  color: var(--accent) !important;
+  color: var(--accent);
 }

@@ -5,9 +5,9 @@
   padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
 }
 
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .subpage-container {
-    padding-top: 0 !important;
+    padding-top: 0;
   }
 }
 
@@ -183,7 +183,7 @@
   border-radius: 8px;
 }
 
-@media (max-width: 520px) {
+@media screen and (max-width: 520px) {
   .subpage-embed {
     min-height: 300px;
   }

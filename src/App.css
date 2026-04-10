@@ -9,14 +9,14 @@
   padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
 }
 
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .landing-container {
-    padding-top: 0 !important;
+    padding-top: 0;
   }
 }
 
 /* ── Mobile visibility control ── */
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .landing-container[data-tab="live"] .section-live { display: block; }
   .landing-container[data-tab="live"] .section-links { display: none; }
   .landing-container[data-tab="live"] .section-games { display: none; }
