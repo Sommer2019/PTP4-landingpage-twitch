@@ -64,7 +64,8 @@ export default function StreamelementsPage() {
             })),
           )
         }
-      } catch {
+      } catch (err) {
+        console.error('Failed to load donation triggers from DB, falling back to static config:', err)
         setTriggers(
           siteConfig.streamelements.triggers.map((tr) => ({
             id: tr.id,

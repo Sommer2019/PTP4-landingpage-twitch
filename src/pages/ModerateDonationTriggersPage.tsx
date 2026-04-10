@@ -58,7 +58,7 @@ export default function ModerateDonationTriggersPage() {
 
   function openAdd() {
     setEditId(null)
-    setForm({ ...defaultForm, sort_order: triggers.length > 0 ? (triggers[triggers.length - 1].sort_order + 10) : 0 })
+    setForm({ ...defaultForm, sort_order: triggers.length > 0 ? (Math.max(...triggers.map((t) => t.sort_order)) + 10) : 0 })
     setModalOpen(true)
   }
 
