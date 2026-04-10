@@ -41,41 +41,18 @@ export default function StreamelementsPage() {
           .eq('is_enabled', true)
           .order('sort_order')
         const rows = (data ?? []) as DbTrigger[]
-        if (rows.length > 0) {
-          setTriggers(
-            rows.map((r) => ({
-              id: r.trigger_id,
-              price: r.price,
-              amountValue: r.amount_value,
-              description: r.description,
-              text: r.trigger_text,
-              audioUrl: r.audio_url,
-            })),
-          )
-        } else {
-          setTriggers(
-            siteConfig.streamelements.triggers.map((tr) => ({
-              id: tr.id,
-              price: tr.price,
-              amountValue: tr.amountValue,
-              description: t(tr.descKey),
-              text: tr.textKey ? t(tr.textKey) : null,
-              audioUrl: tr.audio ?? null,
-            })),
-          )
-        }
-      } catch (err) {
-        console.error('Failed to load donation triggers from DB, falling back to static config:', err)
         setTriggers(
-          siteConfig.streamelements.triggers.map((tr) => ({
-            id: tr.id,
-            price: tr.price,
-            amountValue: tr.amountValue,
-            description: t(tr.descKey),
-            text: tr.textKey ? t(tr.textKey) : null,
-            audioUrl: tr.audio ?? null,
+          rows.map((r) => ({
+            id: r.trigger_id,
+            price: r.price,
+            amountValue: r.amount_value,
+            description: r.description,
+            text: r.trigger_text,
+            audioUrl: r.audio_url,
           })),
         )
+      } catch (err) {
+        console.error('Failed to load donation triggers from DB:', err)
       }
     }
     void fetchTriggers()
