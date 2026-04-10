@@ -1,16 +1,87 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import siteConfig from '../config/siteConfig'
-import type { DonationTrigger } from '../config/siteConfig'
 import SubPage from '../components/SubPage/SubPage'
+import { supabase } from '../lib/supabase'
+
+interface DbTrigger {
+  id: string
+  trigger_id: string
+  price: string
+  amount_value: number | null
+  description: string
+  trigger_text: string | null
+  audio_url: string | null
+  is_enabled: boolean
+  sort_order: number
+}
+
+interface DisplayTrigger {
+  id: string
+  price: string
+  amountValue?: number | null
+  description: string
+  text?: string | null
+  audioUrl?: string | null
+}
 
 export default function StreamelementsPage() {
   const { t } = useTranslation()
-  const { triggers, donationUrl } = siteConfig.streamelements
-  const [activeTrigger, setActiveTrigger] = useState<DonationTrigger | null>(null)
+  const { donationUrl } = siteConfig.streamelements
+  const [activeTrigger, setActiveTrigger] = useState<DisplayTrigger | null>(null)
+  const [triggers, setTriggers] = useState<DisplayTrigger[]>([])
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  const openModal = (trigger: DonationTrigger) => {
+  useEffect(() => {
+    const fetchTriggers = async () => {
+      try {
+        const { data } = await supabase
+          .from('donation_triggers')
+          .select('id, trigger_id, price, amount_value, description, trigger_text, audio_url, is_enabled, sort_order')
+          .eq('is_enabled', true)
+          .order('sort_order')
+        const rows = (data ?? []) as DbTrigger[]
+        if (rows.length > 0) {
+          setTriggers(
+            rows.map((r) => ({
+              id: r.trigger_id,
+              price: r.price,
+              amountValue: r.amount_value,
+              description: r.description,
+              text: r.trigger_text,
+              audioUrl: r.audio_url,
+            })),
+          )
+        } else {
+          setTriggers(
+            siteConfig.streamelements.triggers.map((tr) => ({
+              id: tr.id,
+              price: tr.price,
+              amountValue: tr.amountValue,
+              description: t(tr.descKey),
+              text: tr.textKey ? t(tr.textKey) : null,
+              audioUrl: tr.audio ?? null,
+            })),
+          )
+        }
+      } catch (err) {
+        console.error('Failed to load donation triggers from DB, falling back to static config:', err)
+        setTriggers(
+          siteConfig.streamelements.triggers.map((tr) => ({
+            id: tr.id,
+            price: tr.price,
+            amountValue: tr.amountValue,
+            description: t(tr.descKey),
+            text: tr.textKey ? t(tr.textKey) : null,
+            audioUrl: tr.audio ?? null,
+          })),
+        )
+      }
+    }
+    void fetchTriggers()
+  }, [t])
+
+  const openModal = (trigger: DisplayTrigger) => {
     setActiveTrigger(trigger)
   }
 
@@ -31,7 +102,7 @@ export default function StreamelementsPage() {
         {triggers.map((trigger) => (
           <li key={trigger.id} className="trigger-item" onClick={() => openModal(trigger)}>
             <span className="price-badge">{trigger.price}</span>
-            <span className="trigger-desc">{t(trigger.descKey)}</span>
+            <span className="trigger-desc">{trigger.description}</span>
           </li>
         ))}
       </ul>
@@ -59,10 +130,10 @@ export default function StreamelementsPage() {
       >
         {activeTrigger && (
           <div className="donation-modal-content">
-            <h2>{t(activeTrigger.descKey)}</h2>
-            {activeTrigger.textKey && <p>{t(activeTrigger.textKey)}</p>}
-            {activeTrigger.audio && (
-              <audio ref={audioRef} controls preload="none" src={activeTrigger.audio} />
+            <h2>{activeTrigger.description}</h2>
+            {activeTrigger.text && <p>{activeTrigger.text}</p>}
+            {activeTrigger.audioUrl && (
+              <audio ref={audioRef} controls preload="none" src={activeTrigger.audioUrl} />
             )}
             <div className="donation-modal-buttons">
               <button className="btn btn-primary" onClick={closeModal}>
