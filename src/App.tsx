@@ -20,6 +20,7 @@ import ModerateSettingsPage from './pages/ModerateSettingsPage'
 import OnlyBartPage from './pages/OnlyBartPage/OnlyBartPage'
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage'
 import ModerateAccountPage from './pages/ModerateAccountPage'
+import ModerateDonationTriggersPage from './pages/ModerateDonationTriggersPage'
 import './App.css'
 import siteConfig from "./config/siteConfig.ts";
 import * as React from "react";
@@ -123,6 +124,8 @@ function App() {
                        element={<BroadcasterRoute><ModerateSettingsPage/></BroadcasterRoute>}/>
                 <Route path="/moderate/account"
                        element={<ModeratorRoute><ModerateAccountPage/></ModeratorRoute>}/>
+                <Route path="/moderate/triggers"
+                       element={<ModeratorRoute><ModerateDonationTriggersPage/></ModeratorRoute>}/>
 
                 {/* ── Alternative Pfade (werden nun auch großteils oben im externalRedirects / siteConfig behandelt, aber hier als Fallbacks falls intern gewünscht) ── */}
                 <Route path="/actuator/data" element={<Navigate to="/moderate/statistics" replace/>}/>

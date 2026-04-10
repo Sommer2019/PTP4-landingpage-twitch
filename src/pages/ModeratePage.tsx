@@ -36,6 +36,9 @@ export default function ModeratePage() {
                 <Link to="/moderate/account" className="btn btn-secondary">
                     👤 {t('moderate.accountManagement', 'Account-Management')}
                 </Link>
+                <Link to="/moderate/triggers" className="btn btn-secondary">
+                    💸 {t('moderate.donationTriggersTitle')}
+                </Link>
                 {isBroadcaster && (
                     <Link to="/moderate/settings" className="btn btn-secondary">
                         ⚙️ {t('moderate.settings')}
