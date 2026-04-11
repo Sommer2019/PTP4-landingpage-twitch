@@ -264,8 +264,8 @@ public class SupabaseClient {
                 JSONArray data = json.optJSONArray("data");
                 if (data != null && !data.isEmpty()) {
                     String username = firstNonBlank(
-                            data.getJSONObject(0).optString("display_name", null),
-                            data.getJSONObject(0).optString("login", null)
+                            data.getJSONObject(0).optString("broadcaster_name", null),
+                            data.getJSONObject(0).optString("broadcaster_login", null)
                     );
                     logger.info("resolveTwitchUsernameById: Gefunden '{}' für ID {}", username, twitchUserId);
                     usernameCache.put(twitchUserId, new CachedUsername(nullToEmpty(username), now + USERNAME_CACHE_TTL_MS));
