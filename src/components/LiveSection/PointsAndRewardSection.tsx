@@ -159,11 +159,12 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         });
   }, [user, loading, t]);
 
-  // Rewards laden
+  // Rewards laden und nach Kosten aufsteigend sortieren
   useEffect(() => {
     supabase
         .from('rewards')
         .select('*')
+        .order('cost', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
             setStatus({ type: 'error', msg: t('pointsAndRewardSection.fehlerBeimLadenDerRewards') });
