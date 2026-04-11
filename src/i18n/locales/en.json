@@ -409,6 +409,12 @@
     "noRewards": "No rewards available",
     "editRewardBtn": "Edit",
     "deleteRewardBtn": "Delete",
+    "enableRewardBtn": "Enable",
+    "disableRewardBtn": "Disable",
+    "rewardEnabled": "Reward enabled!",
+    "rewardDisabled": "Reward disabled!",
+    "rewardInactive": "inactive",
+    "errorTogglingReward": "Error toggling reward: {{msg}}",
     "editRewardTitle": "Edit Reward",
     "newRewardTitle": "New Reward",
     "rewardNameKeyPlaceholder": "Enter name key",
@@ -739,7 +745,8 @@
     "redeemButton": "Redeem reward: {{name}}",
     "backToRewards": "Back to rewards list",
     "ttsInputLabel": "Enter TTS message",
-    "pointsDisplay": "{{points}} points available"
+    "pointsDisplay": "{{points}} points available",
+    "rewardDeaktiviert": "This reward is currently disabled."
   },
   "notFound": {
     "confusedMessages": [

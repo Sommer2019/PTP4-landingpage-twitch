@@ -398,6 +398,12 @@
     "noRewards": "Kei Belohnige vorhande",
     "editRewardBtn": "Bearbeite",
     "deleteRewardBtn": "Lösche",
+    "enableRewardBtn": "Aktiviere",
+    "disableRewardBtn": "Deaktiviere",
+    "rewardEnabled": "Belohnig aktiviert!",
+    "rewardDisabled": "Belohnig deaktiviert!",
+    "rewardInactive": "inaktiv",
+    "errorTogglingReward": "Fähler bim Umschalte: {{msg}}",
     "editRewardTitle": "Belohnig bearbeite",
     "newRewardTitle": "Neui Belohnig",
     "rewardNameKeyPlaceholder": "Name-Key iigä",
@@ -728,7 +734,8 @@
     "redeemButton": "Belohnig iiglöse: {{name}}",
     "backToRewards": "Zrugg zur Belohnigslischt",
     "ttsInputLabel": "TTS-Nachricht iigäh",
-    "pointsDisplay": "{{points}} Punkt verfüegbar"
+    "pointsDisplay": "{{points}} Punkt verfüegbar",
+    "rewardDeaktiviert": "Die Belohnig isch momentan deaktiviert."
   },
   "notFound": {
     "confusedMessages": [
