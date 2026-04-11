@@ -29,7 +29,7 @@ public class OverlayApiServer {
         public void handle(HttpExchange exchange) throws IOException {
             String method = exchange.getRequestMethod();
             if (method.equalsIgnoreCase("GET")) {
-                JSONArray rewards = supabaseClient.getRedeemedRewards();
+                JSONArray rewards = supabaseClient.getRedeemedRewardsWithUsernames();
                 String response = rewards.toString();
                 byte[] responseBytes = response.getBytes(java.nio.charset.StandardCharsets.UTF_8);
                 exchange.getResponseHeaders().add("Content-Type", "application/json");

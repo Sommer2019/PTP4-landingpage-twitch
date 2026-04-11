@@ -9,6 +9,8 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,21 @@ public class SupabaseClient {
     private final String apiKey;
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final String tableName = "points";
+    private final String twitchClientId = System.getenv("TWITCH_CLIENT_ID");
+    private final String twitchOauthToken = System.getenv("TWITCH_OAUTH_TOKEN");
+    private final Map<String, CachedUsername> usernameCache = new ConcurrentHashMap<>();
+    private static final long USERNAME_CACHE_TTL_MS = 6L * 60L * 60L * 1000L;
+    private static final long USERNAME_NEGATIVE_CACHE_TTL_MS = 10L * 60L * 1000L;
+
+    private static class CachedUsername {
+        private final String username;
+        private final long expiresAt;
+
+        private CachedUsername(String username, long expiresAt) {
+            this.username = username;
+            this.expiresAt = expiresAt;
+        }
+    }
 
     public SupabaseClient(String supabaseUrl, String apiKey) {
         this.supabaseUrl = supabaseUrl;
@@ -154,6 +171,120 @@ public class SupabaseClient {
             logger.error("Fehler beim Supabase GET redeemed_rewards: {}", e.getMessage(), e);
         }
         return new JSONArray();
+    }
+
+    /**
+     * Liefert eingelöste Rewards inkl. gemapptem Anzeigenamen aus twitch_user_id.
+     */
+    public JSONArray getRedeemedRewardsWithUsernames() {
+        JSONArray rewards = getRedeemedRewards();
+        for (int i = 0; i < rewards.length(); i++) {
+            JSONObject reward = rewards.optJSONObject(i);
+            if (reward == null) {
+                continue;
+            }
+
+            String twitchUserId = reward.optString("twitch_user_id", null);
+            String username = firstNonBlank(
+                    reward.optString("username", null),
+                    reward.optString("user", null),
+                    reward.optString("twitch_user_name", null)
+            );
+
+            if (isBlank(username) && !isBlank(twitchUserId)) {
+                username = resolveTwitchUsernameById(twitchUserId);
+            }
+
+            String displayUser = !isBlank(username)
+                    ? username
+                    : (!isBlank(twitchUserId) ? "User " + twitchUserId : "Unbekannt");
+
+            reward.put("display_user", displayUser);
+            if (!isBlank(username)) {
+                reward.put("username", username);
+                reward.put("user", username);
+                reward.put("twitch_user_name", username);
+            }
+        }
+        return rewards;
+    }
+
+    private String resolveTwitchUsernameById(String twitchUserId) {
+        if (isBlank(twitchUserId)) {
+            return null;
+        }
+
+        long now = System.currentTimeMillis();
+        CachedUsername cached = usernameCache.get(twitchUserId);
+        if (cached != null && cached.expiresAt > now) {
+            return emptyToNull(cached.username);
+        }
+
+        String token = normalizeOAuthToken(twitchOauthToken);
+        if (isBlank(twitchClientId) || isBlank(token)) {
+            return null;
+        }
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.twitch.tv/helix/users?id=" + twitchUserId))
+                    .header("Client-Id", twitchClientId)
+                    .header("Authorization", "Bearer " + token)
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(10))
+                    .GET()
+                    .build();
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                JSONObject json = new JSONObject(response.body());
+                JSONArray data = json.optJSONArray("data");
+                if (data != null && !data.isEmpty()) {
+                    String username = firstNonBlank(
+                            data.getJSONObject(0).optString("display_name", null),
+                            data.getJSONObject(0).optString("login", null)
+                    );
+                    usernameCache.put(twitchUserId, new CachedUsername(nullToEmpty(username), now + USERNAME_CACHE_TTL_MS));
+                    return username;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Konnte Twitch-Username für ID {} nicht auflösen: {}", twitchUserId, e.getMessage());
+        }
+
+        usernameCache.put(twitchUserId, new CachedUsername("", now + USERNAME_NEGATIVE_CACHE_TTL_MS));
+        return null;
+    }
+
+    private String normalizeOAuthToken(String token) {
+        if (isBlank(token)) {
+            return null;
+        }
+        String trimmed = token.trim();
+        if (trimmed.startsWith("oauth:")) {
+            return trimmed.substring("oauth:".length());
+        }
+        return trimmed;
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (!isBlank(value)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static String emptyToNull(String value) {
+        return isBlank(value) ? null : value;
     }
 
     /**
