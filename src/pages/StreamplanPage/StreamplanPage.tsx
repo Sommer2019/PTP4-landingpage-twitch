@@ -185,7 +185,7 @@ export default function StreamplanPage() {
               className="ical-modal-content"
               onClick={e => e.stopPropagation()}
             >
-              <button onClick={() => setShowIcalHint(false)} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }} aria-label="Close">×</button>
+              <button onClick={() => setShowIcalHint(false)} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }} aria-label={t('common.close')}>×</button>
               <h2 style={{ marginTop: 0 }}>{t('streamplanPage.icalHint.title')}</h2>
               <p>{t('streamplanPage.icalHint.desc')}</p>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>

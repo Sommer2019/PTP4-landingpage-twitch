@@ -42,10 +42,11 @@ export default function DownloadModal({ item, onClose }: DownloadModalProps) {
       className={`download-modal is-open ${closing ? 'is-closing' : ''}`}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="download-modal-title"
     >
       <div className="modal-backdrop" onClick={handleClose} />
       <div className="modal-card">
-        <h3 className="modal-title">{t('downloadModal.title')}</h3>
+        <h3 className="modal-title" id="download-modal-title">{t('downloadModal.title')}</h3>
         <p className="modal-message">
           {t('downloadModal.message')} <strong>{item.downloadName}</strong>
         </p>

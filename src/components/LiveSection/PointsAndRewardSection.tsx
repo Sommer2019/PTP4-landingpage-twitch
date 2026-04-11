@@ -152,7 +152,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         .then(({ data, error }) => {
           if (error) {
             setPoints(0);
-            setStatus({ type: 'error', msg: t('Fehler beim Laden der Punkte') });
+            setStatus({ type: 'error', msg: t('pointsAndRewardSection.fehlerBeimLadenDerPunkte') });
           } else {
             setPoints(data?.points ?? 0);
           }
@@ -166,7 +166,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         .select('*')
         .then(({ data, error }) => {
           if (error) {
-            setStatus({ type: 'error', msg: t('Fehler beim Laden der Rewards') });
+            setStatus({ type: 'error', msg: t('pointsAndRewardSection.fehlerBeimLadenDerRewards') });
           }
           setRewards(data || []);
         });
@@ -235,19 +235,19 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
       };
       const { data, error: rpcError } = await supabase.rpc('redeem_reward', rpcParams as object);
       if (rpcError) {
-        setStatus({ type: 'error', msg: t('Fehler beim Einlösen: {{msg}}', { msg: rpcError.message }) });
+        setStatus({ type: 'error', msg: t('pointsAndRewardSection.fehlerBeimEinloesen', { msg: rpcError.message }) });
       } else if (data && typeof data === 'object') {
         if (data.error) {
           if (data.error === 'cooldown_active') {
             const rem = data.remaining || 0;
-            setStatus({ type: 'error', msg: t('Cooldown aktiv. Noch {{sec}}s', { sec: rem }) });
+            setStatus({ type: 'error', msg: t('pointsAndRewardSection.cooldownAktiv', { sec: rem }) });
           } else if (data.error === 'once_per_stream_active') {
-            setStatus({ type: 'error', msg: t('Diese Belohnung kann nur einmal pro Stream eingelöst werden.') });
+            setStatus({ type: 'error', msg: t('pointsAndRewardSection.einmalProStream') });
           } else {
-            setStatus({ type: 'error', msg: t('Ein unbekannter Fehler ist aufgetreten: {{err}}', { err: data.error }) });
+            setStatus({ type: 'error', msg: t('pointsAndRewardSection.unbekannterFehler', { err: data.error }) });
           }
         } else if (data.success) {
-          setStatus({ type: 'success', msg: t('Erfolgreich eingelöst!') });
+          setStatus({ type: 'success', msg: t('pointsAndRewardSection.erfolgreichEingeloest') });
           if (points !== null) setPoints(points - reward.cost);
           setTtsText('');
           setCooldownActive(true);
@@ -257,14 +257,14 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
             setStatus(null);
           }, 2000);
         } else {
-          setStatus({ type: 'error', msg: t('Unbekannte Response von Server') });
+          setStatus({ type: 'error', msg: t('pointsAndRewardSection.unbekannteResponse') });
         }
       } else {
-        setStatus({ type: 'error', msg: t('Ungültige Response vom Server') });
+        setStatus({ type: 'error', msg: t('pointsAndRewardSection.ungueltigeResponse') });
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      setStatus({ type: 'error', msg: t('Fehler beim Einlösen: {{msg}}', { msg }) });
+      setStatus({ type: 'error', msg: t('pointsAndRewardSection.fehlerBeimEinloesen', { msg }) });
     }
     setRedeemLoading(false);
   };
@@ -272,23 +272,29 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
   if (loading || !user || !isLive) return null;
 
   return (
-      <div className="points-reward-section">
+      <div className="points-reward-section" role="region" aria-label={t('pointsAndRewardSection.pointsRegionLabel')}>
         <div className="points-header">
-          <span>{t('Deine Punkte')}</span>
-          <div className="points-amount">{points?.toLocaleString() ?? '0'}</div>
+          <span>{t('pointsAndRewardSection.deinePunkte')}</span>
+          <div
+            className="points-amount"
+            aria-label={t('pointsAndRewardSection.pointsDisplay', { points: points?.toLocaleString() ?? '0' })}
+          >
+            {points?.toLocaleString() ?? '0'}
+          </div>
         </div>
 
         {!selectedRewardId ? (
             /* GRID ANSICHT: 3 Spalten durch CSS */
-            <div className="reward-grid">
+            <div className="reward-grid" role="list" aria-label={t('pointsAndRewardSection.rewardGridLabel')}>
               {rewards.map((r) => (
                   <button
                       key={r.id}
                       className="reward-card"
                       onClick={() => setSelectedRewardId(r.id)}
+                      aria-label={t('pointsAndRewardSection.redeemButton', { name: r.name })}
                   >
                     <div className="reward-card-title">{r.name}</div>
-                    <div className="reward-card-cost">{t('{{cost}} Punkte', { cost: r.cost })}</div>
+                    <div className="reward-card-cost">{t('pointsAndRewardSection.costPoints', { cost: r.cost })}</div>
                   </button>
               ))}
             </div>
@@ -298,8 +304,9 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
               <button
                   className="back-btn"
                   onClick={() => { setSelectedRewardId(null); setStatus(null); }}
+                  aria-label={t('pointsAndRewardSection.backToRewards')}
               >
-                ← {t('Zurück')}
+                ← {t('pointsAndRewardSection.zurueck')}
               </button>
 
               <div className="selected-reward-info">
@@ -307,18 +314,19 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
                   {selectedReward ? selectedReward.name : ''}
                 </div>
                 <div className="reward-card-cost">
-                  {selectedReward ? t('{{cost}} Punkte', { cost: selectedReward.cost }) : ''}
+                  {selectedReward ? t('pointsAndRewardSection.costPoints', { cost: selectedReward.cost }) : ''}
                 </div>
               </div>
               {/* TTS-Inputfeld nur anzeigen, wenn istts true und KEIN vordefinierter Text */}
               {selectedReward && selectedReward.istts && !selectedReward.text && (
                 <textarea
                   className="tts-input"
-                  placeholder={t('Deine Nachricht...')}
+                  placeholder={t('pointsAndRewardSection.deineNachricht')}
                   value={ttsText}
                   onChange={e => setTtsText(e.target.value)}
                   rows={3}
                   maxLength={200}
+                  aria-label={t('pointsAndRewardSection.ttsInputLabel')}
                 />
               )}
               <button
@@ -335,18 +343,18 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
                   }
               >
                 {redeemLoading
-                  ? t('Lädt...')
+                  ? t('pointsAndRewardSection.laedt')
                   : globalLockActive
-                    ? t('Global gesperrt')
+                    ? t('pointsAndRewardSection.globalGesperrt')
                     : cooldownActive
-                      ? t('Cooldown: {{sec}}s', { sec: cooldownRemaining })
-                      : t('Jetzt einlösen')}
+                      ? t('pointsAndRewardSection.cooldown', { sec: cooldownRemaining })
+                      : t('pointsAndRewardSection.jetztEinloesen')}
               </button>
             </div>
         )}
 
         {status && (
-            <div className={`${status.type}-msg`} style={{ marginTop: '12px' }}>
+            <div className={`${status.type}-msg`} style={{ marginTop: '12px' }} role="alert">
               {status.msg}
             </div>
         )}

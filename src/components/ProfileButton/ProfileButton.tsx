@@ -32,7 +32,7 @@ export default function ProfileButton() {
   if (loading) {
     return (
       <div className="profile-button">
-        <button className="profile-btn" disabled>
+        <button className="profile-btn" disabled aria-label={t('common.loading')}>
           ⏳
         </button>
       </div>
@@ -46,7 +46,8 @@ export default function ProfileButton() {
         <button 
           className="profile-btn login-btn" 
           onClick={signInWithTwitch}
-          title="Mit Twitch anmelden"
+          title={t('auth.loginWithTwitch')}
+          aria-label={t('auth.loginWithTwitch')}
         >
           👤 Login
         </button>
@@ -64,6 +65,9 @@ export default function ProfileButton() {
         className="profile-btn logged-in"
         onClick={() => setShowMenu(!showMenu)}
         title={twitchUsername}
+        aria-label={t('auth.loggedInAs', { name: twitchUsername })}
+        aria-expanded={showMenu}
+        aria-haspopup="true"
       >
         {twitchProfilePicture ? (
           <img src={twitchProfilePicture} alt={twitchUsername} className="profile-avatar" />
@@ -74,11 +78,12 @@ export default function ProfileButton() {
       </button>
 
       {showMenu && (
-        <div className="profile-menu">
+        <div className="profile-menu" role="menu">
           {/* Mod-Settings Button nur für Moderatoren anzeigen */}
           {!modLoading && isMod && moderatorLink && (
             <button
               className="menu-item"
+              role="menuitem"
               onClick={() => {
                 navigate(moderatorLink.url)
                 setShowMenu(false)
@@ -87,11 +92,11 @@ export default function ProfileButton() {
               {t(moderatorLink.labelKey)}
             </button>
           )}
-          <button className="menu-item logout-btn" onClick={() => {
+          <button className="menu-item logout-btn" role="menuitem" onClick={() => {
             signOut()
             setShowMenu(false)
           }}>
-            Logout
+            {t('auth.logout')}
           </button>
         </div>
       )}

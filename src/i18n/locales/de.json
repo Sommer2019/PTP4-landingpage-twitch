@@ -12,7 +12,8 @@
   "mobileToggle": {
     "live": "Live",
     "links": "Links",
-    "games": "Games"
+    "games": "Games",
+    "ariaLabel": "Ansicht wechseln"
   },
   "sections": {
     "games": "Game-Related Links",
@@ -25,7 +26,8 @@
     "nextStream": "Nächster Stream",
     "scheduleLoading": "Lade Streamplan…",
     "seeSchedule": "Zum Streamplan →",
-    "chatFallback": "Chat im neuen Tab öffnen"
+    "chatFallback": "Chat im neuen Tab öffnen",
+    "sectionLabel": "Live Stream Bereich"
   },
   "currentGame": {
     "label": "Aktuell gespieltes Spiel",
@@ -707,7 +709,8 @@
     }
   },
   "common": {
-    "loading": "Lädt …"
+    "loading": "Lädt …",
+    "close": "Schließen"
   },
   "sync": {
     "exclusionName": "Name",
@@ -724,7 +727,21 @@
     "fehlerBeimLadenDerRewards": "Fehler beim Laden der Rewards",
     "fehlerBeimEinloesen": "Fehler beim Einlösen: {{msg}}",
     "erfolgreichEingeloest": "Erfolgreich eingelöst!",
-    "deineNachricht": "Deine Nachricht..."
+    "deineNachricht": "Deine Nachricht...",
+    "costPoints": "{{cost}} Punkte",
+    "globalGesperrt": "Global gesperrt",
+    "cooldown": "Cooldown: {{sec}}s",
+    "cooldownAktiv": "Cooldown aktiv. Noch {{sec}}s",
+    "einmalProStream": "Diese Belohnung kann nur einmal pro Stream eingelöst werden.",
+    "unbekannterFehler": "Ein unbekannter Fehler ist aufgetreten: {{err}}",
+    "unbekannteResponse": "Unbekannte Response von Server",
+    "ungueltigeResponse": "Ungültige Response vom Server",
+    "pointsRegionLabel": "Kanalpunkte und Belohnungen",
+    "rewardGridLabel": "Verfügbare Belohnungen",
+    "redeemButton": "Belohnung einlösen: {{name}}",
+    "backToRewards": "Zurück zur Belohnungsliste",
+    "ttsInputLabel": "TTS-Nachricht eingeben",
+    "pointsDisplay": "{{points}} Punkte verfügbar"
   },
   "notFound": {
     "confusedMessages": [
@@ -757,5 +774,6 @@
   "banned": {
     "title": "Account gesperrt",
     "message": "Dein Account wurde gesperrt. Bei Fragen wende dich bitte an den Support."
-  }
+  },
+  "home": "Startseite"
 }

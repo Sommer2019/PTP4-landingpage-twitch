@@ -122,7 +122,7 @@ export default function LiveSection() {
     const showStream = isLive
 
     return (
-        <section className="live-section" aria-label="Live Stream">
+        <section className="live-section" aria-label={t('live.sectionLabel')}>
             <div className="embed-card">
                 <a
                     href={`https://www.twitch.tv/${channel}`}
