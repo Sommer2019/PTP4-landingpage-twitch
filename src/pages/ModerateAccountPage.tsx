@@ -30,6 +30,15 @@ interface Reward {
     is_enabled?: boolean;
 }
 
+interface RecentRedemption {
+  id: string;
+  twitch_user_id: string;
+  reward_id: string | null;
+  timestamp: string;
+  cost: number | null;
+  description: string | null;
+}
+
 
 export default function ModerateAccountPage() {
   const { t } = useTranslation()
@@ -67,6 +76,11 @@ export default function ModerateAccountPage() {
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [rewardBusy, setRewardBusy] = useState(false)
   const [isWide, setIsWide] = useState<boolean>(false)
+
+  // Recent redemptions
+  const [recentRedemptions, setRecentRedemptions] = useState<RecentRedemption[]>([])
+  const [redemptionsLoading, setRedemptionsLoading] = useState(false)
+  const [redemptionsError, setRedemptionsError] = useState(false)
 
   // Merge a reward from DB with defaults, but don't let null values override defaults
   function mergeRewardWithDefaults(r?: Reward) {
@@ -109,6 +123,24 @@ export default function ModerateAccountPage() {
     const { data, error } = await supabase.from('banned_accounts').select('twitch_user_id, display_name')
     if (!error && data) setBanned((data as { twitch_user_id: string; display_name?: string }[]).map(b => ({ twitch_user_id: b.twitch_user_id, display_name: b.display_name ?? undefined })))
   }
+
+  // Recent redemptions laden
+  const fetchRecentRedemptions = useCallback(async () => {
+    setRedemptionsLoading(true)
+    setRedemptionsError(false)
+    const { data, error } = await supabase
+      .from('redeemed_rewards')
+      .select('id, twitch_user_id, reward_id, timestamp, cost, description')
+      .order('timestamp', { ascending: false })
+      .limit(10)
+    setRedemptionsLoading(false)
+    if (error) {
+      setRedemptionsError(true)
+    } else {
+      setRecentRedemptions((data ?? []) as RecentRedemption[])
+    }
+  }, [])
+  useEffect(() => { fetchRecentRedemptions() }, [fetchRecentRedemptions])
 
   // Rewards laden
   const fetchRewards = useCallback(async () => {
@@ -676,6 +708,55 @@ export default function ModerateAccountPage() {
       </div>
 
       {/* Anleitung entfernt auf Wunsch des Moderators */}
+
+      {/* Letzte Einlösungen */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:32}}>
+        <h2 style={{ margin:0 }}>{t('moderate.recentRedemptionsTitle')}</h2>
+        <button className="btn btn-secondary" onClick={fetchRecentRedemptions} disabled={redemptionsLoading}>
+          🔄 {t('moderate.recentRedemptionsRefresh')}
+        </button>
+      </div>
+      <div style={{background:'var(--box-bg)',border:'1px solid var(--box-border)',borderRadius:8,padding:16,marginTop:8,marginBottom:24}}>
+        {redemptionsLoading && <p style={{color:'var(--muted-color,#666)'}}>{t('moderate.recentRedemptionsLoading')}</p>}
+        {redemptionsError && <p style={{color:'var(--error-color,#c00)'}}>{t('moderate.recentRedemptionsError')}</p>}
+        {!redemptionsLoading && !redemptionsError && recentRedemptions.length === 0 && (
+          <p style={{color:'var(--muted-color,#666)'}}>{t('moderate.recentRedemptionsNone')}</p>
+        )}
+        {!redemptionsLoading && !redemptionsError && recentRedemptions.length > 0 && (
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9em'}}>
+            <thead>
+              <tr style={{textAlign:'left',borderBottom:'1px solid var(--box-border)'}}>
+                <th style={{padding:'4px 8px'}}>{t('moderate.recentRedemptionsTime')}</th>
+                <th style={{padding:'4px 8px'}}>{t('moderate.recentRedemptionsUser')}</th>
+                <th style={{padding:'4px 8px'}}>{t('moderate.recentRedemptionsReward')}</th>
+                <th style={{padding:'4px 8px'}}>{t('moderate.recentRedemptionsCost')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentRedemptions.map(r => {
+                const reward = rewards.find(rw => rw.id === r.reward_id)
+                return (
+                  <tr key={r.id} style={{borderBottom:'1px solid var(--box-border,#eee)'}}>
+                    <td style={{padding:'4px 8px',whiteSpace:'nowrap'}}>
+                      {new Date(r.timestamp).toLocaleString()}
+                    </td>
+                    <td style={{padding:'4px 8px',wordBreak:'break-word'}}>
+                      {r.twitch_user_id}
+                    </td>
+                    <td style={{padding:'4px 8px',wordBreak:'break-word'}}>
+                      {reward?.name || r.reward_id || '–'}
+                      {r.description ? <span style={{color:'var(--muted-color,#666)',fontSize:'0.85em',marginLeft:6}}>{r.description}</span> : null}
+                    </td>
+                    <td style={{padding:'4px 8px',whiteSpace:'nowrap'}}>
+                      {r.cost ?? '–'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
       </SubPage>
   )
 }
