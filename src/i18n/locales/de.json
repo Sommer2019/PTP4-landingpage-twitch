@@ -409,6 +409,12 @@
     "noRewards": "Keine Belohnungen vorhanden",
     "editRewardBtn": "Bearbeiten",
     "deleteRewardBtn": "Löschen",
+    "enableRewardBtn": "Aktivieren",
+    "disableRewardBtn": "Deaktivieren",
+    "rewardEnabled": "Belohnung aktiviert!",
+    "rewardDisabled": "Belohnung deaktiviert!",
+    "rewardInactive": "inaktiv",
+    "errorTogglingReward": "Fehler beim Umschalten: {{msg}}",
     "editRewardTitle": "Belohnung bearbeiten",
     "newRewardTitle": "Neue Belohnung",
     "rewardNameKeyPlaceholder": "Name-Key eingeben",
@@ -741,7 +747,8 @@
     "redeemButton": "Belohnung einlösen: {{name}}",
     "backToRewards": "Zurück zur Belohnungsliste",
     "ttsInputLabel": "TTS-Nachricht eingeben",
-    "pointsDisplay": "{{points}} Punkte verfügbar"
+    "pointsDisplay": "{{points}} Punkte verfügbar",
+    "rewardDeaktiviert": "Diese Belohnung ist derzeit deaktiviert."
   },
   "notFound": {
     "confusedMessages": [

@@ -27,6 +27,7 @@ interface Reward {
     onceperstream?: boolean;
     cooldown?: number;
     istts?: boolean;
+    is_enabled?: boolean;
 }
 
 
@@ -58,7 +59,8 @@ export default function ModerateAccountPage() {
     duration: 0,
     onceperstream: false,
     cooldown: 0,
-    istts: false
+    istts: false,
+    is_enabled: true
   }
 
   const [rewardForm, setRewardForm] = useState<Reward>(defaultReward)
@@ -423,6 +425,27 @@ export default function ModerateAccountPage() {
     }
   }
 
+  // Reward aktivieren / deaktivieren
+  async function toggleRewardEnabled(reward: Reward) {
+    if (!reward.id) return
+    setRewardBusy(true)
+    const { error } = await supabase
+      .from('rewards')
+      .update({ is_enabled: !reward.is_enabled })
+      .eq('id', reward.id)
+    if (error) {
+      showToast((t('moderate.errorTogglingReward') || 'Fehler: ') + getErrorMessage(error))
+    } else {
+      showToast(
+        !reward.is_enabled
+          ? `✅ ${t('moderate.rewardEnabled') || 'Belohnung aktiviert!'}`
+          : `✅ ${t('moderate.rewardDisabled') || 'Belohnung deaktiviert!'}`,
+      )
+      fetchRewards()
+    }
+    setRewardBusy(false)
+  }
+
   return (
     <SubPage>
       <h1>👤 {t('moderate.accountManagement')}</h1>
@@ -539,13 +562,28 @@ export default function ModerateAccountPage() {
         <ul style={{margin:'8px 0',padding:0,listStyle:'none'}}>
           {rewards.length === 0 && <li style={{color:'#888'}}>{t('moderate.noRewards')}</li>}
           {rewards.map(r => (
-            <li key={r.id} style={{display:'flex',flexDirection: isWide ? 'row' : 'column',justifyContent: 'space-between',alignItems: isWide ? 'center' : 'stretch',padding:'6px 0'}}>
+            <li key={r.id} style={{display:'flex',flexDirection: isWide ? 'row' : 'column',justifyContent: 'space-between',alignItems: isWide ? 'center' : 'stretch',padding:'6px 0', opacity: r.is_enabled === false ? 0.45 : 1}}>
               <div style={{minWidth:0, flex: 1}}>
                 <b style={{display:'block', wordBreak: 'break-word', overflowWrap: 'anywhere'}}>{r.name || ''}</b>
-                <div style={{fontSize:12, color:'var(--muted-color, #666)', wordBreak: 'break-word', overflowWrap: 'anywhere'}}>{r.description || ''}</div>
+                <div style={{fontSize:12, color:'var(--muted-color, #666)', wordBreak: 'break-word', overflowWrap: 'anywhere'}}>
+                  {r.description || ''}
+                  {r.is_enabled === false && (
+                    <span style={{ marginLeft: 8, fontSize: '0.75rem', color: 'var(--muted)' }}>
+                      ({t('moderate.rewardInactive')})
+                    </span>
+                  )}
+                </div>
               </div>
               <div style={{display:'flex',gap:8, marginLeft: isWide ? 12 : 0, marginTop: isWide ? 0 : 8}}>
                 <button className="btn btn-sm btn-secondary" onClick={() => { setRewardEdit(r); setRewardForm(mergeRewardWithDefaults(r)); setRewardModalOpen(true); }}>{t('moderate.editRewardBtn')}</button>
+                <button
+                  className="btn btn-sm btn-secondary"
+                  onClick={() => toggleRewardEnabled(r)}
+                  disabled={rewardBusy}
+                  title={r.is_enabled === false ? t('moderate.enableRewardBtn') : t('moderate.disableRewardBtn')}
+                >
+                  {r.is_enabled === false ? '▶️' : '⏸️'}
+                </button>
                 <button className="btn btn-sm btn-danger" onClick={() => r.id && deleteReward(r.id)} disabled={rewardBusy}>{t('moderate.deleteRewardBtn')}</button>
               </div>
             </li>

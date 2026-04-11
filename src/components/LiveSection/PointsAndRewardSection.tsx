@@ -17,6 +17,7 @@ interface Reward {
   onceperstream?: boolean;
   cooldown?: number; // Cooldown in Sekunden
   istts?: boolean;
+  is_enabled?: boolean;
 }
 
 interface RedeemRewardParams {
@@ -164,6 +165,7 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
     supabase
         .from('rewards')
         .select('*')
+        .eq('is_enabled', true)
         .order('cost', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
@@ -244,6 +246,8 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
             setStatus({ type: 'error', msg: t('pointsAndRewardSection.cooldownAktiv', { sec: rem }) });
           } else if (data.error === 'once_per_stream_active') {
             setStatus({ type: 'error', msg: t('pointsAndRewardSection.einmalProStream') });
+          } else if (data.error === 'reward_disabled') {
+            setStatus({ type: 'error', msg: t('pointsAndRewardSection.rewardDeaktiviert') });
           } else {
             setStatus({ type: 'error', msg: t('pointsAndRewardSection.unbekannterFehler', { err: data.error }) });
           }
