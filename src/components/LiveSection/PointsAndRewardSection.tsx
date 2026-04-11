@@ -290,7 +290,6 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
                   <button
                       key={r.id}
                       className="reward-card"
-                      role="listitem"
                       onClick={() => setSelectedRewardId(r.id)}
                       aria-label={t('pointsAndRewardSection.redeemButton', { name: r.name })}
                   >
