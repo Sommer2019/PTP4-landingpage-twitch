@@ -178,6 +178,7 @@ public class SupabaseClient {
      */
     public JSONArray getRedeemedRewardsWithUsernames() {
         JSONArray rewards = getRedeemedRewards();
+        logger.info("getRedeemedRewardsWithUsernames: Verarbeite {} Rewards", rewards.length());
         for (int i = 0; i < rewards.length(); i++) {
             JSONObject reward = rewards.optJSONObject(i);
             if (reward == null) {
@@ -191,14 +192,19 @@ public class SupabaseClient {
                     reward.optString("twitch_user_name", null)
             );
 
+            logger.info("Reward {}: twitchUserId={}, existingUsername={}", i, twitchUserId, username);
+
             if (isBlank(username) && !isBlank(twitchUserId)) {
+                logger.info("Versuche Username über Twitch API zu laden für ID: {}", twitchUserId);
                 username = resolveTwitchUsernameById(twitchUserId);
+                logger.info("Twitch API Ergebnis für {}: {}", twitchUserId, username);
             }
 
             String displayUser = !isBlank(username)
                     ? username
                     : (!isBlank(twitchUserId) ? "User " + twitchUserId : "Unbekannt");
 
+            logger.info("Setze display_user für Reward {}: {}", i, displayUser);
             reward.put("display_user", displayUser);
             if (!isBlank(username)) {
                 reward.put("username", username);
@@ -211,21 +217,25 @@ public class SupabaseClient {
 
     private String resolveTwitchUsernameById(String twitchUserId) {
         if (isBlank(twitchUserId)) {
+            logger.debug("resolveTwitchUsernameById: twitchUserId ist leer");
             return null;
         }
 
         long now = System.currentTimeMillis();
         CachedUsername cached = usernameCache.get(twitchUserId);
         if (cached != null && cached.expiresAt > now) {
+            logger.debug("resolveTwitchUsernameById: {} aus Cache ({} Sekunden alt)", twitchUserId, (now - (cached.expiresAt - USERNAME_CACHE_TTL_MS)) / 1000);
             return emptyToNull(cached.username);
         }
 
         String token = normalizeOAuthToken(twitchOauthToken);
         if (isBlank(twitchClientId) || isBlank(token)) {
+            logger.warn("resolveTwitchUsernameById: Twitch API-Credentials nicht gesetzt (clientId={}, token={})", twitchClientId, token == null ? "null" : "***");
             return null;
         }
 
         try {
+            logger.info("resolveTwitchUsernameById: Frage Twitch API auf für ID {}", twitchUserId);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.twitch.tv/helix/users?id=" + twitchUserId))
                     .header("Client-Id", twitchClientId)
@@ -235,6 +245,7 @@ public class SupabaseClient {
                     .GET()
                     .build();
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            logger.info("resolveTwitchUsernameById: Twitch API Status {} für ID {}", response.statusCode(), twitchUserId);
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
                 JSONObject json = new JSONObject(response.body());
                 JSONArray data = json.optJSONArray("data");
@@ -243,19 +254,22 @@ public class SupabaseClient {
                             data.getJSONObject(0).optString("display_name", null),
                             data.getJSONObject(0).optString("login", null)
                     );
+                    logger.info("resolveTwitchUsernameById: Gefunden {} für ID {}", username, twitchUserId);
                     usernameCache.put(twitchUserId, new CachedUsername(nullToEmpty(username), now + USERNAME_CACHE_TTL_MS));
                     return username;
                 }
             }
         } catch (Exception e) {
-            logger.warn("Konnte Twitch-Username für ID {} nicht auflösen: {}", twitchUserId, e.getMessage());
+            logger.warn("Konnte Twitch-Username für ID {} nicht auflösen: {}", twitchUserId, e.getMessage(), e);
         }
 
         usernameCache.put(twitchUserId, new CachedUsername("", now + USERNAME_NEGATIVE_CACHE_TTL_MS));
+        logger.warn("resolveTwitchUsernameById: Kein Username gefunden für ID {}", twitchUserId);
         return null;
     }
 
     private String normalizeOAuthToken(String token) {
+
         if (isBlank(token)) {
             return null;
         }

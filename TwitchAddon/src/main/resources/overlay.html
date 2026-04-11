@@ -156,6 +156,7 @@
         pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
       }
     }
+
     async function playAndDeleteReward(redeemed) {
       console.log('[Overlay] Starte playAndDeleteReward für:', redeemed);
       const rewards = await fetchRewards();
@@ -174,7 +175,13 @@
       const mediaUrl = reward.mediaurl || '';
       const imageUrl = reward.imageurl || '';
       const textContent = reward.text || reward.description || '';
-      const username = redeemed.display_user || redeemed.username || redeemed.user || redeemed.twitch_user_name || (redeemed.twitch_user_id ? `User ${redeemed.twitch_user_id}` : 'Unbekannt');
+
+      // Hole Display-User vom Backend
+      let username = redeemed.display_user || redeemed.username || redeemed.user || redeemed.twitch_user_name;
+      if (!username) {
+        username = 'Unbekannt';
+      }
+      console.log('[Overlay] Verwendeter Username:', username, 'von redeemed:', redeemed.display_user || redeemed.username || redeemed.user || redeemed.twitch_user_name || redeemed.twitch_user_id);
       const lower = (mediaUrl || '').toLowerCase();
       const isYouTube = /youtube\.com|youtu\.be/.test(lower);
       const isAudio = /\.(mp3|wav|ogg|m4a)(\?|$)/.test(lower);
@@ -312,7 +319,7 @@
             }
           }
         } else if (isAudio) {
-          mediaDiv.innerHTML = `<audio id=\"rewardAudio\" src=\"${mediaUrl}\" controls autoplay></audio>`;
+          mediaDiv.innerHTML = `${getRewardTextHtml(withUsernamePrefix(textContent))}<audio id=\"rewardAudio\" src=\"${mediaUrl}\" controls autoplay></audio>`;
           console.log('[Overlay] Audio-Element erzeugt:', mediaUrl);
           const audio = document.getElementById('rewardAudio');
           if (audio) {
