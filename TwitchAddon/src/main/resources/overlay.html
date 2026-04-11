@@ -281,7 +281,7 @@
               document.body.appendChild(tag);
             }
             function onYouTubeIframeAPIReadyWrapper() {
-              mediaDiv.innerHTML = `<div id=\"ytplayer\"></div>`;
+              mediaDiv.innerHTML = `${getRewardTextHtml(withUsernamePrefix(textContent))}<div id=\"ytplayer\"></div>`;
               let player = new window.YT.Player('ytplayer', {
                 height: '315',
                 width: '560',
