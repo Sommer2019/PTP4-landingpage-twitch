@@ -50,13 +50,13 @@ export default function SettingsBar() {
       <div className="settings-left">
         <ProfileButton />
         {location.pathname !== '/' && (
-          <Link to="/" className="settings-home-link" title={t('home')}>
+          <Link to="/" className="settings-home-link" title={t('home')} aria-label={t('home')}>
             <FaHome size={24} />
           </Link>
         )}
       </div>
       <div className="settings-right">
-        <button className="settings-btn" onClick={cycleTheme} title={t('settings.theme')}>
+        <button className="settings-btn" onClick={cycleTheme} title={t('settings.theme')} aria-label={t('settings.theme')}>
           {themeIcons[mode]} <span className="settings-btn-text">{t(`settings.${mode}`)}</span>
         </button>
 
@@ -65,6 +65,7 @@ export default function SettingsBar() {
           value={currentLang}
           onChange={(e) => changeLanguage(e.target.value)}
           title={t('settings.language')}
+          aria-label={t('settings.language')}
         >
           <option value="de">🇩🇪 Deutsch</option>
           <option value="en">🇬🇧 English</option>
@@ -75,6 +76,7 @@ export default function SettingsBar() {
           className="settings-btn settings-lang-btn--mobile"
           onClick={() => changeLanguage(nextLang)}
           title={t('settings.language')}
+          aria-label={t('settings.language')}
         >
           {languageFlags[currentLang]}
         </button>

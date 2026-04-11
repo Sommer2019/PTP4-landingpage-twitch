@@ -9,7 +9,7 @@ interface SectionBoxProps {
 
 export default function SectionBox({ title, children, className = '' }: SectionBoxProps) {
   return (
-    <section className={`section-box ${className}`}>
+    <section className={`section-box ${className}`} aria-label={title}>
       {title && <h2 className="section-box-title">{title}</h2>}
       <div className="section-box-grid">{children}</div>
     </section>

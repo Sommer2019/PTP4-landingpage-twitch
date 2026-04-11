@@ -14,7 +14,7 @@ export default function MobileToggle({ activeTab, onTabChange }: MobileTogglePro
   const { t } = useTranslation()
 
   return (
-    <div className="mobile-toggle" role="tablist" aria-label="Ansicht wechseln">
+    <div className="mobile-toggle" role="tablist" aria-label={t('mobileToggle.ariaLabel')}>
       {tabs.map((tab) => (
         <button
           key={tab}

@@ -12,7 +12,8 @@
   "mobileToggle": {
     "live": "Live",
     "links": "Links",
-    "games": "Games"
+    "games": "Games",
+    "ariaLabel": "Asicht wechsle"
   },
   "sections": {
     "games": "Game-Related Links",
@@ -25,7 +26,8 @@
     "nextStream": "Nächschti Stream",
     "scheduleLoading": "Lade Streamplan…",
     "seeSchedule": "Zum Streamplan →",
-    "chatFallback": "Chat im neue Tab öffne"
+    "chatFallback": "Chat im neue Tab öffne",
+    "sectionLabel": "Live Stream Bereich"
   },
   "currentGame": {
     "label": "Aktuells Spill",
@@ -694,7 +696,8 @@
     }
   },
   "common": {
-    "loading": "Ladä …"
+    "loading": "Ladä …",
+    "close": "Schliesse"
   },
   "sync": {
     "exclusionName": "Name",
@@ -711,7 +714,21 @@
     "fehlerBeimLadenDerRewards": "Fehler bim Lade vo de Rewards",
     "fehlerBeimEinloesen": "Fehler bim Iilöse: {{msg}}",
     "erfolgreichEingeloest": "Erfolgrich iiglöst!",
-    "deineNachricht": "Dini Nachricht..."
+    "deineNachricht": "Dini Nachricht...",
+    "costPoints": "{{cost}} Punkt",
+    "globalGesperrt": "Global gsperrt",
+    "cooldown": "Cooldown: {{sec}}s",
+    "cooldownAktiv": "Cooldown aktiv. No {{sec}}s",
+    "einmalProStream": "Die Belohnig cha nur einisch pro Stream iiglöst wärde.",
+    "unbekannterFehler": "En unbekannte Fehler isch passiert: {{err}}",
+    "unbekannteResponse": "Unbekannti Response vom Server",
+    "ungueltigeResponse": "Ungültigii Response vom Server",
+    "pointsRegionLabel": "Kanalpunkt und Belohnige",
+    "rewardGridLabel": "Verfüegbari Belohnige",
+    "redeemButton": "Belohnig iiglöse: {{name}}",
+    "backToRewards": "Zrugg zur Belohnigslischt",
+    "ttsInputLabel": "TTS-Nachricht iigäh",
+    "pointsDisplay": "{{points}} Punkt verfüegbar"
   },
   "notFound": {
     "confusedMessages": [
@@ -744,5 +761,6 @@
   "banned": {
     "title": "Account gsperrt",
     "message": "Dinge Account isch gsperrt worde. Wenn du Froge hesch, meld di bim Support."
-  }
+  },
+  "home": "Startsiite"
 }

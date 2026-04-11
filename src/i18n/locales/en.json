@@ -12,7 +12,8 @@
   "mobileToggle": {
     "live": "Live",
     "links": "Links",
-    "games": "Games"
+    "games": "Games",
+    "ariaLabel": "Switch view"
   },
   "sections": {
     "games": "Game-Related Links",
@@ -25,7 +26,8 @@
     "nextStream": "Next Stream",
     "scheduleLoading": "Loading schedule…",
     "seeSchedule": "View full schedule →",
-    "chatFallback": "Open chat in new tab"
+    "chatFallback": "Open chat in new tab",
+    "sectionLabel": "Live stream section"
   },
   "currentGame": {
     "label": "Currently playing game",
@@ -705,7 +707,8 @@
     }
   },
   "common": {
-    "loading": "Loading …"
+    "loading": "Loading …",
+    "close": "Close"
   },
   "sync": {
     "exclusionName": "Name",
@@ -722,7 +725,21 @@
     "fehlerBeimLadenDerRewards": "Error loading rewards",
     "fehlerBeimEinloesen": "Error redeeming: {{msg}}",
     "erfolgreichEingeloest": "Successfully redeemed!",
-    "deineNachricht": "Your message..."
+    "deineNachricht": "Your message...",
+    "costPoints": "{{cost}} points",
+    "globalGesperrt": "Globally locked",
+    "cooldown": "Cooldown: {{sec}}s",
+    "cooldownAktiv": "Cooldown active. {{sec}}s left",
+    "einmalProStream": "This reward can only be redeemed once per stream.",
+    "unbekannterFehler": "An unknown error occurred: {{err}}",
+    "unbekannteResponse": "Unknown response from server",
+    "ungueltigeResponse": "Invalid response from server",
+    "pointsRegionLabel": "Channel points and rewards",
+    "rewardGridLabel": "Available rewards",
+    "redeemButton": "Redeem reward: {{name}}",
+    "backToRewards": "Back to rewards list",
+    "ttsInputLabel": "Enter TTS message",
+    "pointsDisplay": "{{points}} points available"
   },
   "notFound": {
     "confusedMessages": [
@@ -755,5 +772,6 @@
   "banned": {
     "title": "Account banned",
     "message": "Your account has been banned. If you have questions, please contact support."
-  }
+  },
+  "home": "Home"
 }

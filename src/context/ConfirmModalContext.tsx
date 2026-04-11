@@ -83,11 +83,12 @@ export function ConfirmModalProvider({ children }: { children: ReactNode }) {
           className={`confirm-modal is-open ${closing ? 'is-closing' : ''}`}
           role="dialog"
           aria-modal="true"
+          aria-labelledby="confirm-modal-title"
           onKeyDown={handleKeyDown}
         >
           <div className="modal-backdrop" onClick={handleCancel} />
           <div className="modal-card">
-            <h3 className="modal-title">{modal.title}</h3>
+            <h3 className="modal-title" id="confirm-modal-title">{modal.title}</h3>
             <p className="modal-message">{modal.message}</p>
             {modal.mode === 'prompt' && (
               <input
