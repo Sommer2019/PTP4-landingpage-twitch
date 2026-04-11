@@ -122,16 +122,6 @@ export default function NotFoundPage() {
           {t('back')}
         </Link>
       </div>
-      {/* Unsichtbares YouTube-iframe für Hintergrundsound */}
-      <iframe
-        id="yt-audio-bg"
-        width="1"
-        height="1"
-        style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
-        src="https://www.youtube.com/embed/eenDsLthMqU?autoplay=1&mute=1&controls=0&loop=1&playlist=eenDsLthMqU&enablejsapi=1"
-        title="YouTube audio background"
-        allow="autoplay"
-      />
     </main>
   )
 }
