@@ -33,6 +33,8 @@ public class Main {
         }
 
         SupabaseClient supabaseClient = new SupabaseClient(supabaseUrl, supabaseApiKey);
+        // Setze die Twitch-Credentials im SupabaseClient (für Username-Auflösung via Helix API)
+        supabaseClient.setTwitchCredentials(twitchClientId, twitchOauthToken);
         // OverlayApiServer.syncRewardsFromJson entfernt, da rewards.json nicht mehr verwendet wird
         System.out.println("[Main] Starte Overlay-API-Server...");
 

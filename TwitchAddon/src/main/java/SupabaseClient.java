@@ -21,8 +21,9 @@ public class SupabaseClient {
     private final String apiKey;
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final String tableName = "points";
-    private final String twitchClientId = System.getenv("TWITCH_CLIENT_ID");
-    private final String twitchOauthToken = System.getenv("TWITCH_OAUTH_TOKEN");
+    private String twitchClientId = System.getenv("TWITCH_CLIENT_ID");
+    private String twitchOauthToken = System.getenv("TWITCH_OAUTH_TOKEN");
+    private final String twitchClientSecret = System.getenv("TWITCH_CLIENT_SECRET");
     private final Map<String, CachedUsername> usernameCache = new ConcurrentHashMap<>();
     private static final long USERNAME_CACHE_TTL_MS = 6L * 60L * 60L * 1000L;
     private static final long USERNAME_NEGATIVE_CACHE_TTL_MS = 10L * 60L * 1000L;
@@ -40,6 +41,16 @@ public class SupabaseClient {
     public SupabaseClient(String supabaseUrl, String apiKey) {
         this.supabaseUrl = supabaseUrl;
         this.apiKey = apiKey;
+    }
+
+    /**
+     * Setzt die Twitch OAuth-Credentials (z.B. nach einem Token-Refresh).
+     */
+    public void setTwitchCredentials(String clientId, String oauthToken) {
+        this.twitchClientId = clientId;
+        this.twitchOauthToken = oauthToken;
+        logger.info("setTwitchCredentials: Credentials aktualisiert (clientId={}, token={})",
+            clientId == null ? "null" : "***", oauthToken == null ? "null" : "***");
     }
 
     public void addOrUpdatePoints(String username, String userid, int points, String reason) {
@@ -228,29 +239,44 @@ public class SupabaseClient {
             return emptyToNull(cached.username);
         }
 
+        String token = normalizeOAuthToken(twitchOauthToken);
+        if (isBlank(twitchClientId) || isBlank(token)) {
+            logger.error("resolveTwitchUsernameById: Twitch API-Credentials nicht gesetzt (clientId={}, token={})",
+                twitchClientId == null ? "null" : "***", token == null ? "null" : "***");
+            return null;
+        }
+
         try {
-            logger.info("resolveTwitchUsernameById: Frage DecAPI für ID {} ab", twitchUserId);
-            // Verwende DecAPI statt Helix - braucht keine Authentifizierung
+            logger.info("resolveTwitchUsernameById: Frage Twitch Helix API für ID {} auf", twitchUserId);
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://decapi.me/twitch/id/" + twitchUserId))
-                    .header("Accept", "text/plain")
+                    .uri(URI.create("https://api.twitch.tv/helix/channels?broadcaster_id=" + twitchUserId))
+                    .header("Client-ID", twitchClientId)
+                    .header("Authorization", "Bearer " + token)
+                    .header("Accept", "application/json")
                     .timeout(Duration.ofSeconds(10))
                     .GET()
                     .build();
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-            logger.info("resolveTwitchUsernameById: DecAPI Status {} für ID {} | Response: {}", response.statusCode(), twitchUserId, response.body());
+            logger.info("resolveTwitchUsernameById: Helix API Status {} für ID {} | Response: {}", response.statusCode(), twitchUserId, response.body());
 
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
-                String username = response.body().trim();
-                if (!isBlank(username) && !username.contains("error") && !username.contains("not found")) {
+                JSONObject json = new JSONObject(response.body());
+                JSONArray data = json.optJSONArray("data");
+                if (data != null && !data.isEmpty()) {
+                    String username = firstNonBlank(
+                            data.getJSONObject(0).optString("display_name", null),
+                            data.getJSONObject(0).optString("login", null)
+                    );
                     logger.info("resolveTwitchUsernameById: Gefunden '{}' für ID {}", username, twitchUserId);
                     usernameCache.put(twitchUserId, new CachedUsername(nullToEmpty(username), now + USERNAME_CACHE_TTL_MS));
                     return username;
                 } else {
-                    logger.warn("resolveTwitchUsernameById: DecAPI gab ungültiges Ergebnis für ID {}: {}", twitchUserId, username);
+                    logger.warn("resolveTwitchUsernameById: Leeres data-Array von Helix API für ID {}", twitchUserId);
                 }
+            } else if (response.statusCode() == 401) {
+                logger.error("resolveTwitchUsernameById: Helix API 401 Unauthorized - Token möglicherweise abgelaufen");
             } else {
-                logger.error("resolveTwitchUsernameById: DecAPI Fehler Status {} für ID {}: {}", response.statusCode(), twitchUserId, response.body());
+                logger.error("resolveTwitchUsernameById: Helix API Fehler Status {} für ID {}: {}", response.statusCode(), twitchUserId, response.body());
             }
         } catch (Exception e) {
             logger.error("Konnte Twitch-Username für ID {} nicht auflösen: {}", twitchUserId, e.getMessage(), e);
