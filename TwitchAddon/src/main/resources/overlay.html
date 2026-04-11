@@ -311,7 +311,7 @@
           const ytId = ytIdMatch ? ytIdMatch[1] : '';
           if (reward.showmedia === false) {
             let imgHtml = '';
-            if (imageUrl) imgHtml = `<img src=\"${imageUrl}\" alt=\"Reward-Bild\" style=\"max-width:60vw;max-height:60vh;\" />`;
+            if (imageUrl) imgHtml = `<img src=\"${imageUrl}\" alt=\"Reward-Bild\" style=\"max-width:50vw;max-height:50vh;\" />`;
             const contentHtml = imgHtml + getRewardTextHtml(textContent);
             mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
             // Stille YouTube im Hintergrund
@@ -374,7 +374,7 @@
            }
          } else if (isImage) {
            const imgSrc = imageUrl || mediaUrl;
-           const contentHtml = `<img src=\"${imgSrc}\" alt=\"Reward-Bild\" style=\"max-width:60vw;max-height:60vh;\" />` + getRewardTextHtml(textContent);
+           const contentHtml = `<img src=\"${imgSrc}\" alt=\"Reward-Bild\" style=\"max-width:50vw;max-height:50vh;\" />` + getRewardTextHtml(textContent);
            mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
            console.log('[Overlay] Image+Text Reward:', imgSrc, textContent);
            setTimeout(afterPlayback, duration * 1000);

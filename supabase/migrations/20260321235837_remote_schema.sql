@@ -1031,9 +1031,9 @@ END IF;
   IF
 (v_reward ? 'onceperstream') THEN
     v_once := (v_reward->>'onceperstream')::boolean;
-  ELSIF
+ELSIF
 (v_reward ? 'oncePerStream') THEN
-    v_once := (v_reward->>'oncePerStream')::boolean;
+    v_once := (v_reward->>'onceperstream')::boolean;
 ELSE
     v_once := false;
 END IF;
@@ -1443,25 +1443,7 @@ OR REPLACE FUNCTION "public"."sync_reward_columns"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
 BEGIN
-  -- Sync oncePerStream -> onceperstream
-  IF
-NEW."oncePerStream" IS DISTINCT FROM OLD."oncePerStream" THEN
-    NEW.onceperstream := NEW."oncePerStream";
-END IF;
-
-  -- Sync onceperstream -> oncePerStream
-  IF
-NEW.onceperstream IS DISTINCT FROM OLD.onceperstream THEN
-    NEW."oncePerStream" := NEW.onceperstream;
-END IF;
-
-  -- Sync mediaUrl -> imageurl (for TTS/display purposes)
-  IF
-NEW."mediaUrl" IS DISTINCT FROM OLD."mediaUrl" THEN
-    NEW.imageurl := COALESCE(NEW."customImageUrl", NEW."mediaUrl");
-END IF;
-
-RETURN NEW;
+  RETURN NEW;
 END;
 $$;
 
@@ -2041,12 +2023,8 @@ CREATE TABLE IF NOT EXISTS "public"."rewards"
     "istts" boolean DEFAULT false,
     "namekey" "text",
     "desckey" "text",
-    "nameKey" "text",
-    "descKey" "text",
-    "oncePerStream" boolean,
-    "mediaUrl" "text",
-    "customImageUrl" "text",
-    "showYoutubeVideo" boolean
+    "customimageurl" "text",
+    "showyoutubevideo" boolean
     );
 
 
@@ -2605,17 +2583,25 @@ POLICY "Broadcaster can update twitch_permissions" ON "public"."twitch_permissio
 
 
 CREATE
-POLICY "Broadcaster kann Rewards einfügen" ON "public"."rewards" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+POLICY "Broadcaster kann Rewards einfügen" ON "public"."rewards" FOR INSERT WITH CHECK ((("current_setting"('request.jwt.claim.role'::"text", true) = 'service_role'::"text") OR (EXISTS ( SELECT 1
    FROM "public"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_broadcaster" = true)))));
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_broadcaster" = true)))) OR (EXISTS ( SELECT 1
+   FROM "public"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_moderator" = true))))));
 
 
 
 CREATE
 POLICY "Broadcaster kann Rewards ändern" ON "public"."rewards" FOR
-UPDATE USING ((EXISTS ( SELECT 1
+UPDATE USING ((("current_setting"('request.jwt.claim.role'::"text", true) = 'service_role'::"text") OR (EXISTS ( SELECT 1
     FROM "public"."user_roles"
-    WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_broadcaster" = true)))));
+    WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_broadcaster" = true)))) OR (EXISTS ( SELECT 1
+    FROM "public"."user_roles"
+    WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_moderator" = true)))))) WITH CHECK ((("current_setting"('request.jwt.claim.role'::"text", true) = 'service_role'::"text") OR (EXISTS ( SELECT 1
+    FROM "public"."user_roles"
+    WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_broadcaster" = true)))) OR (EXISTS ( SELECT 1
+    FROM "public"."user_roles"
+    WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."is_moderator" = true))))));
 
 
 
