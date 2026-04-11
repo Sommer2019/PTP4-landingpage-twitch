@@ -1,19 +1,63 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class UserPointsManagerTest {
 
-    private SupabaseClient mockSupabase;
+    private FakeSupabaseClient mockSupabase;
     private UserPointsManager manager;
 
     @BeforeEach
     void setUp() {
-        mockSupabase = Mockito.mock(SupabaseClient.class);
+        mockSupabase = new FakeSupabaseClient();
         manager = new UserPointsManager(mockSupabase, "broadcaster123");
+    }
+
+    private static class FakeSupabaseClient extends SupabaseClient {
+        private boolean existsUserResult = false;
+        private String lastCreatedUsername;
+        private String lastCreatedUserId;
+        private String lastPointsUsername;
+        private String lastPointsUserId;
+        private int lastPoints;
+        private String lastPointsReason;
+
+        private FakeSupabaseClient() {
+            super(null, null);
+        }
+
+        void setExistsUserResult(boolean existsUserResult) {
+            this.existsUserResult = existsUserResult;
+        }
+
+        @Override
+        public boolean existsUser(String username, String userid) {
+            return existsUserResult;
+        }
+
+        @Override
+        public void createUser(String username, String userid) {
+            this.lastCreatedUsername = username;
+            this.lastCreatedUserId = userid;
+        }
+
+        @Override
+        public void addOrUpdatePoints(String username, String userid, int points, String reason) {
+            this.lastPointsUsername = username;
+            this.lastPointsUserId = userid;
+            this.lastPoints = points;
+            this.lastPointsReason = reason;
+        }
+
+        void resetCalls() {
+            lastCreatedUsername = null;
+            lastCreatedUserId = null;
+            lastPointsUsername = null;
+            lastPointsUserId = null;
+            lastPoints = 0;
+            lastPointsReason = null;
+        }
     }
 
     // ── isBroadcaster ──────────────────────────────────────────────────────
@@ -37,7 +81,7 @@ class UserPointsManagerTest {
 
     @Test
     void userJoined_createsSessionForRegularUser() {
-        when(mockSupabase.existsUser("alice", "uid1")).thenReturn(true);
+        mockSupabase.setExistsUserResult(true);
 
         manager.userJoined("alice", "uid1");
 
@@ -47,20 +91,22 @@ class UserPointsManagerTest {
 
     @Test
     void userJoined_callsCreateUserWhenUserDoesNotExist() {
-        when(mockSupabase.existsUser("newbie", "uid2")).thenReturn(false);
+        mockSupabase.setExistsUserResult(false);
 
         manager.userJoined("newbie", "uid2");
 
-        verify(mockSupabase).createUser("newbie", "uid2");
+        assertEquals("newbie", mockSupabase.lastCreatedUsername);
+        assertEquals("uid2", mockSupabase.lastCreatedUserId);
     }
 
     @Test
     void userJoined_doesNotCreateUserWhenAlreadyExists() {
-        when(mockSupabase.existsUser("veteran", "uid3")).thenReturn(true);
+        mockSupabase.setExistsUserResult(true);
 
         manager.userJoined("veteran", "uid3");
 
-        verify(mockSupabase, never()).createUser(anyString(), anyString());
+        assertNull(mockSupabase.lastCreatedUsername);
+        assertNull(mockSupabase.lastCreatedUserId);
     }
 
     @Test
@@ -68,14 +114,15 @@ class UserPointsManagerTest {
         manager.userJoined("StreamerName", "broadcaster123");
 
         assertNull(manager.getSession("StreamerName"));
-        verify(mockSupabase, never()).existsUser(anyString(), anyString());
+        assertNull(mockSupabase.lastCreatedUsername);
+        assertNull(mockSupabase.lastCreatedUserId);
     }
 
     // ── userLeft ───────────────────────────────────────────────────────────
 
     @Test
     void userLeft_removesSession() {
-        when(mockSupabase.existsUser("alice", "uid1")).thenReturn(true);
+        mockSupabase.setExistsUserResult(true);
         manager.userJoined("alice", "uid1");
 
         manager.userLeft("alice");
@@ -93,23 +140,29 @@ class UserPointsManagerTest {
 
     @Test
     void addPoints_delegatesToSupabase() {
+        mockSupabase.resetCalls();
         manager.addPoints("alice", "uid1", 10, "follow");
 
-        verify(mockSupabase).addOrUpdatePoints("alice", "uid1", 10, "follow");
+        assertEquals("alice", mockSupabase.lastPointsUsername);
+        assertEquals("uid1", mockSupabase.lastPointsUserId);
+        assertEquals(10, mockSupabase.lastPoints);
+        assertEquals("follow", mockSupabase.lastPointsReason);
     }
 
     @Test
     void addPoints_skipsBroadcasterUnlessSpecialReason() {
+        mockSupabase.resetCalls();
         manager.addPoints("StreamerName", "broadcaster123", 50, "watch");
 
-        verify(mockSupabase, never()).addOrUpdatePoints(anyString(), anyString(), anyInt(), anyString());
+        assertNull(mockSupabase.lastPointsUsername);
+        assertNull(mockSupabase.lastPointsUserId);
     }
 
     // ── setFollower ────────────────────────────────────────────────────────
 
     @Test
     void setFollower_updatesSessionFlag() {
-        when(mockSupabase.existsUser("alice", "uid1")).thenReturn(true);
+        mockSupabase.setExistsUserResult(true);
         manager.userJoined("alice", "uid1");
 
         manager.setFollower("alice");
@@ -127,7 +180,7 @@ class UserPointsManagerTest {
 
     @Test
     void getAllSessions_returnsAllActiveSessions() {
-        when(mockSupabase.existsUser(anyString(), anyString())).thenReturn(true);
+        mockSupabase.setExistsUserResult(true);
         manager.userJoined("alice", "uid1");
         manager.userJoined("bob", "uid2");
 
