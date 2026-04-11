@@ -62,32 +62,23 @@ function buildStoreLinks(gameName: string): StoreLink[] {
   ]
 }
 
+const NO_RESULTS_RE = /Keine Ergebnisse gefunden|Leider war die Suche erfolglos\.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein\./i
+
 function checkStoreResult(store: StoreLink): Promise<boolean> {
   switch (store.id) {
     case 'steam':
-      return fetch(store.url)
-        .then(res => res.text())
-        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
     case 'epic':
-      return fetch(store.url)
-        .then(res => res.text())
-        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
     case 'nintendo':
-      return fetch(store.url)
-        .then(res => res.text())
-        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
     case 'psstore':
-      return fetch(store.url)
-        .then(res => res.text())
-        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
     case 'xbox':
-      return fetch(store.url)
-        .then(res => res.text())
-        .then(html => !/Keine Ergebnisse gefunden|Leider war die Suche erfolglos.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein./i.test(html));
+      return fetch(store.url).then(res => {
+        if (!res.ok) return false
+        return res.text().then(html => !NO_RESULTS_RE.test(html))
+      })
     case 'twitch':
-      return Promise.resolve(true);
+      return Promise.resolve(true)
     default:
-      return Promise.resolve(true);
+      return Promise.resolve(true)
   }
 }
 
@@ -174,7 +165,8 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
           const hasResult = await checkStoreResult(store)
           return hasResult ? store : null
         } catch {
-          return null
+          // On network/CORS errors we cannot determine availability – show by default
+          return store
         }
       })
     ).then(results => {
