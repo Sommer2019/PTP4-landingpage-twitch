@@ -434,7 +434,7 @@ export default function ModerateAccountPage() {
       .update({ is_enabled: !reward.is_enabled })
       .eq('id', reward.id)
     if (error) {
-      showToast((t('moderate.errorTogglingReward') || 'Fehler: ') + getErrorMessage(error))
+      showToast(t('moderate.errorTogglingReward', { msg: getErrorMessage(error) }))
     } else {
       showToast(
         !reward.is_enabled

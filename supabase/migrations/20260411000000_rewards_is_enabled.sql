@@ -55,7 +55,7 @@ END IF;
     v_once := (v_reward->>'onceperstream')::boolean;
 ELSIF
 (v_reward ? 'oncePerStream') THEN
-    v_once := (v_reward->>'onceperstream')::boolean;
+    v_once := (v_reward->>'oncePerStream')::boolean;
 ELSE
     v_once := false;
 END IF;
