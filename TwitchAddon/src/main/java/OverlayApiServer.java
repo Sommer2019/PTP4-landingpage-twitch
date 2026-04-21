@@ -36,7 +36,7 @@ public class OverlayApiServer {
             // Fallback for local testing / non-Twitch origins
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://supervisor.ext-twitch.tv");
         }
-        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, OPTIONS");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, DELETE, OPTIONS");
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, x-extension-jwt");
         exchange.getResponseHeaders().add("Vary", "Origin");
     }
@@ -125,6 +125,8 @@ public class OverlayApiServer {
     class RedeemedRewardsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreFlight(exchange)) return;
+            addCorsHeaders(exchange);
             String method = exchange.getRequestMethod();
             if (method.equalsIgnoreCase("GET")) {
                 JSONArray rewards = supabaseClient.getRedeemedRewardsWithUsernames();
@@ -205,6 +207,8 @@ public class OverlayApiServer {
     class RedeemCheckHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreFlight(exchange)) return;
+            addCorsHeaders(exchange);
             if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
                 exchange.sendResponseHeaders(405, 0);
                 exchange.getResponseBody().close();
@@ -291,6 +295,8 @@ public class OverlayApiServer {
     class RewardsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreFlight(exchange)) return;
+            addCorsHeaders(exchange);
             String method = exchange.getRequestMethod();
             if (method.equalsIgnoreCase("GET")) {
                 JSONArray rewards = supabaseClient.getRewards(); // Annahme: getRewards() liefert alle Rewards aus der DB
@@ -321,6 +327,8 @@ public class OverlayApiServer {
         }
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreFlight(exchange)) return;
+            addCorsHeaders(exchange);
             try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
                 if (is == null) {
                     exchange.sendResponseHeaders(404, 0);
@@ -347,6 +355,8 @@ public class OverlayApiServer {
         }
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreFlight(exchange)) return;
+            addCorsHeaders(exchange);
             String uri = exchange.getRequestURI().getPath();
             String fileName = uri.substring(uri.lastIndexOf("/") + 1);
             String resourcePath = resourceDir + "/" + fileName;
