@@ -49,7 +49,7 @@ function loadMyPoints(uid) {
     .then(function(data) {
       if (!data.registered) {
         userPoints = 0;
-        el.innerHTML = '<div class="not-registered">Du bist noch nicht in der Datenbank.<br>Schau beim nächsten Stream vorbei!</div>';
+        el.innerHTML = '<div class="not-registered">Du bist noch nicht in der Datenbank.<br>Schau beim naechsten Stream vorbei!</div>';
       } else {
         userPoints = data.points || 0;
         el.innerHTML = '<div class="points-card"><div class="points-label">Deine Punkte</div><div class="points-value" id="pointsDisplay">' + fmt(userPoints) + '</div><div class="points-sub">Kanalpunkte (PTP)</div></div>';
@@ -63,8 +63,8 @@ function loadLeaderboard() {
   fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
     .then(function(res) { return res.json(); })
     .then(function(data) {
-      if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Einträge.</div>'; return; }
-      var medals = ['🥇','🥈','🥉'];
+      if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Eintraege.</div>'; return; }
+      var medals = ['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49'];
       el.innerHTML = data.map(function(e, i) {
         return '<div class="leaderboard-row">' +
           '<span class="leaderboard-rank ' + (i < 3 ? 'top' + (i+1) : '') + '">' + (medals[i] || i+1) + '</span>' +
@@ -88,7 +88,7 @@ function loadRewards() {
 
 function renderGrid() {
   var el = document.getElementById('rewardsArea');
-  if (!allRewards.length) { el.innerHTML = '<div class="status-msg">Keine Rewards verfügbar.</div>'; return; }
+  if (!allRewards.length) { el.innerHTML = '<div class="status-msg">Keine Rewards verfuegbar.</div>'; return; }
   el.innerHTML = '<div class="reward-grid">' + allRewards.map(function(r) {
     return '<button class="reward-card" data-id="' + esc(String(r.id)) + '">' +
       '<div class="reward-card-title">' + esc(r.name || r.description || 'Reward') + '</div>' +
@@ -96,7 +96,6 @@ function renderGrid() {
       '</button>';
   }).join('') + '</div>';
 
-  // Event delegation statt onclick-Attributen (CSP-konform)
   el.querySelectorAll('.reward-card').forEach(function(btn) {
     btn.addEventListener('click', function() { openReward(btn.getAttribute('data-id')); });
   });
@@ -112,11 +111,11 @@ function openReward(id) {
   var el = document.getElementById('rewardsArea');
   el.innerHTML =
     '<div class="reward-detail">' +
-    '<button class="back-btn" id="backBtn">← Zurück</button>' +
+    '<button class="back-btn" id="backBtn">\u2190 Zurueck</button>' +
     '<div class="detail-name">' + esc(r.name || 'Reward') + '</div>' +
     '<div class="detail-cost">' + fmt(r.cost) + ' Punkte</div>' +
-    (r.istts && !r.text ? '<textarea class="tts-input" id="ttsInput" placeholder="Deine Nachricht…" rows="3" maxlength="200"></textarea>' : '') +
-    '<button class="redeem-btn" id="redeemBtn">Jetzt einlösen</button>' +
+    (r.istts && !r.text ? '<textarea class="tts-input" id="ttsInput" placeholder="Deine Nachricht..." rows="3" maxlength="200"></textarea>' : '') +
+    '<button class="redeem-btn" id="redeemBtn">Jetzt einloesen</button>' +
     '</div>';
 
   document.getElementById('backBtn').addEventListener('click', backToGrid);
@@ -151,10 +150,9 @@ function checkCooldown(reward) {
           var rem = new Date(g.expires_at).getTime() - Date.now();
           if (rem > 0) { btn.disabled = true; btn.textContent = 'Cooldown: ' + Math.ceil(rem/1000) + 's'; return; }
         } else {
-          btn.disabled = true; btn.textContent = 'Bereits eingelöst (Stream)'; return;
+          btn.disabled = true; btn.textContent = 'Bereits eingeloest (Stream)'; return;
         }
       }
-      // Persönlicher Cooldown
       if (!reward.cooldown) return;
       sbGet('redeemed_rewards',
         '?twitch_user_id=eq.' + encodeURIComponent(viewerUserId) + '&reward_id=eq.' + reward.id + '&order=timestamp.desc&limit=1')
@@ -170,7 +168,7 @@ function checkCooldown(reward) {
                 var b = document.getElementById('redeemBtn');
                 if (!b) { clearInterval(cooldownTimer); return; }
                 if (r2 > 0) { b.textContent = 'Cooldown: ' + Math.ceil(r2/1000) + 's'; }
-                else { clearInterval(cooldownTimer); b.disabled = false; b.textContent = 'Jetzt einlösen'; }
+                else { clearInterval(cooldownTimer); b.disabled = false; b.textContent = 'Jetzt einloesen'; }
               }, 1000);
             }
           }
@@ -188,15 +186,14 @@ function handleRedeem() {
   if (r.istts && !r.text && !ttsText) return;
 
   if (userPoints < r.cost) {
-    setRedeemStatus('❌ Nicht genug Punkte (' + fmt(userPoints) + ' / ' + fmt(r.cost) + ' P).', 'error');
+    setRedeemStatus('\u274C Nicht genug Punkte (' + fmt(userPoints) + ' / ' + fmt(r.cost) + ' P).', 'error');
     return;
   }
 
   redeemBusy = true;
   var btn = document.getElementById('redeemBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Lädt…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Laedt...'; }
 
-  // Stream-ID holen, dann einlösen
   sbGet('stream_sessions', '?is_active=eq.true&order=started_at.desc&limit=1&select=id')
     .catch(function() { return []; })
     .then(function(sessions) {
@@ -227,33 +224,33 @@ function handleRedeem() {
     })
     .then(function(data) {
       if (data && data.success) {
-        setRedeemStatus('✅ "' + esc(r.name) + '" eingelöst!', 'success');
+        setRedeemStatus('\u2705 "' + esc(r.name) + '" eingeloest!', 'success');
         userPoints -= r.cost;
         var pd = document.getElementById('pointsDisplay');
         if (pd) pd.textContent = fmt(userPoints);
         setTimeout(backToGrid, 2000);
       } else if (data && data.error) {
         var msgs = {
-          cooldown_active:        'Cooldown aktiv – noch ' + (data.remaining || '?') + 's.',
-          once_per_stream_active: 'Einmalig pro Stream – bereits eingelöst.',
+          cooldown_active:        'Cooldown aktiv - noch ' + (data.remaining || '?') + 's.',
+          once_per_stream_active: 'Einmalig pro Stream - bereits eingeloest.',
           reward_disabled:        'Reward gerade deaktiviert.',
           not_enough_points:      'Nicht genug Punkte.',
           user_not_found:         'Account nicht gefunden.',
         };
-        setRedeemStatus('❌ ' + (msgs[data.error] || data.error), 'error');
+        setRedeemStatus('\u274C ' + (msgs[data.error] || data.error), 'error');
         var b = document.getElementById('redeemBtn');
-        if (b) { b.disabled = false; b.textContent = 'Jetzt einlösen'; }
+        if (b) { b.disabled = false; b.textContent = 'Jetzt einloesen'; }
       } else {
-        setRedeemStatus('❌ Unbekannte Antwort.', 'error');
+        setRedeemStatus('\u274C Unbekannte Antwort.', 'error');
         var b2 = document.getElementById('redeemBtn');
-        if (b2) { b2.disabled = false; b2.textContent = 'Jetzt einlösen'; }
+        if (b2) { b2.disabled = false; b2.textContent = 'Jetzt einloesen'; }
       }
       redeemBusy = false;
     })
     .catch(function(e) {
-      setRedeemStatus('❌ Fehler: ' + esc(e.message), 'error');
+      setRedeemStatus('\u274C Fehler: ' + esc(e.message), 'error');
       var b = document.getElementById('redeemBtn');
-      if (b) { b.disabled = false; b.textContent = 'Jetzt einlösen'; }
+      if (b) { b.disabled = false; b.textContent = 'Jetzt einloesen'; }
       redeemBusy = false;
     });
 }
@@ -263,9 +260,10 @@ window.Twitch.ext.onAuthorized(function(auth) {
   viewerUserId = (auth.userId && auth.userId !== '0') ? auth.userId : null;
 
   if (!viewerUserId) {
-    // Identitätslink anfordern
+    // Identitaetslink anfordern damit wir die echte Twitch-User-ID bekommen
     window.Twitch.ext.actions.requestIdShare();
-    document.getElementById('myPoints').innerHTML = '';
+    document.getElementById('myPoints').innerHTML =
+      '<div class="not-registered">Bitte erteile der Extension Zugriff auf deine Twitch-ID um deine Punkte zu sehen.</div>';
   } else {
     loadMyPoints(viewerUserId);
   }
