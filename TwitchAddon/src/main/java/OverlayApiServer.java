@@ -27,11 +27,18 @@ public class OverlayApiServer {
         server.start();
     }
 
-    /** Adds CORS headers required for Twitch Extensions. */
+    /** Adds CORS headers required for Twitch Extensions. Only allows Twitch Extension origins. */
     private static void addCorsHeaders(HttpExchange exchange) {
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        String origin = exchange.getRequestHeaders().getFirst("Origin");
+        if (origin != null && (origin.endsWith(".twitch.tv") || origin.endsWith(".ext-twitch.tv"))) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", origin);
+        } else {
+            // Fallback for local testing / non-Twitch origins
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://supervisor.ext-twitch.tv");
+        }
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, OPTIONS");
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, x-extension-jwt");
+        exchange.getResponseHeaders().add("Vary", "Origin");
     }
 
     /** Handles CORS pre-flight OPTIONS request; returns true when handled. */

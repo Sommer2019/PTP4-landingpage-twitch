@@ -750,8 +750,15 @@ public class SupabaseClient {
      */
     public int getPointsByUserId(String twitchUserId) {
         if (twitchUserId == null || twitchUserId.isBlank()) return -1;
+        String encodedId;
+        try {
+            encodedId = java.net.URLEncoder.encode(twitchUserId, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.error("Fehler beim URL-Encoding der twitch_user_id: {}", e.getMessage());
+            return -1;
+        }
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(supabaseUrl + "/rest/v1/" + tableName + "?twitch_user_id=eq." + twitchUserId + "&select=points"))
+                .uri(URI.create(supabaseUrl + "/rest/v1/" + tableName + "?twitch_user_id=eq." + encodedId + "&select=points"))
                 .header("apikey", apiKey)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Accept", "application/json")
