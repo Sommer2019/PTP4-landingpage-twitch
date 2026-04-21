@@ -135,7 +135,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: TwitchAddon
-          dockerfile: TwitchAddon/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
