@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanalpunkte – Broadcaster Konfiguration</title>
+  <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+  <style>
+    :root {
+      --purple: #9147ff;
+      --bg: #18181b;
+      --surface: #1f1f23;
+      --surface2: #26262c;
+      --text: #efeff1;
+      --text-muted: #adadb8;
+      --green: #00c853;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      color: var(--purple);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--surface2);
+    }
+
+    .card h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    ol, ul {
+      padding-left: 18px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    code {
+      background: var(--surface2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      color: #e8c0ff;
+    }
+
+    a { color: var(--purple); }
+
+    .status-ok {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.82rem;
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .status-ok::before { content: '✔'; }
+
+    .tip {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: var(--surface2);
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🪙 Kanalpunkte Extension – Setup</h1>
+  <p class="subtitle">Konfiguriere die Verbindung zu deinem Backend (EBS).</p>
+
+  <div class="card">
+    <h2>Voraussetzungen</h2>
+    <ol>
+      <li>Der <strong>TwitchAddon Java-Bot</strong> muss laufen (Port <code>8081</code>).</li>
+      <li>Der Bot muss über <strong>HTTPS</strong> öffentlich erreichbar sein (z.B. via
+        <a href="https://ngrok.com" target="_blank">ngrok</a> oder eigenem Server).</li>
+      <li>Die Twitch Extension muss im
+        <a href="https://dev.twitch.tv/console/extensions" target="_blank">Twitch Developer Dashboard</a>
+        registriert und aktiviert sein.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Einrichtungsschritte</h2>
+    <ol>
+      <li>Öffne das <a href="https://dev.twitch.tv/console/extensions" target="_blank">Twitch Developer Dashboard</a>
+          und erstelle eine neue Extension.</li>
+      <li>Wähle als <strong>Typ</strong>: <em>Panel</em> (und optional Mobile).</li>
+      <li>Trage unter <em>Panel Viewer Path</em> folgendes ein:<br>
+          <code>/extension/panel.html</code></li>
+      <li>Trage unter <em>Config Path</em>:<br>
+          <code>/extension/config.html</code></li>
+      <li>Trage unter <em>Mobile Path</em>:<br>
+          <code>/extension/mobile.html</code></li>
+      <li>Als <strong>Testing Base URI</strong> trägst du die öffentliche HTTPS-URL deines
+          Java-Backends ein (z.B. <code>https://dein-server.example.com</code>).</li>
+      <li>Starte die Extension auf deinem Kanal über
+          <em>Manage Overlays & Extensions</em> im Creator Dashboard.</li>
+    </ol>
+
+    <div class="tip">
+      💡 Tipp: Mit <code>ngrok http 8081</code> kannst du deinen lokalen Bot schnell über HTTPS
+      erreichbar machen – ideal zum Testen.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>API-Endpunkte (EBS)</h2>
+    <ul>
+      <li><code>GET /api/points?user_id=&lt;twitch_user_id&gt;</code> – Punkte eines Zuschauers</li>
+      <li><code>GET /api/leaderboard?limit=10</code> – Top-10 Rangliste</li>
+      <li><code>GET /api/rewards</code> – Alle verfügbaren Rewards</li>
+    </ul>
+  </div>
+
+  <div id="authStatus" style="margin-top: 12px; font-size: 0.82rem; color: var(--text-muted);">
+    Warte auf Twitch-Autorisierung…
+  </div>
+
+  <script>
+    window.Twitch.ext.onAuthorized(function (auth) {
+      document.getElementById('authStatus').innerHTML =
+        '<span class="status-ok">Twitch-Verbindung hergestellt</span>';
+    });
+  </script>
+</body>
+</html>
