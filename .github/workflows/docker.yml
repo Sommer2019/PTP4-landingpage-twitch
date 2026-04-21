@@ -126,11 +126,12 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       # Docker Image bauen und pushen
-      # Das Dockerfile liegt in TwitchAddon/ und erwartet die JAR im selben Ordner
+      # context: . (Repo-Root) damit dockerfile: TwitchAddon/Dockerfile korrekt aufgelöst wird
+      # COPY im Dockerfile muss dann TwitchAddon/target/... verwenden
       - name: Build and push TwitchAddon Docker image
         uses: docker/build-push-action@v6
         with:
-          context: TwitchAddon
+          context: .
           dockerfile: TwitchAddon/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
