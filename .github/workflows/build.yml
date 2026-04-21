@@ -100,5 +100,6 @@ jobs:
           name: TwitchAddon Build ${{ github.run_number }}
           files: |
             TwitchAddon/dist/*.exe
+            TwitchAddon/target/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
