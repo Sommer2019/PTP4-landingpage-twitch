@@ -41,11 +41,13 @@ function loadLeaderboard() {
 
 window.Twitch.ext.onAuthorized(function(auth) {
   viewerUserId = (auth.userId && auth.userId !== '0') ? auth.userId : null;
-  if (viewerUserId) {
-    loadMyPoints(viewerUserId);
+
+  if (!viewerUserId) {
+    // Identitätslink anfordern
+    window.Twitch.ext.actions.requestIdShare();
+    document.getElementById('myPoints').innerHTML = '';
   } else {
-    document.getElementById('myPoints').innerHTML =
-      '<div class="not-registered">Anmelden um Punkte zu sehen.</div>';
+    loadMyPoints(viewerUserId);
   }
 });
 
