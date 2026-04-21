@@ -211,7 +211,7 @@
   <script>
     // --- Configuration ---
     // The EBS base URL is derived from the page origin (must be served over HTTPS).
-    const EBS_BASE_URL = window.location.origin;
+    const EBS_BASE_URL = 'https://hd1920x1080.fly.dev';
 
     if (!window.location.protocol.startsWith('https')) {
       document.body.innerHTML = '<div style="color:#ff6b6b;padding:16px;font-size:0.85rem;">⚠️ Diese Extension muss über HTTPS ausgeliefert werden. Bitte konfiguriere die Testing Base URI im Twitch Developer Dashboard auf eine HTTPS-URL.</div>';
