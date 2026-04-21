@@ -33,7 +33,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -123,7 +123,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}/twitchaddon
           tags: |
             type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest
 
       # Docker Image bauen und pushen
       # context: . (Repo-Root) damit dockerfile: TwitchAddon/Dockerfile korrekt aufgelöst wird
