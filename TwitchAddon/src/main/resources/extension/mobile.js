@@ -25,8 +25,8 @@ function loadLeaderboard() {
   fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
     .then(function(res) { return res.json(); })
     .then(function(data) {
-      if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Einträge.</div>'; return; }
-      var medals  = ['🥇','🥈','🥉'];
+      if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Eintraege.</div>'; return; }
+      var medals  = ['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49'];
       var classes = ['top1','top2','top3'];
       el.innerHTML = data.map(function(e, i) {
         return '<div class="leaderboard-row">' +
@@ -43,9 +43,10 @@ window.Twitch.ext.onAuthorized(function(auth) {
   viewerUserId = (auth.userId && auth.userId !== '0') ? auth.userId : null;
 
   if (!viewerUserId) {
-    // Identitätslink anfordern
+    // Identitaetslink anfordern
     window.Twitch.ext.actions.requestIdShare();
-    document.getElementById('myPoints').innerHTML = '';
+    document.getElementById('myPoints').innerHTML =
+      '<div class="not-registered">Bitte erteile der Extension Zugriff auf deine Twitch-ID.</div>';
   } else {
     loadMyPoints(viewerUserId);
   }
