@@ -47,45 +47,42 @@ jobs:
           echo "::add-mask::$ACCESS_TOKEN"
           echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
 
-      # 2. .env im Resources-Ordner erstellen
+      # 2. .env im Resources-Ordner erstellen (bash statt pwsh → kein BOM, kein Encoding-Problem)
       - name: Create .env file for build
-        shell: pwsh
+        shell: bash
         run: |
-          $resPath = "TwitchAddon/src/main/resources"
-          if (!(Test-Path $resPath)) { New-Item -ItemType Directory -Force -Path $resPath }
+          mkdir -p TwitchAddon/src/main/resources
+          printf 'SUPABASE_URL=%s\n'          "${{ secrets.VITE_SUPABASE_URL }}"      > TwitchAddon/src/main/resources/.env
+          printf 'SUPABASE_API_KEY=%s\n'      "${{ secrets.SUPABASE_API_KEY }}"       >> TwitchAddon/src/main/resources/.env
+          printf 'TWITCH_OAUTH_TOKEN=%s\n'    "${{ env.TWITCH_OAUTH_TOKEN }}"         >> TwitchAddon/src/main/resources/.env
+          printf 'TWITCH_CLIENT_ID=%s\n'      "${{ secrets.VITE_TWITCH_CLIENT_ID }}"  >> TwitchAddon/src/main/resources/.env
+          printf 'TWITCH_CLIENT_SECRET=%s\n'  "${{ secrets.TWITCH_CLIENT_SECRET }}"   >> TwitchAddon/src/main/resources/.env
+          printf 'CHANNEL_NAME=%s\n'          "${{ secrets.CHANNEL_NAME }}"           >> TwitchAddon/src/main/resources/.env
+          printf 'TWITCH_REFRESH_TOKEN=%s\n'  "${{ secrets.TWITCH_REFRESH_TOKEN }}"   >> TwitchAddon/src/main/resources/.env
+          printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/src/main/resources/.env
 
-          $envContent = @(
-            "SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}",
-            "SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}",
-            "TWITCH_OAUTH_TOKEN=$($env:TWITCH_OAUTH_TOKEN)",
-            "TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}",
-            "TWITCH_CLIENT_SECRET=${{ secrets.TWITCH_CLIENT_SECRET }}",
-            "CHANNEL_NAME=${{ secrets.CHANNEL_NAME }}",
-            "TWITCH_REFRESH_TOKEN=${{ secrets.TWITCH_REFRESH_TOKEN }}",
-            "EXTENSION_CLIENT_ID=${{ secrets.EXTENSION_CLIENT_ID }}"
-          )
-          $envContent | Out-File -FilePath "$resPath/.env" -Encoding utf8
-        env:
-          TWITCH_OAUTH_TOKEN: ${{ env.TWITCH_OAUTH_TOKEN }}
-
-      # 3. Platzhalter in den JS-Dateien ersetzen (nicht mehr in den HTML-Dateien)
-      #    EBS_BASE_URL: Settings → Secrets → Actions → New secret → Name: EBS_BASE_URL
+      # 3. Platzhalter in den JS-Dateien ersetzen
+      #    - shell: bash damit sed verfügbar ist (auch auf windows-latest via Git Bash)
+      #    - Umweg über .tmp-Datei wegen sed -i Inkompatibilität auf Windows
+      #    - iconv stellt sicher dass UTF-8 ohne BOM rauskommt
       - name: Inject config into extension JS files
         shell: bash
         run: |
           EXT="TwitchAddon/src/main/resources/extension"
-          # panel.js: EBS + Supabase
-          sed -i \
-            -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
-            -e "s|__SUPABASE_URL__|${{ secrets.VITE_SUPABASE_URL }}|g" \
-            -e "s|__SUPABASE_ANON_KEY__|${{ secrets.VITE_SUPABASE_ANON_KEY }}|g" \
-            "$EXT/panel.js"
-          # mobile.js: nur EBS
-          sed -i \
-            -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
-            "$EXT/mobile.js"
 
-      # 4. Maven ausführen (packt alle Dateien unter resources/extension/ ins JAR)
+          iconv -f UTF-8 -t UTF-8 "$EXT/panel.js" \
+            | sed \
+                -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
+                -e "s|__SUPABASE_URL__|${{ secrets.VITE_SUPABASE_URL }}|g" \
+                -e "s|__SUPABASE_ANON_KEY__|${{ secrets.VITE_SUPABASE_ANON_KEY }}|g" \
+            > "$EXT/panel.js.tmp" && mv "$EXT/panel.js.tmp" "$EXT/panel.js"
+
+          iconv -f UTF-8 -t UTF-8 "$EXT/mobile.js" \
+            | sed \
+                -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
+            > "$EXT/mobile.js.tmp" && mv "$EXT/mobile.js.tmp" "$EXT/mobile.js"
+
+      # 4. Maven (packt alles unter resources/extension/ ins JAR)
       - name: Build Fat JAR
         run: mvn package
         working-directory: TwitchAddon
@@ -109,7 +106,14 @@ jobs:
           & $l4jExe "${{ github.workspace }}/TwitchAddon/launch4j-config.xml"
         working-directory: TwitchAddon
 
-      # 7. Release
+      # 7. Extension-Ordner als ZIP verpacken (mit bereits eingesetzten Werten)
+      - name: Zip extension folder
+        shell: bash
+        run: |
+          cd TwitchAddon/src/main/resources/extension
+          zip -r "$GITHUB_WORKSPACE/TwitchAddon/dist/extension.zip" .
+
+      # 8. Release
       - name: Create and Upload Release
         uses: softprops/action-gh-release@v2
         with:
@@ -117,6 +121,7 @@ jobs:
           name: TwitchAddon Build ${{ github.run_number }}
           files: |
             TwitchAddon/dist/*.exe
-            TwitchAddon/target/*.jar
+            TwitchAddon/target/ChannelPointsBot-1.0-SNAPSHOT.jar
+            TwitchAddon/dist/extension.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
