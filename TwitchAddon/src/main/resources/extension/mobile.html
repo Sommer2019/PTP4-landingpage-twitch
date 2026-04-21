@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanalpunkte</title>
+  <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+  <style>
+    :root {
+      --purple: #9147ff;
+      --bg: #18181b;
+      --surface: #1f1f23;
+      --surface2: #26262c;
+      --text: #efeff1;
+      --text-muted: #adadb8;
+      --gold: #ffd700;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 10px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .header h1 { font-size: 1rem; font-weight: 700; color: var(--purple); }
+
+    .points-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+      margin-bottom: 12px;
+      border: 1px solid var(--surface2);
+    }
+
+    .points-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+
+    .points-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .leaderboard-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 5px;
+      margin-bottom: 3px;
+      font-size: 0.8rem;
+    }
+
+    .leaderboard-row:nth-child(odd) { background: var(--surface); }
+    .leaderboard-row:nth-child(even) { background: var(--surface2); }
+
+    .rank { width: 20px; text-align: center; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+    .rank.top1 { color: #ffd700; }
+    .rank.top2 { color: #c0c0c0; }
+    .rank.top3 { color: #cd7f32; }
+    .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pts { font-weight: 700; color: var(--gold); flex-shrink: 0; }
+
+    .status-msg { font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 10px 0; }
+    .error-msg { font-size: 0.75rem; color: #ff6b6b; text-align: center; padding: 8px 0; }
+    .not-registered { font-size: 0.78rem; color: var(--text-muted); text-align: center; padding: 8px; background: var(--surface); border-radius: var(--radius); margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" fill="#ffd700" opacity="0.2"/>
+      <circle cx="12" cy="12" r="10" stroke="#ffd700" stroke-width="1.5"/>
+      <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffd700">P</text>
+    </svg>
+    <h1>Kanalpunkte</h1>
+  </div>
+
+  <div id="myPoints"><div class="status-msg">Lade…</div></div>
+
+  <div class="section-title">🏆 Top 10</div>
+  <div id="leaderboardList"><div class="status-msg">Lade…</div></div>
+
+  <script>
+    const EBS_BASE_URL = window.location.origin;
+
+    if (!window.location.protocol.startsWith('https')) {
+      document.body.innerHTML = '<div style="color:#ff6b6b;padding:16px;font-size:0.85rem;">⚠️ Extension benötigt HTTPS.</div>';
+    }
+    let viewerUserId = null;
+
+    function fmt(n) { return Number(n).toLocaleString('de-DE'); }
+
+    async function loadMyPoints(uid) {
+      const el = document.getElementById('myPoints');
+      try {
+        const res = await fetch(`${EBS_BASE_URL}/api/points?user_id=${encodeURIComponent(uid)}`);
+        const data = await res.json();
+        if (!data.registered) {
+          el.innerHTML = `<div class="not-registered">Noch nicht registriert.</div>`;
+        } else {
+          el.innerHTML = `<div class="points-card"><div class="points-label">Deine Punkte</div><div class="points-value">${fmt(data.points)}</div></div>`;
+        }
+      } catch { el.innerHTML = `<div class="error-msg">Fehler beim Laden.</div>`; }
+    }
+
+    async function loadLeaderboard() {
+      const el = document.getElementById('leaderboardList');
+      try {
+        const res = await fetch(`${EBS_BASE_URL}/api/leaderboard?limit=10`);
+        const data = await res.json();
+        if (!data.length) { el.innerHTML = `<div class="status-msg">Noch keine Einträge.</div>`; return; }
+        const ranks = ['🥇','🥈','🥉'];
+        const classes = ['top1','top2','top3'];
+        el.innerHTML = data.map((e, i) => `
+          <div class="leaderboard-row">
+            <span class="rank ${classes[i]||''}">${ranks[i] || i+1}</span>
+            <span class="name">${esc(e.display_name || e.twitch_user_id)}</span>
+            <span class="pts">${fmt(e.points)}</span>
+          </div>`).join('');
+      } catch { el.innerHTML = `<div class="error-msg">Fehler.</div>`; }
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    window.Twitch.ext.onAuthorized(function(auth) {
+      viewerUserId = auth.userId || null;
+      if (viewerUserId && viewerUserId !== '0') {
+        loadMyPoints(viewerUserId);
+      } else {
+        document.getElementById('myPoints').innerHTML =
+          `<div class="not-registered">Anmelden um Punkte zu sehen.</div>`;
+      }
+    });
+
+    loadLeaderboard();
+    setInterval(() => {
+      loadLeaderboard();
+      if (viewerUserId && viewerUserId !== '0') loadMyPoints(viewerUserId);
+    }, 60000);
+  </script>
+</body>
+</html>

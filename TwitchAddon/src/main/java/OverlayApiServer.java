@@ -16,12 +16,110 @@ public class OverlayApiServer {
         server.createContext("/api/redeemed_rewards", new RedeemedRewardsHandler());
         server.createContext("/api/rewards", new RewardsHandler());
         server.createContext("/api/redeem_check", new RedeemCheckHandler());
+        server.createContext("/api/points", new PointsHandler());
+        server.createContext("/api/leaderboard", new LeaderboardHandler());
         server.createContext("/overlay.html", new StaticFileHandler("overlay.html", "text/html"));
         server.createContext("/tts-test.html", new StaticFileHandler("tts-test.html", "text/html"));
         server.createContext("/media", new StaticDirHandler("media"));
         server.createContext("/api/tts", new TtsProxyHandler());
+        server.createContext("/extension/", new StaticDirHandler("extension"));
         server.setExecutor(null);
         server.start();
+    }
+
+    /** Adds CORS headers required for Twitch Extensions. Only allows Twitch Extension origins. */
+    private static void addCorsHeaders(HttpExchange exchange) {
+        String origin = exchange.getRequestHeaders().getFirst("Origin");
+        if (origin != null && (origin.endsWith(".twitch.tv") || origin.endsWith(".ext-twitch.tv"))) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", origin);
+        } else {
+            // Fallback for local testing / non-Twitch origins
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://supervisor.ext-twitch.tv");
+        }
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, OPTIONS");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, x-extension-jwt");
+        exchange.getResponseHeaders().add("Vary", "Origin");
+    }
+
+    /** Handles CORS pre-flight OPTIONS request; returns true when handled. */
+    private static boolean handleCorsPreFlight(HttpExchange exchange) throws IOException {
+        if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+            addCorsHeaders(exchange);
+            exchange.sendResponseHeaders(204, -1);
+            return true;
+        }
+        return false;
+    }
+
+    class PointsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreFlight(exchange)) return;
+            addCorsHeaders(exchange);
+            if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+                exchange.sendResponseHeaders(405, 0);
+                exchange.getResponseBody().close();
+                return;
+            }
+            String query = exchange.getRequestURI().getQuery();
+            String userId = null;
+            if (query != null) {
+                for (String param : query.split("&")) {
+                    if (param.startsWith("user_id=")) {
+                        userId = param.substring("user_id=".length());
+                        break;
+                    }
+                }
+            }
+            if (userId == null || userId.isBlank()) {
+                String resp = "{\"error\":\"missing_user_id\"}";
+                byte[] bytes = resp.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().add("Content-Type", "application/json");
+                exchange.sendResponseHeaders(400, bytes.length);
+                exchange.getResponseBody().write(bytes);
+                exchange.getResponseBody().close();
+                return;
+            }
+            int points = supabaseClient.getPointsByUserId(userId);
+            JSONObject result = new JSONObject();
+            result.put("twitch_user_id", userId);
+            result.put("points", points == -1 ? 0 : points);
+            result.put("registered", points != -1);
+            byte[] bytes = result.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            exchange.getResponseBody().write(bytes);
+            exchange.getResponseBody().close();
+        }
+    }
+
+    class LeaderboardHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreFlight(exchange)) return;
+            addCorsHeaders(exchange);
+            if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+                exchange.sendResponseHeaders(405, 0);
+                exchange.getResponseBody().close();
+                return;
+            }
+            int limit = 10;
+            String query = exchange.getRequestURI().getQuery();
+            if (query != null) {
+                for (String param : query.split("&")) {
+                    if (param.startsWith("limit=")) {
+                        try { limit = Integer.parseInt(param.substring("limit=".length())); } catch (NumberFormatException ignored) {}
+                        break;
+                    }
+                }
+            }
+            JSONArray leaderboard = supabaseClient.getLeaderboard(limit);
+            byte[] bytes = leaderboard.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            exchange.getResponseBody().write(bytes);
+            exchange.getResponseBody().close();
+        }
     }
 
     class RedeemedRewardsHandler implements HttpHandler {

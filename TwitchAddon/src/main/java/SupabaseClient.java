@@ -746,6 +746,72 @@ public class SupabaseClient {
     }
 
     /**
+     * Gibt die Punkte eines Users anhand der Twitch-User-ID zurück, oder -1 wenn nicht gefunden.
+     */
+    public int getPointsByUserId(String twitchUserId) {
+        if (twitchUserId == null || twitchUserId.isBlank()) return -1;
+        String encodedId;
+        try {
+            encodedId = java.net.URLEncoder.encode(twitchUserId, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.error("Fehler beim URL-Encoding der twitch_user_id: {}", e.getMessage());
+            return -1;
+        }
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(supabaseUrl + "/rest/v1/" + tableName + "?twitch_user_id=eq." + encodedId + "&select=points"))
+                .header("apikey", apiKey)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .build();
+        try {
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                JSONArray arr = new JSONArray(response.body());
+                if (!arr.isEmpty()) {
+                    return arr.getJSONObject(0).optInt("points", 0);
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            logger.error("Fehler beim Supabase GET points by userId: {}", e.getMessage(), e);
+        }
+        return -1;
+    }
+
+    /**
+     * Gibt die Top-N User nach Punkten zurück (für Leaderboard).
+     */
+    public JSONArray getLeaderboard(int limit) {
+        if (limit <= 0) limit = 10;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(supabaseUrl + "/rest/v1/" + tableName + "?select=twitch_user_id,points&order=points.desc&limit=" + limit))
+                .header("apikey", apiKey)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .build();
+        try {
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                JSONArray arr = new JSONArray(response.body());
+                // Resolve usernames for each entry
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject entry = arr.getJSONObject(i);
+                    String userId = entry.optString("twitch_user_id", null);
+                    if (userId != null) {
+                        String name = resolveTwitchUsernameById(userId);
+                        entry.put("display_name", name != null ? name : userId);
+                    }
+                }
+                return arr;
+            }
+        } catch (IOException | InterruptedException e) {
+            logger.error("Fehler beim Supabase GET leaderboard: {}", e.getMessage(), e);
+        }
+        return new JSONArray();
+    }
+
+    /**
      * Löscht alle Einträge aus redeemed_rewards (z.B. am Stream-Ende für Cleanup).
      */
     public boolean deleteAllRedeemedRewards() {
