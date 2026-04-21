@@ -20,6 +20,7 @@ jobs:
       CHANNEL_NAME: ${{ secrets.CHANNEL_NAME }}
       TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
       TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
+      EXTENSION_CLIENT_ID: ${{ secrets.EXTENSION_CLIENT_ID }}
 
     steps:
       - name: Checkout code
@@ -60,6 +61,7 @@ jobs:
             "TWITCH_CLIENT_SECRET=${{ secrets.TWITCH_CLIENT_SECRET }}",
             "CHANNEL_NAME=${{ secrets.CHANNEL_NAME }}",
             "TWITCH_REFRESH_TOKEN=${{ secrets.TWITCH_REFRESH_TOKEN }}"
+            "EXTENSION_CLIENT_ID=${{ secrets.EXTENSION_CLIENT_ID }}"
           )
           $envContent | Out-File -FilePath "$resPath/.env" -Encoding utf8
         env:
