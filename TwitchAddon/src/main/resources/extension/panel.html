@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kanalpunkte</title>
-  <!-- Twitch Extension Helper -->
   <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
   <style>
     :root {
@@ -16,6 +15,8 @@
       --text: #efeff1;
       --text-muted: #adadb8;
       --gold: #ffd700;
+      --green: #4caf50;
+      --red: #ff6b6b;
       --radius: 8px;
     }
 
@@ -29,20 +30,8 @@
       padding: 12px;
     }
 
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .header svg { flex-shrink: 0; }
-
-    .header h1 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--purple);
-    }
+    .header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .header h1 { font-size: 1.1rem; font-weight: 700; color: var(--purple); }
 
     .points-card {
       background: var(--surface);
@@ -53,286 +42,346 @@
       border: 1px solid var(--surface2);
     }
 
-    .points-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
-    }
+    .points-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .points-value { font-size: 2.4rem; font-weight: 800; color: var(--gold); line-height: 1.1; }
+    .points-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 
-    .points-value {
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: var(--gold);
-      line-height: 1.1;
-    }
+    .section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
 
-    .points-sub {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .section-title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    /* Leaderboard */
-    .leaderboard {
-      margin-bottom: 16px;
-    }
-
-    .leaderboard-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      margin-bottom: 4px;
-    }
-
-    .leaderboard-row:nth-child(odd) { background: var(--surface); }
+    .leaderboard { margin-bottom: 16px; }
+    .leaderboard-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; margin-bottom: 4px; }
+    .leaderboard-row:nth-child(odd)  { background: var(--surface); }
     .leaderboard-row:nth-child(even) { background: var(--surface2); }
-
-    .leaderboard-rank {
-      width: 22px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-align: center;
-      flex-shrink: 0;
-    }
-
+    .leaderboard-rank { width: 22px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-align: center; flex-shrink: 0; }
     .leaderboard-rank.top1 { color: #ffd700; }
     .leaderboard-rank.top2 { color: #c0c0c0; }
     .leaderboard-rank.top3 { color: #cd7f32; }
+    .leaderboard-name { flex: 1; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .leaderboard-pts  { font-size: 0.85rem; font-weight: 700; color: var(--gold); flex-shrink: 0; }
 
-    .leaderboard-name {
-      flex: 1;
-      font-size: 0.85rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .leaderboard-pts {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--gold);
-      flex-shrink: 0;
-    }
-
-    /* Rewards shop */
-    .rewards-list { margin-bottom: 8px; }
-
-    .reward-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      margin-bottom: 4px;
+    .reward-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+    .reward-card {
       background: var(--surface);
       border: 1px solid var(--surface2);
-    }
-
-    .reward-name {
-      flex: 1;
-      font-size: 0.82rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .reward-cost {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--purple);
-      flex-shrink: 0;
-    }
-
-    .status-msg {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 20px 0;
-    }
-
-    .error-msg {
-      font-size: 0.78rem;
-      color: #ff6b6b;
-      text-align: center;
-      padding: 10px 0;
-    }
-
-    .not-registered {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 12px;
-      background: var(--surface);
       border-radius: var(--radius);
-      margin-bottom: 16px;
+      padding: 8px 6px;
+      cursor: pointer;
+      text-align: center;
+      color: var(--text);
+      transition: border-color 0.15s, background 0.15s;
     }
+    .reward-card:hover { border-color: var(--purple); background: var(--surface2); }
+    .reward-card-title { font-size: 0.72rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px; }
+    .reward-card-cost  { font-size: 0.7rem; color: var(--purple); font-weight: 700; }
+
+    .reward-detail { background: var(--surface); border: 1px solid var(--surface2); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; }
+    .back-btn { background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; padding: 0; margin-bottom: 10px; display: block; }
+    .back-btn:hover { color: var(--text); }
+    .detail-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .detail-cost { font-size: 0.85rem; color: var(--purple); font-weight: 700; margin-bottom: 12px; }
+
+    .tts-input {
+      width: 100%; background: var(--surface2); border: 1px solid #444; border-radius: 6px;
+      color: var(--text); font-size: 0.82rem; padding: 8px; resize: none; margin-bottom: 10px; font-family: inherit;
+    }
+    .tts-input:focus { outline: none; border-color: var(--purple); }
+
+    .redeem-btn {
+      width: 100%; background: var(--purple); color: #fff; border: none;
+      border-radius: 6px; padding: 9px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .redeem-btn:hover:not(:disabled) { background: var(--purple-dark); }
+    .redeem-btn:disabled { background: #444; cursor: not-allowed; opacity: 0.7; }
+
+    .status-msg  { font-size: 0.78rem; color: var(--text-muted); text-align: center; padding: 20px 0; }
+    .success-msg { font-size: 0.78rem; color: var(--green); text-align: center; padding: 6px 0; }
+    .error-msg   { font-size: 0.78rem; color: var(--red); text-align: center; padding: 6px 0; }
+    .not-registered { font-size: 0.82rem; color: var(--text-muted); text-align: center; padding: 12px; background: var(--surface); border-radius: var(--radius); margin-bottom: 16px; }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <!-- Coin icon -->
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" fill="#ffd700" opacity="0.2"/>
-      <circle cx="12" cy="12" r="10" stroke="#ffd700" stroke-width="1.5"/>
-      <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffd700">P</text>
-    </svg>
-    <h1>Kanalpunkte</h1>
-  </div>
+<div class="header">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="10" fill="#ffd700" opacity="0.2"/>
+    <circle cx="12" cy="12" r="10" stroke="#ffd700" stroke-width="1.5"/>
+    <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffd700">P</text>
+  </svg>
+  <h1>Kanalpunkte</h1>
+</div>
 
-  <div id="myPoints">
-    <div class="status-msg">Lade Punkte…</div>
-  </div>
+<div id="myPoints"><div class="status-msg">Lade Punkte…</div></div>
 
-  <div class="leaderboard">
-    <div class="section-title">🏆 Top 10</div>
-    <div id="leaderboardList"><div class="status-msg">Lade Rangliste…</div></div>
-  </div>
+<div class="leaderboard">
+  <div class="section-title">🏆 Top 10</div>
+  <div id="leaderboardList"><div class="status-msg">Lade Rangliste…</div></div>
+</div>
 
-  <div class="rewards-list">
-    <div class="section-title">🎁 Rewards (Shop)</div>
-    <div id="rewardsList"><div class="status-msg">Lade Rewards…</div></div>
-  </div>
+<div>
+  <div class="section-title">🎁 Rewards (Shop)</div>
+  <div id="redeemStatus" style="min-height:22px;"></div>
+  <div id="rewardsArea"><div class="status-msg">Lade Rewards…</div></div>
+</div>
 
-  <script>
-    // --- Configuration ---
-    // The EBS base URL is derived from the page origin (must be served over HTTPS).
-    const EBS_BASE_URL = 'https://hd1920x1080.fly.dev';
+<script>
+  // Werte werden beim GitHub-Build per sed ersetzt (siehe build.yml)
+  const EBS_BASE_URL  = '__EBS_BASE_URL__';
+  const SUPABASE_URL  = '__SUPABASE_URL__';
+  const SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
 
-    if (!window.location.protocol.startsWith('https')) {
-      document.body.innerHTML = '<div style="color:#ff6b6b;padding:16px;font-size:0.85rem;">⚠️ Diese Extension muss über HTTPS ausgeliefert werden. Bitte konfiguriere die Testing Base URI im Twitch Developer Dashboard auf eine HTTPS-URL.</div>';
-    }
+  let viewerUserId  = null;
+  let userPoints    = 0;
+  let allRewards    = [];
+  let selectedId    = null;
+  let redeemBusy    = false;
+  let cooldownTimer = null;
 
-    let viewerUserId = null;
+  const fmt = n => Number(n).toLocaleString('de-DE');
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-    function formatPoints(n) {
-      return Number(n).toLocaleString('de-DE');
-    }
+  function setRedeemStatus(msg, type = 'success') {
+    const el = document.getElementById('redeemStatus');
+    el.innerHTML = msg ? `<div class="${type}-msg">${msg}</div>` : '';
+    if (msg) setTimeout(() => { el.innerHTML = ''; }, 4000);
+  }
 
-    function rankClass(i) {
-      if (i === 0) return 'top1';
-      if (i === 1) return 'top2';
-      if (i === 2) return 'top3';
-      return '';
-    }
-
-    function rankEmoji(i) {
-      if (i === 0) return '🥇';
-      if (i === 1) return '🥈';
-      if (i === 2) return '🥉';
-      return String(i + 1);
-    }
-
-    async function loadMyPoints(userId) {
-      const el = document.getElementById('myPoints');
-      try {
-        const res = await fetch(`${EBS_BASE_URL}/api/points?user_id=${encodeURIComponent(userId)}`);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        if (!data.registered) {
-          el.innerHTML = `<div class="not-registered">Du bist noch nicht in der Datenbank.<br>Schau beim nächsten Stream vorbei!</div>`;
-        } else {
-          el.innerHTML = `
-            <div class="points-card">
-              <div class="points-label">Deine Punkte</div>
-              <div class="points-value">${formatPoints(data.points)}</div>
-              <div class="points-sub">Kanalpunkte (PTP)</div>
-            </div>`;
-        }
-      } catch (e) {
-        el.innerHTML = `<div class="error-msg">Punkte konnten nicht geladen werden.</div>`;
-      }
-    }
-
-    async function loadLeaderboard() {
-      const el = document.getElementById('leaderboardList');
-      try {
-        const res = await fetch(`${EBS_BASE_URL}/api/leaderboard?limit=10`);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        if (!data.length) {
-          el.innerHTML = `<div class="status-msg">Noch keine Einträge.</div>`;
-          return;
-        }
-        el.innerHTML = data.map((entry, i) => `
-          <div class="leaderboard-row">
-            <span class="leaderboard-rank ${rankClass(i)}">${rankEmoji(i)}</span>
-            <span class="leaderboard-name">${escapeHtml(entry.display_name || entry.twitch_user_id)}</span>
-            <span class="leaderboard-pts">${formatPoints(entry.points)}</span>
-          </div>`).join('');
-      } catch (e) {
-        el.innerHTML = `<div class="error-msg">Rangliste konnte nicht geladen werden.</div>`;
-      }
-    }
-
-    async function loadRewards() {
-      const el = document.getElementById('rewardsList');
-      try {
-        const res = await fetch(`${EBS_BASE_URL}/api/rewards`);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        const enabled = data.filter(r => r.is_enabled !== false);
-        if (!enabled.length) {
-          el.innerHTML = `<div class="status-msg">Keine Rewards verfügbar.</div>`;
-          return;
-        }
-        el.innerHTML = enabled.map(r => `
-          <div class="reward-item">
-            <span class="reward-name">${escapeHtml(r.name || r.description || 'Reward')}</span>
-            <span class="reward-cost">${formatPoints(r.cost)} P</span>
-          </div>`).join('');
-      } catch (e) {
-        el.innerHTML = `<div class="error-msg">Rewards konnten nicht geladen werden.</div>`;
-      }
-    }
-
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    // --- Twitch Extension Helper ---
-    window.Twitch.ext.onAuthorized(function (auth) {
-      // auth.userId is the opaque user ID (only available when user shared identity)
-      viewerUserId = auth.userId || null;
-
-      if (viewerUserId && viewerUserId !== '0' && viewerUserId !== '') {
-        loadMyPoints(viewerUserId);
-      } else {
-        document.getElementById('myPoints').innerHTML =
-          `<div class="not-registered">Melde dich in Twitch an, um deine Punkte zu sehen.</div>`;
-      }
+  // Supabase REST helpers (kein SDK nötig)
+  async function sbRpc(fn, params) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+      body: JSON.stringify(params),
     });
+    if (!res.ok) throw new Error('RPC ' + res.status);
+    return res.json();
+  }
 
-    // Always load leaderboard and rewards (public data)
-    loadLeaderboard();
-    loadRewards();
+  async function sbGet(table, qs) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${qs}`, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error('GET ' + res.status);
+    return res.json();
+  }
 
-    // Refresh every 60 seconds
-    setInterval(() => {
-      loadLeaderboard();
-      loadRewards();
-      if (viewerUserId && viewerUserId !== '0') {
-        loadMyPoints(viewerUserId);
+  // Loaders
+  async function loadMyPoints(uid) {
+    const el = document.getElementById('myPoints');
+    try {
+      const res  = await fetch(`${EBS_BASE_URL}/api/points?user_id=${encodeURIComponent(uid)}`);
+      const data = await res.json();
+      if (!data.registered) {
+        userPoints = 0;
+        el.innerHTML = `<div class="not-registered">Du bist noch nicht in der Datenbank.<br>Schau beim nächsten Stream vorbei!</div>`;
+      } else {
+        userPoints = data.points || 0;
+        el.innerHTML = `<div class="points-card"><div class="points-label">Deine Punkte</div><div class="points-value" id="pointsDisplay">${fmt(userPoints)}</div><div class="points-sub">Kanalpunkte (PTP)</div></div>`;
       }
-    }, 60000);
-  </script>
+    } catch { el.innerHTML = `<div class="error-msg">Punkte konnten nicht geladen werden.</div>`; }
+  }
+
+  async function loadLeaderboard() {
+    const el = document.getElementById('leaderboardList');
+    try {
+      const data = await (await fetch(`${EBS_BASE_URL}/api/leaderboard?limit=10`)).json();
+      if (!data.length) { el.innerHTML = `<div class="status-msg">Noch keine Einträge.</div>`; return; }
+      const medals = ['🥇','🥈','🥉'];
+      el.innerHTML = data.map((e,i) => `
+          <div class="leaderboard-row">
+            <span class="leaderboard-rank ${i<3?'top'+(i+1):''}">${medals[i]||i+1}</span>
+            <span class="leaderboard-name">${esc(e.display_name||e.twitch_user_id)}</span>
+            <span class="leaderboard-pts">${fmt(e.points)}</span>
+          </div>`).join('');
+    } catch { el.innerHTML = `<div class="error-msg">Rangliste konnte nicht geladen werden.</div>`; }
+  }
+
+  async function loadRewards() {
+    try {
+      const data = await (await fetch(`${EBS_BASE_URL}/api/rewards`)).json();
+      allRewards = data.filter(r => r.is_enabled !== false).sort((a,b) => a.cost - b.cost);
+      if (!selectedId) renderGrid();
+    } catch { document.getElementById('rewardsArea').innerHTML = `<div class="error-msg">Rewards konnten nicht geladen werden.</div>`; }
+  }
+
+  function renderGrid() {
+    const el = document.getElementById('rewardsArea');
+    if (!allRewards.length) { el.innerHTML = `<div class="status-msg">Keine Rewards verfügbar.</div>`; return; }
+    el.innerHTML = `<div class="reward-grid">${allRewards.map(r => `
+        <button class="reward-card" onclick="openReward('${esc(String(r.id))}')">
+          <div class="reward-card-title">${esc(r.name||r.description||'Reward')}</div>
+          <div class="reward-card-cost">${fmt(r.cost)} P</div>
+        </button>`).join('')}</div>`;
+  }
+
+  async function openReward(id) {
+    selectedId = id;
+    setRedeemStatus('');
+    if (cooldownTimer) { clearInterval(cooldownTimer); cooldownTimer = null; }
+    const r = allRewards.find(x => String(x.id) === String(id));
+    if (!r) return;
+
+    const el = document.getElementById('rewardsArea');
+    el.innerHTML = `
+        <div class="reward-detail">
+          <button class="back-btn" onclick="backToGrid()">← Zurück</button>
+          <div class="detail-name">${esc(r.name||'Reward')}</div>
+          <div class="detail-cost">${fmt(r.cost)} Punkte</div>
+          ${r.istts && !r.text ? `<textarea class="tts-input" id="ttsInput" placeholder="Deine Nachricht…" rows="3" maxlength="200"></textarea>` : ''}
+          <button class="redeem-btn" id="redeemBtn" onclick="handleRedeem()">Jetzt einlösen</button>
+        </div>`;
+
+    if (userPoints < r.cost) {
+      const btn = document.getElementById('redeemBtn');
+      btn.disabled = true;
+      btn.textContent = `Zu wenig Punkte (${fmt(userPoints)} / ${fmt(r.cost)})`;
+      return;
+    }
+
+    if (viewerUserId) await checkCooldown(r);
+  }
+
+  function backToGrid() {
+    selectedId = null;
+    if (cooldownTimer) { clearInterval(cooldownTimer); cooldownTimer = null; }
+    setRedeemStatus('');
+    renderGrid();
+  }
+
+  async function checkCooldown(reward) {
+    const btn = document.getElementById('redeemBtn');
+    if (!btn) return;
+
+    try {
+      const rows = await sbGet('redeemed_global', `?reward_id=eq.${reward.id}&is_active=eq.true&limit=1`);
+      if (rows && rows.length > 0) {
+        const g = rows[0];
+        if (g.expires_at) {
+          const rem = new Date(g.expires_at).getTime() - Date.now();
+          if (rem > 0) { btn.disabled = true; btn.textContent = `Cooldown: ${Math.ceil(rem/1000)}s`; return; }
+        } else {
+          btn.disabled = true; btn.textContent = 'Bereits eingelöst (Stream)'; return;
+        }
+      }
+    } catch { /* ignore */ }
+
+    if (!reward.cooldown) return;
+    try {
+      const rows = await sbGet('redeemed_rewards',
+              `?twitch_user_id=eq.${encodeURIComponent(viewerUserId)}&reward_id=eq.${reward.id}&order=timestamp.desc&limit=1`);
+      if (rows && rows.length > 0 && rows[0].timestamp) {
+        const last = new Date(rows[0].timestamp).getTime();
+        const rem  = last + reward.cooldown * 1000 - Date.now();
+        if (rem > 0) {
+          btn.disabled = true;
+          btn.textContent = `Cooldown: ${Math.ceil(rem/1000)}s`;
+          cooldownTimer = setInterval(() => {
+            const r2 = last + reward.cooldown * 1000 - Date.now();
+            const b  = document.getElementById('redeemBtn');
+            if (!b) { clearInterval(cooldownTimer); return; }
+            if (r2 > 0) { b.textContent = `Cooldown: ${Math.ceil(r2/1000)}s`; }
+            else { clearInterval(cooldownTimer); b.disabled = false; b.textContent = 'Jetzt einlösen'; }
+          }, 1000);
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function handleRedeem() {
+    if (!selectedId || redeemBusy) return;
+    const r = allRewards.find(x => String(x.id) === String(selectedId));
+    if (!r || !viewerUserId) return;
+
+    const ttsEl   = document.getElementById('ttsInput');
+    const ttsText = ttsEl ? ttsEl.value.trim() : '';
+    if (r.istts && !r.text && !ttsText) return;
+
+    if (userPoints < r.cost) {
+      setRedeemStatus(`❌ Nicht genug Punkte (${fmt(userPoints)} / ${fmt(r.cost)} P).`, 'error');
+      return;
+    }
+
+    redeemBusy = true;
+    const btn = document.getElementById('redeemBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Lädt…'; }
+
+    let streamId = null;
+    try {
+      const s = await sbGet('stream_sessions', '?is_active=eq.true&order=started_at.desc&limit=1&select=id');
+      if (s && s.length) streamId = s[0].id || null;
+    } catch { /* ignore */ }
+
+    const replace = s => (s||'').replace(/%name%/g, viewerUserId);
+    let description = null, ttsToSend = null;
+    if (r.istts) {
+      if (r.text) {
+        description = replace(r.text);
+      } else {
+        const combined = r.description && ttsText ? `${r.description} ${ttsText}` : (r.description||ttsText);
+        description = replace(combined);
+        ttsToSend   = ttsText || null;
+      }
+    } else {
+      description = replace(r.description);
+    }
+
+    try {
+      const data = await sbRpc('redeem_reward', {
+        p_twitch_user_id: viewerUserId,
+        p_reward_id:      String(r.id),
+        p_description:    description,
+        p_cost:           r.cost,
+        p_ttstext:        ttsToSend,
+        p_stream_id:      streamId,
+      });
+
+      if (data && data.success) {
+        setRedeemStatus(`✅ "${esc(r.name)}" eingelöst!`, 'success');
+        userPoints -= r.cost;
+        const pd = document.getElementById('pointsDisplay');
+        if (pd) pd.textContent = fmt(userPoints);
+        setTimeout(() => backToGrid(), 2000);
+      } else if (data && data.error) {
+        const msgs = {
+          cooldown_active:        `Cooldown aktiv – noch ${data.remaining||'?'}s.`,
+          once_per_stream_active: 'Einmalig pro Stream – bereits eingelöst.',
+          reward_disabled:        'Reward gerade deaktiviert.',
+          not_enough_points:      'Nicht genug Punkte.',
+          user_not_found:         'Account nicht gefunden.',
+        };
+        setRedeemStatus(`❌ ${msgs[data.error] || data.error}`, 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Jetzt einlösen'; }
+      } else {
+        setRedeemStatus('❌ Unbekannte Antwort.', 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Jetzt einlösen'; }
+      }
+    } catch (e) {
+      setRedeemStatus('❌ Fehler: ' + esc(e.message), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Jetzt einlösen'; }
+    }
+
+    redeemBusy = false;
+  }
+
+  window.Twitch.ext.onAuthorized(function(auth) {
+    viewerUserId = (auth.userId && auth.userId !== '0') ? auth.userId : null;
+    if (viewerUserId) {
+      loadMyPoints(viewerUserId);
+    } else {
+      document.getElementById('myPoints').innerHTML =
+              `<div class="not-registered">Melde dich in Twitch an, um deine Punkte zu sehen.</div>`;
+    }
+    if (allRewards.length && !selectedId) renderGrid();
+  });
+
+  loadLeaderboard();
+  loadRewards();
+
+  setInterval(() => {
+    loadLeaderboard();
+    if (!selectedId) loadRewards();
+    if (viewerUserId) loadMyPoints(viewerUserId);
+  }, 60000);
+</script>
 </body>
 </html>

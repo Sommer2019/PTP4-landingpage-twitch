@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Manueller Trigger
+  workflow_dispatch:
+
 permissions:
   contents: write
 
@@ -32,7 +33,7 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
 
-      # 1. ZUERST den Token holen
+      # 1. Token holen
       - name: Get Twitch OAuth Access Token
         shell: bash
         id: get_oauth
@@ -46,13 +47,13 @@ jobs:
           echo "::add-mask::$ACCESS_TOKEN"
           echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
 
-      # 2. DANN die .env im Resources-Ordner erstellen
+      # 2. .env im Resources-Ordner erstellen
       - name: Create .env file for build
         shell: pwsh
         run: |
           $resPath = "TwitchAddon/src/main/resources"
           if (!(Test-Path $resPath)) { New-Item -ItemType Directory -Force -Path $resPath }
-          
+
           $envContent = @(
             "SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}",
             "SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}",
@@ -60,19 +61,37 @@ jobs:
             "TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}",
             "TWITCH_CLIENT_SECRET=${{ secrets.TWITCH_CLIENT_SECRET }}",
             "CHANNEL_NAME=${{ secrets.CHANNEL_NAME }}",
-            "TWITCH_REFRESH_TOKEN=${{ secrets.TWITCH_REFRESH_TOKEN }}"
+            "TWITCH_REFRESH_TOKEN=${{ secrets.TWITCH_REFRESH_TOKEN }}",
             "EXTENSION_CLIENT_ID=${{ secrets.EXTENSION_CLIENT_ID }}"
           )
           $envContent | Out-File -FilePath "$resPath/.env" -Encoding utf8
         env:
           TWITCH_OAUTH_TOKEN: ${{ env.TWITCH_OAUTH_TOKEN }}
 
-      # 3. JETZT Maven ausführen (packt die .env automatisch mit ein)
+      # 3. Platzhalter in panel.html ersetzen
+      #    Secrets: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, EBS_BASE_URL
+      #    EBS_BASE_URL neu anlegen unter: Settings → Secrets → Actions → New secret
+      - name: Inject config into extension HTML files
+        shell: bash
+        run: |
+          EXT="TwitchAddon/src/main/resources/extension"
+          # panel.html: EBS + Supabase (für Redeem direkt via RPC)
+          sed -i \
+            -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
+            -e "s|__SUPABASE_URL__|${{ secrets.VITE_SUPABASE_URL }}|g" \
+            -e "s|__SUPABASE_ANON_KEY__|${{ secrets.VITE_SUPABASE_ANON_KEY }}|g" \
+            "$EXT/panel.html"
+          # mobile.html: nur EBS (kein Redeem, kein Supabase-Zugriff)
+          sed -i \
+            -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
+            "$EXT/mobile.html"
+
+      # 4. Maven ausführen (packt panel.html mit den echten Werten ins JAR)
       - name: Build Fat JAR
         run: mvn package
         working-directory: TwitchAddon
 
-      # 4. DOWNLOAD Launch4j
+      # 5. Launch4j downloaden
       - name: Download Launch4j
         shell: bash
         run: |
@@ -83,7 +102,7 @@ jobs:
         run: mkdir -p dist
         working-directory: TwitchAddon
 
-      # 5. EXE BAUEN
+      # 6. EXE bauen
       - name: Build EXE with Launch4j
         shell: pwsh
         run: |
@@ -91,8 +110,7 @@ jobs:
           & $l4jExe "${{ github.workspace }}/TwitchAddon/launch4j-config.xml"
         working-directory: TwitchAddon
 
-
-      # 6. RELEASE
+      # 7. Release
       - name: Create and Upload Release
         uses: softprops/action-gh-release@v2
         with:
