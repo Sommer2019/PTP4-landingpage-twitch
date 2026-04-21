@@ -68,25 +68,24 @@ jobs:
         env:
           TWITCH_OAUTH_TOKEN: ${{ env.TWITCH_OAUTH_TOKEN }}
 
-      # 3. Platzhalter in panel.html ersetzen
-      #    Secrets: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, EBS_BASE_URL
-      #    EBS_BASE_URL neu anlegen unter: Settings → Secrets → Actions → New secret
-      - name: Inject config into extension HTML files
+      # 3. Platzhalter in den JS-Dateien ersetzen (nicht mehr in den HTML-Dateien)
+      #    EBS_BASE_URL: Settings → Secrets → Actions → New secret → Name: EBS_BASE_URL
+      - name: Inject config into extension JS files
         shell: bash
         run: |
           EXT="TwitchAddon/src/main/resources/extension"
-          # panel.html: EBS + Supabase (für Redeem direkt via RPC)
+          # panel.js: EBS + Supabase
           sed -i \
             -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
             -e "s|__SUPABASE_URL__|${{ secrets.VITE_SUPABASE_URL }}|g" \
             -e "s|__SUPABASE_ANON_KEY__|${{ secrets.VITE_SUPABASE_ANON_KEY }}|g" \
-            "$EXT/panel.html"
-          # mobile.html: nur EBS (kein Redeem, kein Supabase-Zugriff)
+            "$EXT/panel.js"
+          # mobile.js: nur EBS
           sed -i \
             -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
-            "$EXT/mobile.html"
+            "$EXT/mobile.js"
 
-      # 4. Maven ausführen (packt panel.html mit den echten Werten ins JAR)
+      # 4. Maven ausführen (packt alle Dateien unter resources/extension/ ins JAR)
       - name: Build Fat JAR
         run: mvn package
         working-directory: TwitchAddon
