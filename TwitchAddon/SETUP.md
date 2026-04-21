@@ -2,6 +2,9 @@
 
 Diese Anleitung beschreibt, wie du die **Kanalpunkte-Extension** als Twitch Panel Extension in deinem Kanal einbindest.
 
+> **Hinweis:** Der Java-Bot läuft auf deinem lokalen Rechner (`localhost:8081`).  
+> Da Twitch Extensions ausschließlich HTTPS-Verbindungen erlauben, wird der lokale Bot über einen **ngrok-Tunnel** nach außen erreichbar gemacht.
+
 ---
 
 ## Voraussetzungen
@@ -9,9 +12,9 @@ Diese Anleitung beschreibt, wie du die **Kanalpunkte-Extension** als Twitch Pane
 | Anforderung | Details |
 |---|---|
 | Java 21+ | Für den TwitchAddon-Bot |
+| [ngrok](https://ngrok.com) | Um den lokalen Bot per HTTPS erreichbar zu machen |
 | Supabase-Projekt | Mit den nötigen Tabellen (`points`, `rewards`, `redeemed_rewards`, …) |
 | Twitch Developer Account | Für die Extension-Registrierung |
-| HTTPS-Erreichbarkeit | z.B. via [ngrok](https://ngrok.com) oder eigenem Server |
 
 ---
 
@@ -38,7 +41,7 @@ EXTENSION_CLIENT_ID=<extension-client-id-aus-dem-twitch-developer-dashboard>
 
 ---
 
-## 2. Bot starten
+## 2. Bot lokal starten
 
 ```bash
 cd TwitchAddon
@@ -46,14 +49,14 @@ mvn package -q
 java -jar target/ChannelPointsBot-1.0-SNAPSHOT.jar
 ```
 
-Der Bot startet den **OverlayApiServer** auf Port `8081`.
+Der Bot startet den **OverlayApiServer** auf `http://localhost:8081` und läuft solange das Terminal offen ist.
 
 ---
 
-## 3. HTTPS-Tunnel einrichten (für lokale Entwicklung)
+## 3. ngrok-Tunnel einrichten
 
-Twitch Extensions erlauben **ausschließlich HTTPS**-Verbindungen.  
-Für lokale Tests kannst du [ngrok](https://ngrok.com) verwenden:
+Da der Bot lokal läuft, muss er über einen HTTPS-Tunnel für Twitch erreichbar gemacht werden.  
+Starte ngrok in einem **zweiten Terminal**:
 
 ```bash
 ngrok http 8081
@@ -97,7 +100,7 @@ https://abc123.ngrok-free.app
 
 ## 6. API-Endpunkte (Referenz)
 
-Der Java-Bot stellt folgende Endpunkte bereit (Port `8081`):
+Der Java-Bot läuft lokal und stellt folgende Endpunkte unter `http://localhost:8081` bereit (über ngrok auch per HTTPS erreichbar):
 
 | Endpunkt | Methode | Beschreibung |
 |---|---|---|
@@ -112,9 +115,10 @@ Der Java-Bot stellt folgende Endpunkte bereit (Port `8081`):
 
 ---
 
-## 7. Produktionsbetrieb (eigener Server)
+## 7. Produktionsbetrieb (optional – eigener Server)
 
-Für den Dauerbetrieb empfiehlt sich ein eigener Linux-Server mit einem Reverse Proxy:
+Der Bot kann statt auf localhost auch dauerhaft auf einem Linux-Server laufen.  
+In diesem Fall entfällt ngrok und du verwendest stattdessen einen Reverse Proxy:
 
 ### systemd Service
 
@@ -174,8 +178,10 @@ Die `docker-compose.yml` im Repository-Root startet Bot und Supabase gemeinsam.
 
 | Problem | Lösung |
 |---|---|
-| Extension zeigt „⚠️ Extension benötigt HTTPS" | Testing Base URI muss HTTPS sein (ngrok oder eigener Server) |
+| Extension zeigt „⚠️ Extension benötigt HTTPS" | ngrok muss laufen und die Testing Base URI muss die ngrok-HTTPS-URL sein |
+| Bot nicht erreichbar | Prüfe ob `java -jar …` noch im Terminal läuft und Port `8081` frei ist |
 | Punkte werden nicht angezeigt | Prüfe ob `SUPABASE_URL` und `SUPABASE_API_KEY` korrekt gesetzt sind |
 | CORS-Fehler in der Browser-Konsole | Stelle sicher, dass die Extension über `*.twitch.tv` oder `*.ext-twitch.tv` geladen wird |
 | Bot startet nicht | Java 21+ prüfen: `java -version` |
 | OAuth-Token abgelaufen | `TWITCH_REFRESH_TOKEN` setzen, Bot erneuert Token automatisch |
+| ngrok-URL ändert sich | Nach jedem ngrok-Neustart die Testing Base URI im Twitch Developer Dashboard aktualisieren |
