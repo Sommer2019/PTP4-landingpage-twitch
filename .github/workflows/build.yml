@@ -108,10 +108,11 @@ jobs:
 
       # 7. Extension-Ordner als ZIP verpacken (mit bereits eingesetzten Werten)
       - name: Zip extension folder
-        shell: bash
+        shell: pwsh
         run: |
-          cd TwitchAddon/src/main/resources/extension
-          zip -r "$GITHUB_WORKSPACE/TwitchAddon/dist/extension.zip" .
+          $src  = "TwitchAddon\src\main\resources\extension"
+          $dest = "TwitchAddon\dist\extension.zip"
+          Compress-Archive -Path "$src\*" -DestinationPath $dest -Force
 
       # 8. Release
       - name: Create and Upload Release
@@ -121,7 +122,7 @@ jobs:
           name: TwitchAddon Build ${{ github.run_number }}
           files: |
             TwitchAddon/dist/*.exe
-            TwitchAddon/target/ChannelPointsBot-1.0-SNAPSHOT.jar
+            TwitchAddon/target/*.jar
             TwitchAddon/dist/extension.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
