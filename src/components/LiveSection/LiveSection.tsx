@@ -157,10 +157,10 @@ export default function LiveSection() {
 
                 <p></p>
 
-                {/* Diese Sektion muss IMMER da stehen, unabhängig von isLive */}
+                {/* nun per Twitch addon 
                 <div className="points-reward-section-wrapper">
                     <PointsAndRewardSection isLive={showStream}/>
-                </div>
+                </div>*/}
             </div>
         </section>
     )
