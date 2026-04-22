@@ -274,43 +274,43 @@ public class SupabaseClient {
                 } else {
                     logger.warn("resolveTwitchUsernameById: Leeres data-Array von Helix API für ID {}", twitchUserId);
                 }
-            } } else if (response.statusCode() == 401) {
-                  logger.warn("resolveTwitchUsernameById: 401 - versuche Token-Refresh...");
-                  try {
-                      String newToken = TwitchOAuthUtil.refreshAccessToken(
-                          twitchClientId,
-                          twitchClientSecret,
-                          twitchRefreshToken
-                      );
-                      if (newToken != null) {
-                          setTwitchCredentials(twitchClientId, newToken);
-                          // Einmal wiederholen mit neuem Token
-                          HttpRequest retryRequest = HttpRequest.newBuilder()
-                              .uri(URI.create("https://api.twitch.tv/helix/channels?broadcaster_id=" + twitchUserId))
-                              .header("Client-ID", twitchClientId)
-                              .header("Authorization", "Bearer " + newToken)
-                              .header("Accept", "application/json")
-                              .timeout(Duration.ofSeconds(10))
-                              .GET()
-                              .build();
-                          HttpResponse<String> retryResponse = client.send(retryRequest, BodyHandlers.ofString());
-                          if (retryResponse.statusCode() >= 200 && retryResponse.statusCode() < 300) {
-                              JSONObject json = new JSONObject(retryResponse.body());
-                              JSONArray data = json.optJSONArray("data");
-                              if (data != null && !data.isEmpty()) {
-                                  String username = firstNonBlank(
-                                      data.getJSONObject(0).optString("broadcaster_name", null),
-                                      data.getJSONObject(0).optString("broadcaster_login", null)
-                                  );
-                                  usernameCache.put(twitchUserId, new CachedUsername(nullToEmpty(username), now + USERNAME_CACHE_TTL_MS));
-                                  return username;
-                              }
-                          }
-                      }
-                  } catch (Exception refreshEx) {
-                      logger.error("Token-Refresh fehlgeschlagen: {}", refreshEx.getMessage());
-                  }
-              } else {
+            } else if (response.statusCode() == 401) {
+                logger.warn("resolveTwitchUsernameById: 401 - versuche Token-Refresh...");
+                try {
+                    String newToken = TwitchOAuthUtil.refreshAccessToken(
+                        twitchClientId,
+                        twitchClientSecret,
+                        twitchRefreshToken
+                    );
+                    if (newToken != null) {
+                        setTwitchCredentials(twitchClientId, newToken);
+                        // Einmal wiederholen mit neuem Token
+                        HttpRequest retryRequest = HttpRequest.newBuilder()
+                            .uri(URI.create("https://api.twitch.tv/helix/channels?broadcaster_id=" + twitchUserId))
+                            .header("Client-ID", twitchClientId)
+                            .header("Authorization", "Bearer " + newToken)
+                            .header("Accept", "application/json")
+                            .timeout(Duration.ofSeconds(10))
+                            .GET()
+                            .build();
+                        HttpResponse<String> retryResponse = client.send(retryRequest, BodyHandlers.ofString());
+                        if (retryResponse.statusCode() >= 200 && retryResponse.statusCode() < 300) {
+                            JSONObject json = new JSONObject(retryResponse.body());
+                            JSONArray data = json.optJSONArray("data");
+                            if (data != null && !data.isEmpty()) {
+                                String username = firstNonBlank(
+                                    data.getJSONObject(0).optString("broadcaster_name", null),
+                                    data.getJSONObject(0).optString("broadcaster_login", null)
+                                );
+                                usernameCache.put(twitchUserId, new CachedUsername(nullToEmpty(username), now + USERNAME_CACHE_TTL_MS));
+                                return username;
+                            }
+                        }
+                    }
+                } catch (Exception refreshEx) {
+                    logger.error("Token-Refresh fehlgeschlagen: {}", refreshEx.getMessage());
+                }
+            } else {
                 logger.error("resolveTwitchUsernameById: Helix API Fehler Status {} für ID {}: {}", response.statusCode(), twitchUserId, response.body());
             }
         } catch (Exception e) {
