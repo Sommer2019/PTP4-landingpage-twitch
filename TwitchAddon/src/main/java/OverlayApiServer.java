@@ -1,23 +1,23 @@
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 public class OverlayApiServer {
     private final SupabaseClient supabaseClient;
+    private static final String EXTENSION_SECRET = System.getenv("EXTENSION_SECRET");
 
     public OverlayApiServer(SupabaseClient supabaseClient) throws IOException {
         this.supabaseClient = supabaseClient;
         HttpServer server = HttpServer.create(new java.net.InetSocketAddress(8081), 0);
-        server.createContext("/api/redeemed_rewards", new RedeemedRewardsHandler());
-        server.createContext("/api/rewards", new RewardsHandler());
-        server.createContext("/api/redeem_check", new RedeemCheckHandler());
-        server.createContext("/api/points", new PointsHandler());
-        server.createContext("/api/leaderboard", new LeaderboardHandler());
+        server.createContext("/api/redeemed_rewards", new RedeemedRewardsHandler(supabaseClient));
+        server.createContext("/api/rewards", new RewardsHandler(supabaseClient));
+        server.createContext("/api/redeem_check", new RedeemCheckHandler(supabaseClient));
+        server.createContext("/api/points", new PointsHandler(supabaseClient));
+        server.createContext("/api/leaderboard", new LeaderboardHandler(supabaseClient));
         server.createContext("/overlay.html", new StaticFileHandler("overlay.html", "text/html"));
         server.createContext("/tts-test.html", new StaticFileHandler("tts-test.html", "text/html"));
         server.createContext("/media", new StaticDirHandler("media"));
@@ -28,7 +28,7 @@ public class OverlayApiServer {
     }
 
     /** Adds CORS headers required for Twitch Extensions. Only allows Twitch Extension origins. */
-    private static void addCorsHeaders(HttpExchange exchange) {
+    public static void addCorsHeaders(HttpExchange exchange) {
         String origin = exchange.getRequestHeaders().getFirst("Origin");
         if (origin != null && (origin.endsWith(".twitch.tv") || origin.endsWith(".ext-twitch.tv"))) {
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", origin);
@@ -42,7 +42,7 @@ public class OverlayApiServer {
     }
 
     /** Handles CORS pre-flight OPTIONS request; returns true when handled. */
-    private static boolean handleCorsPreFlight(HttpExchange exchange) throws IOException {
+    public static boolean handleCorsPreFlight(HttpExchange exchange) throws IOException {
         if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
             addCorsHeaders(exchange);
             exchange.sendResponseHeaders(204, -1);
@@ -51,333 +51,25 @@ public class OverlayApiServer {
         return false;
     }
 
-    class PointsHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (handleCorsPreFlight(exchange)) return;
-            addCorsHeaders(exchange);
-            if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-                exchange.sendResponseHeaders(405, 0);
-                exchange.getResponseBody().close();
-                return;
-            }
-            String query = exchange.getRequestURI().getQuery();
-            String userId = null;
-            if (query != null) {
-                for (String param : query.split("&")) {
-                    if (param.startsWith("user_id=")) {
-                        userId = param.substring("user_id=".length());
-                        break;
-                    }
-                }
-            }
-            if (userId == null || userId.isBlank()) {
-                String resp = "{\"error\":\"missing_user_id\"}";
-                byte[] bytes = resp.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-                exchange.getResponseHeaders().add("Content-Type", "application/json");
-                exchange.sendResponseHeaders(400, bytes.length);
-                exchange.getResponseBody().write(bytes);
-                exchange.getResponseBody().close();
-                return;
-            }
-            int points = supabaseClient.getPointsByUserId(userId);
-            JSONObject result = new JSONObject();
-            result.put("twitch_user_id", userId);
-            result.put("points", points == -1 ? 0 : points);
-            result.put("registered", points != -1);
-            byte[] bytes = result.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, bytes.length);
-            exchange.getResponseBody().write(bytes);
-            exchange.getResponseBody().close();
+    /**
+     * Dekodiert das Twitch Extension JWT und gibt die echte user_id zurück.
+     * Gibt null zurück wenn das JWT ungültig ist oder keine user_id enthält.
+     */
+    public static String resolveUserIdFromJwt(String jwt) {
+        if (jwt == null || jwt.isBlank() || EXTENSION_SECRET == null) return null;
+        try {
+            byte[] secretBytes = java.util.Base64.getDecoder().decode(EXTENSION_SECRET);
+            Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secretBytes))
+                .build()
+                .parseSignedClaims(jwt)
+                .getPayload();
+            // user_id ist die echte Twitch-ID wenn Identity Linking aktiv ist
+            String userId = claims.get("user_id", String.class);
+            return (userId != null && !userId.isBlank()) ? userId : null;
+        } catch (Exception e) {
+            return null;
         }
     }
-
-    class LeaderboardHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (handleCorsPreFlight(exchange)) return;
-            addCorsHeaders(exchange);
-            if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-                exchange.sendResponseHeaders(405, 0);
-                exchange.getResponseBody().close();
-                return;
-            }
-            int limit = 10;
-            String query = exchange.getRequestURI().getQuery();
-            if (query != null) {
-                for (String param : query.split("&")) {
-                    if (param.startsWith("limit=")) {
-                        try { limit = Integer.parseInt(param.substring("limit=".length())); } catch (NumberFormatException ignored) {}
-                        break;
-                    }
-                }
-            }
-            JSONArray leaderboard = supabaseClient.getLeaderboard(limit);
-            byte[] bytes = leaderboard.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, bytes.length);
-            exchange.getResponseBody().write(bytes);
-            exchange.getResponseBody().close();
-        }
-    }
-
-    class RedeemedRewardsHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (handleCorsPreFlight(exchange)) return;
-            addCorsHeaders(exchange);
-            String method = exchange.getRequestMethod();
-            if (method.equalsIgnoreCase("GET")) {
-                JSONArray rewards = supabaseClient.getRedeemedRewardsWithUsernames();
-                String response = rewards.toString();
-                byte[] responseBytes = response.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-                exchange.getResponseHeaders().add("Content-Type", "application/json");
-                exchange.sendResponseHeaders(200, responseBytes.length);
-                OutputStream os = exchange.getResponseBody();
-                os.write(responseBytes);
-                os.close();
-            } else if (method.equalsIgnoreCase("DELETE")) {
-                String query = exchange.getRequestURI().getQuery();
-                String id = null;
-                if (query != null) {
-                    for (String param : query.split("&")) {
-                        if (param.startsWith("id=")) {
-                            id = param.substring(3);
-                            break;
-                        }
-                    }
-                }
-
-                if (id == null || id.isEmpty()) {
-                    String resp = "{\"error\":\"missing_id\"}";
-                    exchange.sendResponseHeaders(400, resp.length());
-                    exchange.getResponseBody().write(resp.getBytes());
-                    exchange.getResponseBody().close();
-                    return;
-                }
-
-                JSONObject redeemedReward = supabaseClient.getRedeemedRewardById(id);
-                if (redeemedReward == null) {
-                    exchange.sendResponseHeaders(404, 0);
-                    exchange.getResponseBody().close();
-                    return;
-                }
-
-                String rewardId = redeemedReward.getString("reward_id");
-                String redeemedBy = redeemedReward.optString("twitch_user_id", null);
-
-                // 1. Einfach und ohne Wenn und Aber aus der Warteschlange löschen!
-                boolean success = supabaseClient.deleteRedeemedReward(id);
-
-                // 2. redeemed_global per Plugin setzen, sobald es erfolgreich verarbeitet wurde
-                if (success) {
-                    boolean oncePerStream = supabaseClient.isRewardOncePerStream(rewardId);
-                    int cooldown = supabaseClient.getRewardCooldownFromDb(rewardId);
-
-                    if (oncePerStream || cooldown > 0) {
-                        JSONObject globalLock = new JSONObject();
-                        globalLock.put("reward_id", rewardId);
-                        globalLock.put("redeemed_by", redeemedBy);
-                        globalLock.put("is_active", true);
-
-                        // Wenn oncePerStream, läuft es bis zum Stream-Ende (wo dein TwitchBot es ohnehin löscht).
-                        // Falls es nur ein Cooldown ist, setzen wir die genaue Ablaufzeit.
-                        if (!oncePerStream && cooldown > 0) {
-                            java.time.OffsetDateTime expires = java.time.OffsetDateTime.now().plusSeconds(cooldown);
-                            globalLock.put("expires_at", expires.toString());
-                        }
-
-                        System.out.println("[OverlayApiServer] Globaler Lock gesetzt für Reward: " + rewardId);
-                    }
-                }
-
-                String response = success ? "deleted" : "delete failed";
-                exchange.sendResponseHeaders(success ? 200 : 500, response.length());
-                OutputStream os = exchange.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
-            } else {
-                exchange.sendResponseHeaders(405, 0);
-                exchange.getResponseBody().close();
-            }
-        }
-    }
-
-    class RedeemCheckHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (handleCorsPreFlight(exchange)) return;
-            addCorsHeaders(exchange);
-            if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-                exchange.sendResponseHeaders(405, 0);
-                exchange.getResponseBody().close();
-                return;
-            }
-            String query = exchange.getRequestURI().getQuery();
-            String id = null;
-            if (query != null) {
-                for (String param : query.split("&")) {
-                    if (param.startsWith("id=")) {
-                        id = param.substring(3);
-                        break;
-                    }
-                }
-            }
-            if (id == null) {
-                exchange.sendResponseHeaders(400, 0);
-                exchange.getResponseBody().close();
-                return;
-            }
-            JSONObject redeemedReward = supabaseClient.getRedeemedRewardById(id);
-            if (redeemedReward == null) {
-                exchange.sendResponseHeaders(404, 0);
-                exchange.getResponseBody().close();
-                return;
-            }
-
-            // DEPRECATED: Diese Prüfung sollte nur noch zur Info dienen.
-            // Die Cooldown/Once-Per-Stream Prüfung und Punkte-Debit erfolgen jetzt ALLE in der RPC-Funktion!
-            // Daher werden hier KEINE Punkte mehr automatisch zurückgegeben.
-
-            String rewardId = redeemedReward.optString("reward_id", null);
-
-            // Check once-per-stream (nur zur Info)
-            boolean oncePerStream = supabaseClient.isRewardOncePerStream(rewardId);
-            if (oncePerStream) {
-                boolean activeGlobal = supabaseClient.hasActiveGlobalRedemption(rewardId, null);
-                if (activeGlobal) {
-                    JSONObject resp = new JSONObject();
-                    resp.put("allowed", false);
-                    resp.put("error", "once_per_stream_active");
-                    resp.put("info", "RPC sollte dies bereits blockiert haben. Punkte wurden NICHT zurückgegeben (RPC handhabt Debit).");
-                    String respStr = resp.toString();
-                    exchange.getResponseHeaders().add("Content-Type", "application/json");
-                    exchange.sendResponseHeaders(200, respStr.length());
-                    exchange.getResponseBody().write(respStr.getBytes());
-                    exchange.getResponseBody().close();
-                    return;
-                }
-            }
-
-            // Check global cooldown (nur zur Info)
-            long lastGlobal = supabaseClient.getLastGlobalRedemptionTimestamp(rewardId);
-            int cooldown = supabaseClient.getRewardCooldownFromDb(rewardId);
-            long now = System.currentTimeMillis();
-            if (lastGlobal > 0) {
-                long globalElapsed = (now - lastGlobal) / 1000L;
-                if (cooldown > 0 && globalElapsed < cooldown) {
-                    JSONObject resp = new JSONObject();
-                    resp.put("allowed", false);
-                    resp.put("error", "cooldown_active");
-                    resp.put("remaining", cooldown - globalElapsed);
-                    resp.put("info", "RPC sollte dies bereits blockiert haben. Punkte wurden NICHT zurückgegeben (RPC handhabt Debit).");
-                    String respStr = resp.toString();
-                    exchange.getResponseHeaders().add("Content-Type", "application/json");
-                    exchange.sendResponseHeaders(200, respStr.length());
-                    exchange.getResponseBody().write(respStr.getBytes());
-                    exchange.getResponseBody().close();
-                    return;
-                }
-            }
-
-            // No block -> allowed
-            JSONObject ok = new JSONObject();
-            ok.put("allowed", true);
-            String okStr = ok.toString();
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, okStr.length());
-            exchange.getResponseBody().write(okStr.getBytes());
-            exchange.getResponseBody().close();
-        }
-    }
-
-    class RewardsHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (handleCorsPreFlight(exchange)) return;
-            addCorsHeaders(exchange);
-            String method = exchange.getRequestMethod();
-            if (method.equalsIgnoreCase("GET")) {
-                JSONArray rewards = supabaseClient.getRewards(); // Annahme: getRewards() liefert alle Rewards aus der DB
-                String response = rewards.toString();
-                byte[] responseBytes = response.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-                exchange.getResponseHeaders().add("Content-Type", "application/json");
-                exchange.sendResponseHeaders(200, responseBytes.length);
-                OutputStream os = exchange.getResponseBody();
-                os.write(responseBytes);
-                os.close();
-            } else {
-                exchange.sendResponseHeaders(405, 0);
-                exchange.getResponseBody().close();
-            }
-        }
-    }
-
-    // RewardsJsonHandler entfernt, da rewards.json nicht mehr verwendet wird
-
-    // Handler für das Einlösen von Rewards mit Cooldown-Prüfung wurde entfernt, da Redeems nur noch über Supabase laufen
-
-    static class StaticFileHandler implements HttpHandler {
-        private final String resourcePath;
-        private final String contentType;
-        public StaticFileHandler(String resourcePath, String contentType) {
-            this.resourcePath = resourcePath;
-            this.contentType = contentType;
-        }
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (handleCorsPreFlight(exchange)) return;
-            addCorsHeaders(exchange);
-            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-                if (is == null) {
-                    exchange.sendResponseHeaders(404, 0);
-                    exchange.getResponseBody().close();
-                    return;
-                }
-                byte[] data = is.readAllBytes();
-                exchange.getResponseHeaders().add("Content-Type", contentType);
-                exchange.sendResponseHeaders(200, data.length);
-                OutputStream os = exchange.getResponseBody();
-                os.write(data);
-                os.close();
-            } catch (IOException e) {
-                exchange.sendResponseHeaders(500, 0);
-                exchange.getResponseBody().close();
-            }
-        }
-    }
-
-    static class StaticDirHandler implements HttpHandler {
-        private final String resourceDir;
-        public StaticDirHandler(String resourceDir) {
-            this.resourceDir = resourceDir;
-        }
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (handleCorsPreFlight(exchange)) return;
-            addCorsHeaders(exchange);
-            String uri = exchange.getRequestURI().getPath();
-            String fileName = uri.substring(uri.lastIndexOf("/") + 1);
-            String resourcePath = resourceDir + "/" + fileName;
-            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-                if (is == null) {
-                    exchange.sendResponseHeaders(404, 0);
-                    exchange.getResponseBody().close();
-                    return;
-                }
-                String contentType = java.nio.file.Files.probeContentType(java.nio.file.Paths.get(fileName));
-                byte[] data = is.readAllBytes();
-                exchange.getResponseHeaders().add("Content-Type", contentType != null ? contentType : "application/octet-stream");
-                exchange.sendResponseHeaders(200, data.length);
-                OutputStream os = exchange.getResponseBody();
-                os.write(data);
-                os.close();
-            } catch (IOException e) {
-                exchange.sendResponseHeaders(500, 0);
-                exchange.getResponseBody().close();
-            }
-        }
-    }
-
 }
+

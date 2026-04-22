@@ -4,6 +4,7 @@ var SUPABASE_URL  = '__SUPABASE_URL__';
 var SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
 
 var viewerUserId  = null;
+var viewerJwt     = null; // JWT Token speichern
 var userPoints    = 0;
 var allRewards    = [];
 var selectedId    = null;
@@ -42,9 +43,14 @@ function sbGet(table, qs) {
 }
 
 // Loaders
-function loadMyPoints(uid) {
+function loadMyPoints(uid, jwt) {
   var el = document.getElementById('myPoints');
-  fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid))
+  var headers = {};
+  if (jwt) headers['x-extension-jwt'] = jwt;
+
+  fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid), {
+    headers: headers
+  })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (!data.registered) {
@@ -58,9 +64,14 @@ function loadMyPoints(uid) {
     .catch(function() { el.innerHTML = '<div class="error-msg">Punkte konnten nicht geladen werden.</div>'; });
 }
 
-function loadLeaderboard() {
+function loadLeaderboard(jwt) {
   var el = document.getElementById('leaderboardList');
-  fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
+  var headers = {};
+  if (jwt) headers['x-extension-jwt'] = jwt;
+
+  fetch(EBS_BASE_URL + '/api/leaderboard?limit=10', {
+    headers: headers
+  })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Eintraege.</div>'; return; }
@@ -257,6 +268,7 @@ function handleRedeem() {
 
 // Twitch Auth
 window.Twitch.ext.onAuthorized(function(auth) {
+  viewerJwt = auth.token; // JWT speichern
   viewerUserId = (auth.userId && auth.userId !== '0') ? auth.userId : null;
 
   if (!viewerUserId) {
@@ -265,17 +277,18 @@ window.Twitch.ext.onAuthorized(function(auth) {
     document.getElementById('myPoints').innerHTML =
       '<div class="not-registered">Bitte erteile der Extension Zugriff auf deine Twitch-ID um deine Punkte zu sehen.</div>';
   } else {
-    loadMyPoints(viewerUserId);
+    // Immer Punkte laden — Backend löst opaque ID auf
+    loadMyPoints(viewerUserId, viewerJwt);
   }
 
   if (allRewards.length && !selectedId) renderGrid();
 });
 
-loadLeaderboard();
+loadLeaderboard(viewerJwt);
 loadRewards();
 
 setInterval(function() {
-  loadLeaderboard();
+  loadLeaderboard(viewerJwt);
   if (!selectedId) loadRewards();
-  if (viewerUserId) loadMyPoints(viewerUserId);
+  if (viewerUserId) loadMyPoints(viewerUserId, viewerJwt);
 }, 60000);

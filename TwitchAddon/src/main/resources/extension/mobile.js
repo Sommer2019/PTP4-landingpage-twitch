@@ -2,13 +2,19 @@
 var EBS_BASE_URL = '__EBS_BASE_URL__';
 
 var viewerUserId = null;
+var viewerJwt = null; // JWT Token speichern
 
 function fmt(n) { return Number(n).toLocaleString('de-DE'); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function loadMyPoints(uid) {
+function loadMyPoints(uid, jwt) {
   var el = document.getElementById('myPoints');
-  fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid))
+  var headers = {};
+  if (jwt) headers['x-extension-jwt'] = jwt;
+  
+  fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid), {
+    headers: headers
+  })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (!data.registered) {
@@ -20,9 +26,14 @@ function loadMyPoints(uid) {
     .catch(function() { el.innerHTML = '<div class="error-msg">Fehler beim Laden.</div>'; });
 }
 
-function loadLeaderboard() {
+function loadLeaderboard(jwt) {
   var el = document.getElementById('leaderboardList');
-  fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
+  var headers = {};
+  if (jwt) headers['x-extension-jwt'] = jwt;
+  
+  fetch(EBS_BASE_URL + '/api/leaderboard?limit=10', {
+    headers: headers
+  })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Eintraege.</div>'; return; }
@@ -40,6 +51,7 @@ function loadLeaderboard() {
 }
 
 window.Twitch.ext.onAuthorized(function(auth) {
+  viewerJwt = auth.token; // JWT speichern
   viewerUserId = (auth.userId && auth.userId !== '0') ? auth.userId : null;
 
   if (!viewerUserId) {
@@ -48,13 +60,14 @@ window.Twitch.ext.onAuthorized(function(auth) {
     document.getElementById('myPoints').innerHTML =
       '<div class="not-registered">Bitte erteile der Extension Zugriff auf deine Twitch-ID.</div>';
   } else {
-    loadMyPoints(viewerUserId);
+    // Immer Punkte laden — Backend löst opaque ID auf
+    loadMyPoints(viewerUserId, viewerJwt);
   }
 });
 
-loadLeaderboard();
+loadLeaderboard(viewerJwt);
 
 setInterval(function() {
-  loadLeaderboard();
-  if (viewerUserId) loadMyPoints(viewerUserId);
+  loadLeaderboard(viewerJwt);
+  if (viewerUserId) loadMyPoints(viewerUserId, viewerJwt);
 }, 60000);
