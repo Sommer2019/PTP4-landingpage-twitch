@@ -1,0 +1,796 @@
+{
+  "settings": {
+    "theme": "Droggelbecher",
+    "language": "Droggelbecher",
+    "light": "Droggelbecher",
+    "dark": "Droggelbecher",
+    "system": "Droggelbecher"
+  },
+  "hero": {
+    "subtitle": "FullHD – Droggelbecher, Droggelbecher & Droggelbecher"
+  },
+  "mobileToggle": {
+    "live": "Droggelbecher",
+    "links": "Droggelbecher",
+    "games": "Droggelbecher",
+    "ariaLabel": "Droggelbecher"
+  },
+  "sections": {
+    "games": "Droggelbecher-Droggelbecher Droggelbecher",
+    "clips": "Droggelbecher & Droggelbecher",
+    "partners": "Droggelbecher"
+  },
+  "live": {
+    "title": "🥣 Droggelbecher",
+    "offlineTitle": "Droggelbecher",
+    "nextStream": "Droggelbecher Droggelbecher",
+    "scheduleLoading": "Droggelbecher Droggelbecher…",
+    "seeSchedule": "Droggelbecher Droggelbecher →",
+    "chatFallback": "Droggelbecher im Droggelbecher",
+    "sectionLabel": "Droggelbecher Droggelbecher"
+  },
+  "currentGame": {
+    "label": "Droggelbecher Droggelbecher",
+    "nowPlaying": "Droggelbecher Droggelbecher",
+    "storesLabel": "Droggelbecher Droggelbecher",
+    "opensInNewTab": "Droggelbecher Droggelbecher",
+    "stores": {
+      "twitch": "Droggelbecher",
+      "steam": "Droggelbecher",
+      "epic": "Droggelbecher",
+      "nintendo": "Droggelbecher",
+      "psstore": "Droggelbecher",
+      "xbox": "Droggelbecher"
+    }
+  },
+  "links": {
+    "streamplan": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher-Droggelbecher"
+    },
+    "streamelements": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher + Droggelbecher"
+    },
+    "clipdesmonats": {
+      "title": "Droggelbecher Droggelbecher",
+      "desc": "Droggelbecher für Droggelbecher"
+    },
+    "youtube": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher"
+    },
+    "tiktok": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher"
+    },
+    "instagram": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher"
+    },
+    "onlybart": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher"
+    },
+    "discord": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher"
+    },
+    "email": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher Droggelbecher"
+    }
+  },
+  "games": {
+    "tanggle": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher Droggelbecher"
+    },
+    "resourcepack": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher"
+    },
+    "bartclicker": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher"
+    }
+  },
+  "clips": {
+    "ytShorts": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher & Droggelbecher"
+    },
+    "tiktokClips": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher & Droggelbecher"
+    },
+    "instaClips": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher & Droggelbecher"
+    }
+  },
+  "partners": {
+    "yvolve": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher Droggelbecher"
+    },
+    "nclip": {
+      "title": "Droggelbecher"
+    },
+    "frugends": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher FullHD"
+    }
+  },
+  "profile": {
+    "moderate": "Droggelbecher"
+  },
+  "footer": {
+    "impressum": "Droggelbecher",
+    "datenschutz": "Droggelbecher"
+  },
+  "downloadModal": {
+    "title": "Droggelbecher",
+    "message": "Droggelbecher:",
+    "cancel": "Droggelbecher",
+    "confirm": "Droggelbecher"
+  },
+  "confirmModal": {
+    "ok": "Droggelbecher",
+    "cancel": "Droggelbecher",
+    "delete": "Droggelbecher",
+    "deleteTitle": "Droggelbecher",
+    "errorTitle": "Droggelbecher"
+  },
+  "cookieBanner": {
+    "text": "Droggelbecher Droggelbecher, Droggelbecher.",
+    "privacyLink": "Droggelbecher",
+    "accept": "Droggelbecher",
+    "reject": "Droggelbecher"
+  },
+  "toast": {
+    "codeCopied": "Droggelbecher: {{code}}",
+    "downloadStarted": "Droggelbecher"
+  },
+  "discountCode": "Droggelbecher: {{code}}",
+  "back": "← Droggelbecher",
+  "impressumPage": {
+    "title": "Droggelbecher",
+    "contact": "Droggelbecher"
+  },
+  "datenschutzPage": {
+    "title": "Droggelbecher",
+    "responsible": "Droggelbecher",
+    "contact": "Droggelbecher",
+    "votingTitle": "Droggelbecher",
+    "votingIntro": "Droggelbecher. Droggelbecher, Droggelbecher.",
+    "processingTitle": "Droggelbecher",
+    "processingText": "Droggelbecher, Droggelbecher. Droggelbecher.",
+    "purposeTitle": "Droggelbecher",
+    "purposeText": "Droggelbecher Droggelbecher.",
+    "retentionTitle": "Droggelbecher",
+    "retentionText": "Droggelbecher.",
+    "legalBasisTitle": "Droggelbecher",
+    "legalBasisText": "Droggelbecher.",
+    "onlyBartTitle": "Droggelbecher",
+    "onlyBartIntro": "Droggelbecher Droggelbecher.",
+    "onlyBartPurposeTitle": "Droggelbecher",
+    "onlyBartPurposeText": "Droggelbecher.",
+    "onlyBartRetentionTitle": "Droggelbecher",
+    "onlyBartRetentionText": "Droggelbecher.",
+    "bartclickerTitle": "Droggelbecher",
+    "bartclickerIntro": "Droggelbecher Droggelbecher.",
+    "bartclickerPurposeTitle": "Droggelbecher",
+    "bartclickerPurposeText": "Droggelbecher.",
+    "bartclickerRetentionTitle": "Droggelbecher",
+    "bartclickerRetentionText": "Droggelbecher.",
+    "analyticsTitle": "Droggelbecher",
+    "analyticsIntro": "Droggelbecher.",
+    "analyticsProcessingTitle": "Droggelbecher",
+    "analyticsProcessingText": "Droggelbecher.",
+    "analyticsPurposeTitle": "Droggelbecher",
+    "analyticsPurposeText": "Droggelbecher.",
+    "analyticsLegalTitle": "Droggelbecher",
+    "analyticsLegalText": "Droggelbecher.",
+    "revokeTitle": "Droggelbecher",
+    "revokeText": "Droggelbecher.",
+    "rightsTitle": "Droggelbecher",
+    "rightsText": "Droggelbecher."
+  },
+  "streamplanPage": {
+    "title": "Droggelbecher",
+    "intro": "Droggelbecher.",
+    "filter": "Droggelbecher",
+    "all": "Droggelbecher",
+    "noEvents": "Droggelbecher.",
+    "showMore": "Droggelbecher ({{count}} Droggelbecher)",
+    "showLess": "Droggelbecher",
+    "icalHint": {
+      "title": "Droggelbecher",
+      "desc": "Droggelbecher.",
+      "copy": "Droggelbecher",
+      "copied": "Droggelbecher!",
+      "google": "Droggelbecher: Droggelbecher.",
+      "apple": "Droggelbecher: Droggelbecher."
+    }
+  },
+  "streamplan": {
+    "categories": {
+      "gog": "Droggelbecher",
+      "justchatting": "Droggelbecher",
+      "grind": "Droggelbecher",
+      "special": "Droggelbecher",
+      "multiplayer": "Droggelbecher",
+      "action": "Droggelbecher"
+    }
+  },
+  "streamelementsPage": {
+    "title": "Droggelbecher",
+    "intro": "Droggelbecher.",
+    "donateButton": "Droggelbecher",
+    "close": "Droggelbecher",
+    "donateSpecific": "Droggelbecher ({{amount}} €)"
+  },
+  "donations": {
+    "taschengeld": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🎉"
+    },
+    "tts": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🔊"
+    },
+    "knock": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🚪"
+    },
+    "majortom": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🧑🏼‍🚀"
+    },
+    "scream": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 😱"
+    },
+    "fliege1": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🪰"
+    },
+    "centershock": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🍋"
+    },
+    "ytSound": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🪩"
+    },
+    "fliege2": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🪰"
+    },
+    "1920": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher ⁉️"
+    },
+    "fliege3": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🪰"
+    },
+    "konfetti": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🎉"
+    },
+    "hotnuts": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🔥"
+    },
+    "sandwich": {
+      "desc": "Droggelbecher",
+      "text": "Droggelbecher 🔥"
+    }
+  },
+  "auth": {
+    "loading": "Droggelbecher…",
+    "loginRequired": "Droggelbecher",
+    "loginHint": "Droggelbecher.",
+    "loginWithTwitch": "Droggelbecher",
+    "loggedInAs": "Droggelbecher {{name}}",
+    "logout": "Droggelbecher",
+    "requiredTitle": "Droggelbecher",
+    "requiredMsg": "Droggelbecher."
+  },
+  "error": {
+    "title": "Droggelbecher",
+    "forbidden": "Droggelbecher."
+  },
+  "bartclickerPage": {
+    "title": "Droggelbecher",
+    "description": "Droggelbecher!"
+  },
+  "moderate": {
+    "forbidden": "Droggelbecher",
+    "forbiddenHint": "Droggelbecher.",
+    "landingTitle": "Droggelbecher",
+    "welcome": "Droggelbecher, {{name}}!",
+    "settings": "Droggelbecher",
+    "unknownUser": "Droggelbecher",
+    "loggedInAs": "Droggelbecher {{name}}",
+    "votingTitle": "Droggelbecher",
+    "settingsTitle": "Droggelbecher",
+    "actions": "Droggelbecher",
+    "startRound2": "Droggelbecher",
+    "endRound2": "Droggelbecher",
+    "startYearly": "Droggelbecher",
+    "endYearly": "Droggelbecher",
+    "success": "Droggelbecher",
+    "roundOverview": "Droggelbecher",
+    "noRounds": "Droggelbecher.",
+    "modSync": "Droggelbecher",
+    "modSyncHint": "Droggelbecher.",
+    "modSyncWhoCanSync": "Droggelbecher?",
+    "modSyncBroadcasterCanSync": "✅ Droggelbecher",
+    "modSyncModeratorCanSync": "✅ Droggelbecher",
+    "modSyncAnyoneCanSync": "✅ Droggelbecher",
+    "modSyncUserCannotSync": "❌ Droggelbecher",
+    "syncNow": "Droggelbecher",
+    "syncSyncing": "Droggelbecher…",
+    "loginForSync": "Droggelbecher",
+    "syncMissingScope": "Droggelbecher.",
+    "syncSuccess": "{{count}} Droggelbecher",
+    "syncError": "Droggelbecher: {{error}}",
+    "syncErrorForbidden": "Droggelbecher.",
+    "currentMods": "{{count}} Droggelbecher",
+    "noMods": "Droggelbecher.",
+    "manualAdd": "Droggelbecher",
+    "manualAddHintWithToken": "Droggelbecher.",
+    "manualAddHintNoToken": "Droggelbecher.",
+    "addBtn": "Droggelbecher",
+    "cannotRemoveSelf": "Droggelbecher.",
+    "cannotRemoveBroadcaster": "Droggelbecher.",
+    "syncExclusions": "Droggelbecher",
+    "syncExclusionsHint": "Droggelbecher.",
+    "syncExclusionsCount": "{{count}} Droggelbecher",
+    "syncExclusionsNone": "Droggelbecher.",
+    "resetExclusions": "Droggelbecher",
+    "removeExclusionBtn": "Droggelbecher",
+    "resetExclusionsConfirmTitle": "Droggelbecher?",
+    "resetExclusionsConfirmMsg": "Droggelbecher.",
+    "resetExclusionsSuccess": "{{count}} Droggelbecher",
+    "twitchModeration": "Droggelbecher",
+    "statisticsTitle": "Droggelbecher",
+    "statisticsDescription": "Droggelbecher.",
+    "statisticsRange": "Droggelbecher",
+    "statisticsLastDays": "Droggelbecher {{days}}",
+    "statisticsRefresh": "Droggelbecher",
+    "statisticsLoading": "Droggelbecher…",
+    "statisticsError": "Droggelbecher: {{error}}",
+    "statisticsUpdatedAt": "Droggelbecher: {{timestamp}}",
+    "statisticsKpiVotes": "Droggelbecher",
+    "statisticsKpiVoters": "Droggelbecher",
+    "statisticsKpiViews": "Droggelbecher",
+    "statisticsKpiSessions": "Droggelbecher",
+    "statisticsKpiConversion": "Droggelbecher",
+    "statisticsRoundHealth": "Droggelbecher",
+    "statisticsNoRound": "Droggelbecher.",
+    "statisticsNoData": "Droggelbecher.",
+    "statisticsRound": "Droggelbecher",
+    "statisticsStatus": "Droggelbecher",
+    "statisticsMonth": "Droggelbecher",
+    "statisticsClips": "Droggelbecher",
+    "statisticsVotes": "Droggelbecher",
+    "statisticsStartsAt": "Droggelbecher",
+    "statisticsEndsAt": "Droggelbecher",
+    "statisticsTopClips": "Droggelbecher",
+    "statisticsClip": "Droggelbecher",
+    "statisticsVoteTrend": "Droggelbecher",
+    "statisticsViewsTrend": "Droggelbecher",
+    "statisticsTopPages": "Droggelbecher",
+    "statisticsTopReferrers": "Droggelbecher",
+    "statisticsLatestWinners": "Droggelbecher",
+    "statisticsRecentRounds": "Droggelbecher",
+    "statisticsPage": "Droggelbecher",
+    "statisticsViews": "Droggelbecher",
+    "statisticsReferrer": "Droggelbecher",
+    "accountManagement": "Droggelbecher",
+    "banAccount": "Droggelbecher",
+    "banInputPlaceholder": "Droggelbecher",
+    "banBtn": "Droggelbecher",
+    "bannedAccountsTitle": "Droggelbecher",
+    "noBannedAccounts": "Droggelbecher",
+    "unbanBtn": "Droggelbecher",
+    "channelPoints": "Droggelbecher",
+    "pointsInputPlaceholder": "Droggelbecher",
+    "resetPoints": "Droggelbecher",
+    "givePoints": "Droggelbecher",
+    "pointsValuePlaceholder": "Droggelbecher",
+    "rewards": "Droggelbecher",
+    "rewardsListTitle": "Droggelbecher",
+    "addRewardBtn": "Droggelbecher",
+    "noRewards": "Droggelbecher",
+    "editRewardBtn": "Droggelbecher",
+    "deleteRewardBtn": "Droggelbecher",
+    "enableRewardBtn": "Droggelbecher",
+    "disableRewardBtn": "Droggelbecher",
+    "rewardEnabled": "Droggelbecher!",
+    "rewardDisabled": "Droggelbecher!",
+    "rewardInactive": "droggelbecher",
+    "errorTogglingReward": "Droggelbecher: {{msg}}",
+    "editRewardTitle": "Droggelbecher",
+    "newRewardTitle": "Droggelbecher",
+    "rewardNameKeyPlaceholder": "Droggelbecher",
+    "rewardDescKeyPlaceholder": "Droggelbecher",
+    "rewardNameLabel": "Droggelbecher",
+    "rewardNamePlaceholder": "Droggelbecher",
+    "rewardDescriptionLabel": "Droggelbecher",
+    "rewardDescriptionPlaceholder": "Droggelbecher",
+    "rewardSourceLabel": "Droggelbecher",
+    "rewardSourcePlaceholder": "Droggelbecher",
+    "rewardMediaurlLabel": "Droggelbecher",
+    "rewardMediaurlPlaceholder": "Droggelbecher",
+    "rewardShowMediaLabel": "Droggelbecher",
+    "rewardShowMediaHint": "Droggelbecher",
+    "rewardImageLabel": "Droggelbecher",
+    "rewardImagePlaceholder": "Droggelbecher",
+    "rewardIsTtsLabel": "Droggelbecher",
+    "rewardIsTtsHint": "Droggelbecher",
+    "rewardShowYoutubeVideoLabel": "Droggelbecher",
+    "rewardShowYoutubeVideoHint": "Droggelbecher",
+    "rewardCustomImageLabel": "Droggelbecher",
+    "rewardCustomImagePlaceholder": "Droggelbecher",
+    "rewardTextLabel": "Droggelbecher",
+    "rewardTextPlaceholder": "Droggelbecher",
+    "rewardDurationLabel": "Droggelbecher",
+    "rewardDurationPlaceholder": "Droggelbecher",
+    "rewardOncePerStreamLabel": "Droggelbecher",
+    "rewardOncePerStreamHint": "Droggelbecher",
+    "rewardCostPlaceholder": "Droggelbecher",
+    "rewardTypePlaceholder": "Droggelbecher",
+    "rewardCooldownPlaceholder": "Droggelbecher",
+    "rewardNameKeyLabel": "Droggelbecher",
+    "rewardDescKeyLabel": "Droggelbecher",
+    "rewardCostLabel": "Droggelbecher",
+    "rewardTypeLabel": "Droggelbecher",
+    "rewardCooldownLabel": "Droggelbecher",
+    "pointsInputLabel": "Droggelbecher",
+    "pointsActionLabel": "Droggelbecher",
+    "pointsValueLabel": "Droggelbecher",
+    "rewardNameKeyHint": "Droggelbecher",
+    "rewardDescKeyHint": "Droggelbecher",
+    "rewardCostHint": "Droggelbecher",
+    "rewardTypeHint": "Droggelbecher",
+    "rewardCooldownHint": "Droggelbecher",
+    "saveRewardBtn": "Droggelbecher",
+    "cancelRewardBtn": "Droggelbecher",
+    "deleteRewardConfirmTitle": "Droggelbecher",
+    "deleteRewardConfirmMessage": "Droggelbecher?",
+    "deleteRewardConfirmConfirmLabel": "Droggelbecher",
+    "deleteRewardConfirmCancelLabel": "Droggelbecher",
+    "instructionsTitle": "Droggelbecher",
+    "instructionsBan": "Droggelbecher:",
+    "instructionsBanDesc": "Droggelbecher.",
+    "instructionsPoints": "Droggelbecher:",
+    "instructionsPointsDesc": "Droggelbecher.",
+    "instructionsRewards": "Droggelbecher:",
+    "instructionsRewardsDesc": "Droggelbecher.",
+    "technicalHint": "Droggelbecher:",
+    "technicalHintPoints": "Droggelbecher.",
+    "technicalHintRewards": "Droggelbecher.",
+    "technicalHintBanned": "Droggelbecher.",
+    "noPermission": "Droggelbecher",
+    "couldNotFetchTwitchId": "Droggelbecher",
+    "cannotBanYourself": "Droggelbecher.",
+    "errorCheckingUser": "Droggelbecher: {{msg}}",
+    "modsCanOnlyBanUsers": "Droggelbecher.",
+    "modsCannotUnbanModsOrBroadcaster": "Droggelbecher.",
+    "errorBanning": "Droggelbecher: {{msg}}",
+    "accountBanned": "Droggelbecher!",
+    "errorUnbanning": "Droggelbecher: {{msg}}",
+    "accountUnbanned": "Droggelbecher!",
+    "invalidTwitchIdReceived": "Droggelbecher",
+    "errorResettingPoints": "Droggelbecher: {{msg}}",
+    "pointsReset": "Droggelbecher!",
+    "pleaseEnterValidPoints": "Droggelbecher.",
+    "errorFetchingPoints": "Droggelbecher: {{msg}}",
+    "errorGivingPoints": "Droggelbecher: {{msg}}",
+    "pointsGiven": "Droggelbecher!",
+    "errorPointsAction": "Droggelbecher: {{msg}}",
+    "errorSavingReward": "Droggelbecher: {{msg}}",
+    "rewardSaved": "Droggelbecher!",
+    "rewardDeletedFallback": "Droggelbecher.",
+    "rpcMissingAndDeleteFailed": "Droggelbecher.",
+    "rpcMissingAndDeleteFailedShort": "Droggelbecher.",
+    "errorDeletingReward": "Droggelbecher: {{msg}}",
+    "rewardDeleted": "Droggelbecher!",
+    "recentRedemptionsTitle": "Droggelbecher",
+    "recentRedemptionsRefresh": "Droggelbecher",
+    "recentRedemptionsNone": "Droggelbecher.",
+    "recentRedemptionsLoading": "Droggelbecher...",
+    "recentRedemptionsError": "Droggelbecher.",
+    "recentRedemptionsUser": "Droggelbecher",
+    "recentRedemptionsReward": "Droggelbecher",
+    "recentRedemptionsTime": "Droggelbecher",
+    "recentRedemptionsCost": "Droggelbecher",
+    "rlsBanPolicy": "Droggelbecher.",
+    "rlsUnbanPolicy": "Droggelbecher.",
+    "donationTriggersTitle": "Droggelbecher",
+    "donationTriggersIntro": "Droggelbecher.",
+    "donationTriggersAdd": "Droggelbecher",
+    "donationTriggersNone": "Droggelbecher.",
+    "donationTriggersPrice": "Droggelbecher",
+    "donationTriggersDescription": "Droggelbecher",
+    "donationTriggersText": "Droggelbecher",
+    "donationTriggersAudioUrl": "Droggelbecher",
+    "donationTriggersSortOrder": "Droggelbecher",
+    "donationTriggersEnabled": "Droggelbecher",
+    "donationTriggersDisabled": "Droggelbecher",
+    "donationTriggersInactive": "droggelbecher",
+    "donationTriggersDisableBtn": "Droggelbecher",
+    "donationTriggersEnableBtn": "Droggelbecher",
+    "donationTriggersSaved": "Droggelbecher!",
+    "donationTriggersDeleted": "Droggelbecher!",
+    "donationTriggersErrorSaving": "Droggelbecher: {{msg}}",
+    "donationTriggersErrorDeleting": "Droggelbecher: {{msg}}",
+    "donationTriggersDeleteConfirmTitle": "Droggelbecher?",
+    "donationTriggersDeleteConfirmMsg": "Droggelbecher?",
+    "donationTriggersDeleteConfirmLabel": "Droggelbecher",
+    "donationTriggersAddTitle": "Droggelbecher",
+    "donationTriggersEditTitle": "Droggelbecher",
+    "donationTriggersIdLabel": "Droggelbecher",
+    "donationTriggersAmountValue": "Droggelbecher",
+    "donationTriggersDescriptionPlaceholder": "Droggelbecher",
+    "donationTriggersTextPlaceholder": "Droggelbecher",
+    "donationTriggersEnabledLabel": "Droggelbecher",
+    "donationTriggersSaveBtn": "Droggelbecher",
+    "donationTriggersCancelBtn": "Droggelbecher",
+    "donationTriggersRequiredFields": "Droggelbecher."
+  },
+  "clipVotingPage": {
+    "title": "Droggelbecher Droggelbecher",
+    "intro": "Droggelbecher!"
+  },
+  "clipVoting": {
+    "loading": "Droggelbecher…",
+    "noRound": "Droggelbecher.",
+    "vote": "Droggelbecher",
+    "voted": "Droggelbecher",
+    "votes": "Droggelbecher",
+    "voteNow": "Droggelbecher!",
+    "voteHint": "Droggelbecher!",
+    "alreadyVoted": "Droggelbecher.",
+    "voteSuccess": "Droggelbecher! ✅",
+    "loginToVote": "Droggelbecher.",
+    "roundPending": "Droggelbecher…",
+    "roundCompleted": "Droggelbecher!",
+    "monthlyWinner": "Droggelbecher {{month}}/{{year}}",
+    "yearlyWinner": "Droggelbecher {{year}}",
+    "phase": {
+      "loading": "Droggelbecher…",
+      "no-round": "Droggelbecher",
+      "round1-active": "Droggelbecher 1",
+      "round1-results": "Droggelbecher 1",
+      "round2-active": "Droggelbecher 2",
+      "round2-results": "Droggelbecher",
+      "yearly-active": "Droggelbecher",
+      "yearly-results": "Droggelbecher",
+      "between-rounds": "Droggelbecher"
+    },
+    "error": {
+      "not_authenticated": "Droggelbecher.",
+      "round_not_active": "Droggelbecher.",
+      "already_voted": "Droggelbecher.",
+      "clip_not_in_round": "Droggelbecher.",
+      "round_not_found": "Droggelbecher."
+    },
+    "confirmVote": "Droggelbecher?",
+    "confirm": "Droggelbecher",
+    "cancel": "Droggelbecher"
+  },
+  "bartclicker": {
+    "stats": {
+      "beards": "Droggelbecher",
+      "perSecond": "Droggelbecher",
+      "rebirth": "Droggelbecher",
+      "totalEver": "Droggelbecher",
+      "currentEnergy": "Droggelbecher",
+      "cps": "Droggelbecher",
+      "activeBuffs": "Droggelbecher",
+      "relicsUnlocked": "Droggelbecher",
+      "rebirthMultiplier": "Droggelbecher"
+    },
+    "units": {
+      "thousand": "Droggelbecher",
+      "thousandShort": "Droggelbecher",
+      "million": "Droggelbecher",
+      "millionShort": "Droggelbecher",
+      "billion": "Droggelbecher",
+      "billionShort": "Droggelbecher",
+      "trillion": "Droggelbecher",
+      "trillionShort": "Droggelbecher"
+    },
+    "tabs": {
+      "shop": "🛒 Droggelbecher",
+      "leaderboard": "🏆 Droggelbecher",
+      "stats": "📊 Droggelbecher"
+    },
+    "shopTabs": {
+      "passive": "💧 Droggelbecher",
+      "click": "💪 Droggelbecher",
+      "booster": "⚡ Droggelbecher",
+      "relics": "💎 Droggelbecher",
+      "autobuyer": "🤖 Droggelbecher",
+      "offline": "🌙 Droggelbecher"
+    },
+    "rebirth": {
+      "button": "🔄 Droggelbecher",
+      "description": "Droggelbecher!",
+      "multiplierBoost": "Droggelbecher ×{{multiplier}}",
+      "cost": "Droggelbecher: {{cost}} Droggelbecher",
+      "spendWarning": "⚠️ Droggelbecher!"
+    },
+    "booster": {
+      "turboBoost": "Droggelbecher",
+      "turboEffect": "Droggelbecher",
+      "clickMadness": "Droggelbecher",
+      "clickEffect": "Droggelbecher",
+      "luckyBonus": "Droggelbecher",
+      "luckyEffect": "Droggelbecher",
+      "riskWarning": "⚠️ Droggelbecher"
+    },
+    "relics": {
+      "ancientComb": "Droggelbecher",
+      "ancientEffect": "Droggelbecher",
+      "magicalOil": "Droggelbecher",
+      "oilEffect": "Droggelbecher",
+      "goldenBeard": "Droggelbecher",
+      "goldenEffect": "Droggelbecher",
+      "timeOil": "Droggelbecher",
+      "timeEffect": "Droggelbecher",
+      "unlocked": "✅ Droggelbecher"
+    },
+    "autobuyer": {
+      "autoClicker": "🤖 Droggelbecher",
+      "autoClickerDesc": "Droggelbecher: Droggelbecher",
+      "autoClickerBoostInfo": "Droggelbecher!",
+      "autoClickerEnable": "✅ Droggelbecher",
+      "autoClickerDisable": "❌ Droggelbecher",
+      "upgradebuyer": "📈 Droggelbecher Droggelbecher",
+      "upgradebuyerDesc": "Droggelbecher: Droggelbecher",
+      "youHave": "Droggelbecher: {{count}} Droggelbecher",
+      "multiplierAfterPurchase": "Droggelbecher: ×{{multiplier}}"
+    },
+    "leaderboard": {
+      "title": "🏆 Droggelbecher",
+      "subtitle": "Droggelbecher",
+      "rank": "📊",
+      "player": "Droggelbecher",
+      "score": "💰",
+      "rebirths": "🔄",
+      "loading": "📊 Droggelbecher...",
+      "empty": "📊 Droggelbecher"
+    },
+    "buttons": {
+      "max": "Droggelbecher",
+      "buy": "Droggelbecher",
+      "unlocked": "Droggelbecher"
+    },
+    "offline": {
+      "shopTitle": "🌙 Droggelbecher",
+      "shopDesc": "Droggelbecher.",
+      "currentRate": "Droggelbecher: {{rate}}%",
+      "maxTime": "Droggelbecher: Droggelbecher",
+      "upgradesOwned": "Droggelbecher: {{current}}/{{max}}",
+      "upgradeEffect": "Droggelbecher",
+      "buyUpgrade": "Droggelbecher",
+      "maxUpgrades": "Droggelbecher!",
+      "welcomeBack": "Droggelbecher!",
+      "earned": "Droggelbecher {{amount}} Droggelbecher ({{time}}).",
+      "timeHoursMinutes": "{{hours}}h {{minutes}}min",
+      "timeMinutes": "{{minutes}}min",
+      "youHave": "Droggelbecher: {{count}} Droggelbecher"
+    },
+    "autoBuyTitle": "Droggelbecher",
+    "clickBlocked": "Droggelbecher!"
+  },
+  "onlybart": {
+    "filter": {
+      "all": "Droggelbecher",
+      "media": "Droggelbecher",
+      "photos": "Droggelbecher",
+      "videos": "Droggelbecher"
+    },
+    "create": {
+      "placeholder": "Droggelbecher?",
+      "submit": "Droggelbecher",
+      "videoPrompt": "Droggelbecher:",
+      "videoPromptTitle": "Droggelbecher",
+      "failedToPost": "Droggelbecher"
+    },
+    "confirmDelete": "Droggelbecher?",
+    "confirmDeleteComment": "Droggelbecher?",
+    "accessDenied": {
+      "title": "Droggelbecher",
+      "message": "Droggelbecher.",
+      "subHint": "Droggelbecher?"
+    },
+    "notLoggedIn": "Droggelbecher.",
+    "noPosts": "Droggelbecher.",
+    "comment": {
+      "placeholder": "Droggelbecher...",
+      "send": "Droggelbecher"
+    },
+    "image": {
+      "close": "Droggelbecher",
+      "viewFullSize": "Droggelbecher"
+    }
+  },
+  "common": {
+    "loading": "Droggelbecher …",
+    "close": "Droggelbecher"
+  },
+  "sync": {
+    "exclusionName": "Droggelbecher",
+    "exclusionTwitchId": "Droggelbecher",
+    "exclusionSince": "Droggelbecher"
+  },
+  "pointsAndRewardSection": {
+    "deinePunkte": "Droggelbecher",
+    "punkte": "Droggelbecher",
+    "jetztEinloesen": "Droggelbecher",
+    "laedt": "Droggelbecher...",
+    "zurueck": "Droggelbecher",
+    "fehlerBeimLadenDerPunkte": "Droggelbecher",
+    "fehlerBeimLadenDerRewards": "Droggelbecher",
+    "fehlerBeimEinloesen": "Droggelbecher: {{msg}}",
+    "erfolgreichEingeloest": "Droggelbecher!",
+    "deineNachricht": "Droggelbecher...",
+    "costPoints": "{{cost}} Droggelbecher",
+    "globalGesperrt": "Droggelbecher",
+    "cooldown": "Droggelbecher: {{sec}}s",
+    "cooldownAktiv": "Droggelbecher. {{sec}}s",
+    "einmalProStream": "Droggelbecher.",
+    "unbekannterFehler": "Droggelbecher: {{err}}",
+    "unbekannteResponse": "Droggelbecher",
+    "ungueltigeResponse": "Droggelbecher",
+    "pointsRegionLabel": "Droggelbecher",
+    "rewardGridLabel": "Droggelbecher",
+    "redeemButton": "Droggelbecher: {{name}}",
+    "backToRewards": "Droggelbecher",
+    "ttsInputLabel": "Droggelbecher",
+    "pointsDisplay": "{{points}} Droggelbecher",
+    "rewardDeaktiviert": "Droggelbecher."
+  },
+  "notFound": {
+    "confusedMessages": [
+      "Droggelbecher…",
+      "Droggelbecher.",
+      "Droggelbecher.",
+      "404 – Droggelbecher.",
+      "Droggelbecher."
+    ],
+    "hint": "(Droggelbecher)"
+  },
+  "rewards": {
+    "foo": {
+      "name": "Droggelbecher",
+      "desc": "Droggelbecher."
+    },
+    "bar": {
+      "name": "Droggelbecher",
+      "desc": "Droggelbecher."
+    },
+    "rewardSourceLabel": "Droggelbecher",
+    "rewardMediaUrlLabel": "Droggelbecher",
+    "rewardShowYoutubeVideoLabel": "Droggelbecher",
+    "rewardDescriptionLabel": "Droggelbecher",
+    "rewardCustomImageUrlLabel": "Droggelbecher",
+    "rewardTextLabel": "Droggelbecher",
+    "rewardDurationLabel": "Droggelbecher",
+    "rewardOncePerStreamLabel": "Droggelbecher"
+  },
+  "banned": {
+    "title": "Droggelbecher",
+    "message": "Droggelbecher. Droggelbecher."
+  },
+  "home": "Droggelbecher"
+}
+

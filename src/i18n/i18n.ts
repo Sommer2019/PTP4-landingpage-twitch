@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import de from './locales/de.json'
 import en from './locales/en.json'
 import gsw from './locales/gsw.json'
+import droggelbecher from './locales/droggelbecher.json'
 
 i18n
   .use(LanguageDetector)
@@ -14,9 +15,10 @@ i18n
       de: { translation: de },
       en: { translation: en },
       gsw: { translation: gsw },
+      droggelbecher: { translation: droggelbecher },
     },
     fallbackLng: 'de',
-    supportedLngs: ['de', 'en', 'gsw'],
+    supportedLngs: ['de', 'en', 'gsw', 'droggelbecher'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
