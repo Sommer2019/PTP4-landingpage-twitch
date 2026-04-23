@@ -3,7 +3,7 @@ import {useTranslation} from 'react-i18next'
 import siteConfig from '../../config/siteConfig'
 import NextStream from '../NextStream/NextStream'
 import CurrentGame from '../CurrentGame/CurrentGame'
-import PointsAndRewardSection from './PointsAndRewardSection'
+// import PointsAndRewardSection from './PointsAndRewardSection'
 import {supabase} from '../../lib/supabase'
 import './LiveSection.css'
 
@@ -157,10 +157,10 @@ export default function LiveSection() {
 
                 <p></p>
 
-                {/* Diese Sektion muss IMMER da stehen, unabhängig von isLive */}
+                {/* nun per Twitch addon 
                 <div className="points-reward-section-wrapper">
                     <PointsAndRewardSection isLive={showStream}/>
-                </div>
+                </div>*/}
             </div>
         </section>
     )
