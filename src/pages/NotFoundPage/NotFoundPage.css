@@ -42,7 +42,6 @@
 }
 
 .not-found-avatar {
-  cursor: pointer;
   transition: transform 0.3s ease;
   animation: float 3s ease-in-out infinite;
 }
@@ -58,6 +57,8 @@
 .beard-svg {
   width: 120px;
   height: 120px;
+  pointer-events: painted;
+  cursor: pointer;
 }
 
 /* ── Messages ── */

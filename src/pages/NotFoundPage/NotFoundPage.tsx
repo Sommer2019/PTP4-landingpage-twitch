@@ -88,9 +88,9 @@ export default function NotFoundPage() {
         {/* Giant 404 with beard avatar */}
         <div className="not-found-hero">
           <span className="not-found-four">4</span>
-          <div className={`not-found-avatar ${spin ? 'spin' : ''}`} onClick={nextMessage}>
+          <div className={`not-found-avatar ${spin ? 'spin' : ''}`}>
             {/* Inline beard SVG so we can make it big & animated */}
-            <svg viewBox="25 15 75 75" xmlns="http://www.w3.org/2000/svg" className="beard-svg">
+            <svg viewBox="25 15 75 75" xmlns="http://www.w3.org/2000/svg" className="beard-svg" onClick={nextMessage}>
               <rect x="30" y="30" width="40" height="40" rx="6" fill="#d4a373" />
               <rect x="25" y="32" width="50" height="5" rx="2" fill="#7C4DFF" />
               <path d="M30 32 L70 32 L70 25 Q 50 15 30 25 Z" fill="#7C4DFF" />

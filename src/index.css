@@ -1,3 +1,8 @@
+/* Dekorative SVG-Icons in interaktiven Elementen sollen keine eigene Klickfläche bilden */
+button svg, a svg, [role="button"] svg {
+  pointer-events: none;
+}
+
 /* ── CSS Variables ── */
 :root {
   --accent: #7C4DFF;
