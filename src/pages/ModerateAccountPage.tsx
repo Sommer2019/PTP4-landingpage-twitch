@@ -124,7 +124,7 @@ export default function ModerateAccountPage() {
     if (!error && data) setBanned((data as { twitch_user_id: string; display_name?: string }[]).map(b => ({ twitch_user_id: b.twitch_user_id, display_name: b.display_name ?? undefined })))
   }
 
-  /** Track recent redemption history */ laden
+  /** Track recent redemption history */
   const fetchRecentRedemptions = useCallback(async () => {
     setRedemptionsLoading(true)
     setRedemptionsError(false)

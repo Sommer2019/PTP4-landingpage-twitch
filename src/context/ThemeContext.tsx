@@ -23,6 +23,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
+  const resolved = mode === 'system' ? systemTheme : mode
   /** Apply resolved theme preference to document element */
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', resolved)
