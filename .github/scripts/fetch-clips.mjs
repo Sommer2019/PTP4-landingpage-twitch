@@ -94,6 +94,25 @@ async function fetchAllClips(token, broadcasterId, startedAt, endedAt) {
   return clips
 }
 
+// ── Notify Discord via render endpoint ───────────────────
+
+async function notifyDiscord(endpoint) {
+  await new Promise(resolve => setTimeout(resolve, 120_000))
+  try {
+    const res = await fetch(`https://ptp4-landingpage-twitch-hd.onrender.com${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': SUPABASE_SERVICE_ROLE_KEY,
+      },
+    })
+    if (!res.ok) console.warn(`Discord notify ${endpoint}: ${res.status}`)
+    else console.log(`Discord notified: ${endpoint}`)
+  } catch (err) {
+    console.warn(`Discord notify failed (${endpoint}):`, err.message)
+  }
+}
+
 // ── Main ─────────────────────────────────────────────────
 
 async function main() {
@@ -174,6 +193,8 @@ async function main() {
   }
 
   console.log(`Done – ${twitchClips.length} clips linked to round ${round.id}`)
+
+  await notifyDiscord('/start-runde-1')
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })

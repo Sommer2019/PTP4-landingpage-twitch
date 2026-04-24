@@ -164,7 +164,7 @@ async function runAuto() {
       // Complete round 1 → create pending round 2 with top 10
       await sbPatch('voting_rounds', `id=eq.${round.id}`, { status: 'completed' })
       console.log(`Completed round1 ${round.id}`)
-      notifyDiscord('/ende-runde-1')
+      await notifyDiscord('/ende-runde-1')
 
       const top10 = await getTopClips(round.id, 10)
       if (top10.length === 0) { console.log('No clips/votes in round1'); continue }
