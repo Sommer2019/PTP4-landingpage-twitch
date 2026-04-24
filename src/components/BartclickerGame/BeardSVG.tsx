@@ -1,9 +1,10 @@
 interface BeardProps {
   bartLength: number;
   clickCount?: number;
+  onClick?: React.MouseEventHandler<SVGSVGElement>
 }
 
-export function BeardSVG({ bartLength, clickCount = 0 }: BeardProps) {
+export function BeardSVG({ bartLength, clickCount = 0, onClick }: BeardProps) {
   // Bartgröße basierend auf Rebirths (bartLength von 50 bis 100)
   // Normalisiere bartLength auf eine Prozentquote (50-100 → 0-1)
   const bartGrowth = (bartLength - 50) / 50; // 0 bis 1
@@ -23,6 +24,7 @@ export function BeardSVG({ bartLength, clickCount = 0 }: BeardProps) {
 
   return (
       <svg id="avatar-svg" viewBox="0 0 200 350" xmlns="http://www.w3.org/2000/svg" className="beard-svg"
+           onClick={onClick}
            style={{
              transition: 'all 0.2s ease',
              width: '100%',

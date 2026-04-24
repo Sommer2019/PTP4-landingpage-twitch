@@ -276,11 +276,10 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                 )}
                 <button
                     className={`click-button ${clickPulse ? 'pulse' : ''} ${clickBlocked ? 'blocked' : ''}`}
-                    onClick={handleBartClick}
                     disabled={isLoading || clickBlocked}
                     title={`+Barthaare`}
                 >
-                    <BeardSVG bartLength={bartLength} clickCount={clickCount}/>
+                    <BeardSVG bartLength={bartLength} clickCount={clickCount} onClick={handleBartClick}/>
                 </button>
             </div>
 
