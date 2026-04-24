@@ -123,12 +123,11 @@
     }
   },
   "profile": {
-    "n": "Moderation"
+    "moderate": "Moderation"
   },
   "footer": {
     "impressum": "Impressum",
-    "datenschutz": "Dateschutz",
-    "moderate": "Moderation"
+    "datenschutz": "Dateschutz"
   },
   "downloadModal": {
     "title": "Download bestätige",
@@ -221,6 +220,10 @@
     "donateSpecific": "Spende ({{amount}} €)"
   },
   "donations": {
+    "1920": {
+      "desc": "1920",
+      "text": "1920 wird abgspielt ⁉️"
+    },
     "taschengeld": {
       "desc": "Taschemgäld",
       "text": "Donation Sound wird abgspielt (Danke vo de Chind) 🎉"
@@ -257,17 +260,9 @@
       "desc": "Flugi XXL — 2 Minute",
       "text": "sehr nervigi Flugi wird abgspielt 🪰"
     },
-    "1920": {
-      "desc": "1920",
-      "text": "1920 wird abgspielt ⁉️"
-    },
     "fliege3": {
       "desc": "Flugi ultra lang",
       "text": "ultra nervigi Flugi wird abgspielt 🪰"
-    },
-    "konfetti": {
-      "desc": "Konfettikanone (nur wenn verfüegbar)",
-      "text": "Stefan zündet e Konfettikanone 🎉"
     },
     "hotnuts": {
       "desc": "8 Hot Nuts + FIRE!!! (nur wenn verfüegbar)",
@@ -676,7 +671,113 @@
       "youHave": "Du häsch: {{count}} Rebirths"
     },
     "autoBuyTitle": "Automatisch chaufe",
-    "clickBlocked": "Klickä isch aktuell blockiert!"
+    "clickBlocked": "Klickä isch aktuell blockiert!",
+    "unitArray": [
+      "",
+      "k",
+      "Mio",
+      "Mrd",
+      "Bio",
+      "Brd",
+      "Tril",
+      "Quad",
+      "Quin",
+      "Sext",
+      "Sept",
+      "Okt",
+      "Non",
+      "Dez",
+      "Udez",
+      "Ddez",
+      "Tdez",
+      "Qtde",
+      "Qnde",
+      "Sxde",
+      "Spde",
+      "Okde",
+      "Node",
+      "Vig",
+      "Uvig",
+      "Dvig",
+      "Tvig",
+      "Qtvg",
+      "Qnvg",
+      "Sxvg",
+      "Spvg",
+      "Okvg",
+      "Novg",
+      "Trig",
+      "Utrg",
+      "Dtrg",
+      "Ttrg",
+      "Qttr",
+      "Qnti",
+      "Sxtr",
+      "Sptr",
+      "Oktg",
+      "Notg",
+      "Quad",
+      "Uqad",
+      "Dqad",
+      "Tqad",
+      "Qtqa",
+      "Qnqa",
+      "Sxqa",
+      "Spqa",
+      "Okqa",
+      "Noqa",
+      "Quin",
+      "Uqui",
+      "Dqui",
+      "Tqui",
+      "Qtqu",
+      "Qnqu",
+      "Sxqu",
+      "Spqu",
+      "Okqu",
+      "Noqu",
+      "Sexa",
+      "Usex",
+      "Dsex",
+      "Tsex",
+      "Qtsx",
+      "Qnsx",
+      "Sxsx",
+      "Spsx",
+      "Oksx",
+      "Nosx",
+      "Sept",
+      "Usep",
+      "Dsep",
+      "Tsep",
+      "Qtsp",
+      "Qnsp",
+      "Sxsp",
+      "Spsp",
+      "Oksp",
+      "Nosp",
+      "Okto",
+      "Uokt",
+      "Dokt",
+      "Tokt",
+      "Qtok",
+      "Qnok",
+      "Sxok",
+      "Spok",
+      "Okok",
+      "Nook",
+      "Nona",
+      "Unon",
+      "Dnon",
+      "Tnon",
+      "Qtno",
+      "Qnno",
+      "Sxno",
+      "Spno",
+      "Okno",
+      "Nono",
+      "∞"
+    ]
   },
   "onlybart": {
     "filter": {
@@ -756,24 +857,7 @@
     ],
     "hint": "(Klick uf dr Bart für meh Wisheitä)"
   },
-  "rewards": {
-    "foo": {
-      "name": "Belohnig Foo",
-      "desc": "Das isch e Beispiel-Belohnig."
-    },
-    "bar": {
-      "name": "Belohnig Bar",
-      "desc": "No e Belohnig."
-    },
-    "rewardSourceLabel": "Quell",
-    "rewardMediaUrlLabel": "Media-URL",
-    "rewardShowYoutubeVideoLabel": "YouTube Video aazeige",
-    "rewardDescriptionLabel": "Beschrieb",
-    "rewardCustomImageUrlLabel": "Custom Image URL",
-    "rewardTextLabel": "TTS Text",
-    "rewardDurationLabel": "Dauer (Sekunde)",
-    "rewardOncePerStreamLabel": "Nur einisch pro Stream"
-  },
+  "rewards": {},
   "banned": {
     "title": "Account gsperrt",
     "message": "Dinge Account isch gsperrt worde. Wenn du Froge hesch, meld di bim Support."

@@ -71,6 +71,7 @@ export function ConfirmModalProvider({ children }: { children: ReactNode }) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    /** Enter confirms, Escape cancels */
     if (e.key === 'Enter') handleConfirm()
     if (e.key === 'Escape') handleCancel()
   }

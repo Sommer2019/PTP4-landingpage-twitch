@@ -53,10 +53,10 @@ export default function ModerateAccountPage() {
   const { isBroadcaster, isMod } = useIsModerator()
   const { showConfirm } = useConfirmModal()
 
-  // Rewards-Logik
+  /** Reward management state */
   const [rewards, setRewards] = useState<Reward[]>([])
   const [rewardEdit, setRewardEdit] = useState<Reward | null>(null)
-  // Default template for reward forms (used for new rewards and as fallback)
+  /** Default template for reward forms */
   const defaultReward: Reward = {
     name: '',
     cost: 0,
@@ -77,7 +77,7 @@ export default function ModerateAccountPage() {
   const [rewardBusy, setRewardBusy] = useState(false)
   const [isWide, setIsWide] = useState<boolean>(false)
 
-  // Recent redemptions
+  /** Track recent redemption history */
   const [recentRedemptions, setRecentRedemptions] = useState<RecentRedemption[]>([])
   const [redemptionsLoading, setRedemptionsLoading] = useState(false)
   const [redemptionsError, setRedemptionsError] = useState(false)
@@ -124,7 +124,7 @@ export default function ModerateAccountPage() {
     if (!error && data) setBanned((data as { twitch_user_id: string; display_name?: string }[]).map(b => ({ twitch_user_id: b.twitch_user_id, display_name: b.display_name ?? undefined })))
   }
 
-  // Recent redemptions laden
+  /** Track recent redemption history */ laden
   const fetchRecentRedemptions = useCallback(async () => {
     setRedemptionsLoading(true)
     setRedemptionsError(false)

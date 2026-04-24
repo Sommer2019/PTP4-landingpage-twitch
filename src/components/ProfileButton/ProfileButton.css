@@ -1,4 +1,4 @@
-.profile-button {
+r.profile-button {
   position: relative;
 }
 
@@ -44,7 +44,6 @@
   white-space: nowrap;
 }
 
-/* Dropdown Menu */
 .profile-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
@@ -101,8 +100,7 @@
   background-color: rgba(255, 107, 107, 0.1);
 }
 
-/* Mobile */
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .profile-btn {
     padding: 0.4em 0.6em;
   }
@@ -121,4 +119,3 @@
     right: auto;
   }
 }
-

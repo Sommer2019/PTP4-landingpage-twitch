@@ -232,6 +232,10 @@
     "donateSpecific": "Donate ({{amount}} €)"
   },
   "donations": {
+    "1920": {
+      "desc": "1920",
+      "text": "1920 plays ⁉️"
+    },
     "taschengeld": {
       "desc": "Pocket Money",
       "text": "Donation sound plays (Thanks from the kids) 🎉"
@@ -268,17 +272,9 @@
       "desc": "Fly XXL — 2 minutes",
       "text": "Very annoying fly plays 🪰"
     },
-    "1920": {
-      "desc": "1920",
-      "text": "1920 plays ⁉️"
-    },
     "fliege3": {
       "desc": "Ultra long fly",
       "text": "Ultra annoying fly plays 🪰"
-    },
-    "konfetti": {
-      "desc": "Confetti cannon (if available)",
-      "text": "Stefan fires a confetti cannon 🎉"
     },
     "hotnuts": {
       "desc": "8 Hot Nuts + FIRE!!! (if available)",
@@ -687,7 +683,111 @@
       "youHave": "You have: {{count}} Rebirths"
     },
     "autoBuyTitle": "Auto buy",
-    "clickBlocked": "Clicking is currently blocked!"
+    "clickBlocked": "Clicking is currently blocked!",
+    "unitArray": [
+      "",
+      "K",
+      "M",
+      "B",
+      "T",
+      "Qa",
+      "Qi",
+      "Sx",
+      "Sp",
+      "Oc",
+      "No",
+      "Dc",
+      "Ud",
+      "Dd",
+      "Td",
+      "Qad",
+      "Qid",
+      "Sxd",
+      "Spd",
+      "Ocd",
+      "Nod",
+      "Vg",
+      "Uvg",
+      "Dvg",
+      "Tvg",
+      "Qavg",
+      "Qivg",
+      "Sxvg",
+      "Spvg",
+      "Ocvg",
+      "Novg",
+      "Tg",
+      "Utg",
+      "Dtg",
+      "Ttg",
+      "Qatg",
+      "Qitg",
+      "Sxtg",
+      "Sptg",
+      "Octg",
+      "Notg",
+      "Qag",
+      "Uqag",
+      "Dqag",
+      "Tqag",
+      "Qaqag",
+      "Qiqag",
+      "Sxqag",
+      "Spqag",
+      "Ocqag",
+      "Noqag",
+      "H",
+      "Uh",
+      "Dh",
+      "Th",
+      "Qah",
+      "Qih",
+      "Sxh",
+      "Sph",
+      "Och",
+      "Noh",
+      "C",
+      "Uc",
+      "Dc",
+      "Tc",
+      "Qac",
+      "Qic",
+      "Sxc",
+      "Spc",
+      "Occ",
+      "Noc",
+      "Ic",
+      "Uic",
+      "Dic",
+      "Tic",
+      "Qaic",
+      "Qiic",
+      "Sxic",
+      "Spic",
+      "Ocic",
+      "Noic",
+      "L",
+      "Ul",
+      "Dl",
+      "Tl",
+      "Qal",
+      "Qil",
+      "Sxl",
+      "Spl",
+      "Ocl",
+      "Nol",
+      "AL",
+      "UAL",
+      "DAL",
+      "TAL",
+      "QAL",
+      "QIAL",
+      "SXAL",
+      "SPAL",
+      "OCAL",
+      "NOAL",
+      "∞"
+    ]
   },
   "onlybart": {
     "filter": {
@@ -767,24 +867,7 @@
     ],
     "hint": "(Click the beard for more wisdom)"
   },
-  "rewards": {
-    "foo": {
-      "name": "Reward Foo",
-      "desc": "This is a sample reward."
-    },
-    "bar": {
-      "name": "Reward Bar",
-      "desc": "Another reward."
-    },
-    "rewardSourceLabel": "Source",
-    "rewardMediaUrlLabel": "Media URL",
-    "rewardShowYoutubeVideoLabel": "Show YouTube Video",
-    "rewardDescriptionLabel": "Description",
-    "rewardCustomImageUrlLabel": "Custom Image URL",
-    "rewardTextLabel": "TTS Text",
-    "rewardDurationLabel": "Duration (seconds)",
-    "rewardOncePerStreamLabel": "Once per stream"
-  },
+  "rewards": {},
   "banned": {
     "title": "Account banned",
     "message": "Your account has been banned. If you have questions, please contact support."

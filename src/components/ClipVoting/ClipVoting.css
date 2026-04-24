@@ -1,16 +1,13 @@
-/* ═══════════════════════════════════════════════════════
-   Clip-Voting shared styles
-   ═══════════════════════════════════════════════════════ */
-
 /* ── ClipEmbed ── */
 .clip-embed {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16 : 9 */
+  padding-top: 56.25%;
   background: #000;
   border-radius: 10px;
   overflow: hidden;
 }
+
 .clip-embed iframe {
   position: absolute;
   inset: 0;
@@ -19,7 +16,6 @@
   border: 0;
 }
 
-/* ── ClipCard ── */
 .clip-card {
   background: var(--box-gradient);
   border: 1px solid var(--box-border);
@@ -32,6 +28,7 @@
 .clip-card:hover {
   border-color: rgba(124, 77, 255, 0.25);
 }
+
 .clip-card--voted {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.35);
@@ -100,8 +97,6 @@
 .clip-card__vote-btn--active:hover {
   background: var(--accent);
 }
-
-/* ── ClipGrid ── */
 .clip-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -109,7 +104,6 @@
   margin: 20px 0;
 }
 
-/* ── VotingStatus ── */
 .voting-status {
   background: var(--box-gradient);
   border: 1px solid var(--box-border);
@@ -156,7 +150,6 @@
   font-size: 0.88rem;
 }
 
-/* ── WinnerDisplay ── */
 .winner-display {
   background: var(--box-gradient);
   border: 1px solid var(--box-border);
@@ -183,7 +176,6 @@
   margin: 0 auto;
 }
 
-/* ── Login hint ── */
 .clip-voting__login {
   text-align: center;
   margin: 16px 0;
@@ -204,8 +196,7 @@
   margin: 24px 0;
 }
 
-/* ── Responsive ── */
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .clip-grid {
     grid-template-columns: 1fr;
   }
@@ -214,4 +205,3 @@
     align-items: flex-start;
   }
 }
-

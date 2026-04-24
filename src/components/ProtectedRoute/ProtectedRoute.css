@@ -38,7 +38,6 @@
   margin: 0 0 24px;
 }
 
-/* ── Twitch login button ── */
 .btn-twitch {
   display: inline-flex;
   align-items: center;
@@ -63,4 +62,3 @@
 .btn-twitch svg {
   flex-shrink: 0;
 }
-

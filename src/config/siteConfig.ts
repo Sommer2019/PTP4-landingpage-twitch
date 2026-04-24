@@ -1,7 +1,5 @@
-// ─── Site Configuration ─────────────────────────────────────────────
-// Alle Texte, Links, Bilder und Codes an EINER Stelle änderbar.
-// Kann später durch einen DB/API-Fetch ersetzt werden.
-// ────────────────────────────────────────────────────────────────────
+/** Zentrale Konfiguration: Alle Texte, Links, Bilder und Codes an einer Stelle konfigurierbar.
+ */
 
 export interface LinkItem {
   id: string
@@ -83,21 +81,21 @@ export interface StreamElementsConfig {
 }
 
 export interface SiteConfig {
-  profile: ProfileConfig
-  twitch: TwitchConfig
-  impressum: ImpressumConfig
-  streamplan: StreamplanConfig
-  streamelements: StreamElementsConfig
-  links: LinkItem[]
-  games: LinkItem[]
-  clips: LinkItem[]
-  partners: LinkItem[]
-  footerLinks: Link[]
-  moderatorLink: Link
-  copyrightHolder: string
-  onlyBart: OnlyBartConfig  // Should contain the default "OnlyBart" for this project
-  redirects: Record<string, string> // Add redirects here
-}
+   profile: ProfileConfig
+   twitch: TwitchConfig
+   impressum: ImpressumConfig
+   streamplan: StreamplanConfig
+   streamelements: StreamElementsConfig
+   links: LinkItem[]
+   games: LinkItem[]
+   clips: LinkItem[]
+   partners: LinkItem[]
+   footerLinks: Link[]
+   moderatorLink: Link
+   copyrightHolder: string
+   onlyBart: OnlyBartConfig
+   redirects: Record<string, string>
+ }
 
 const siteConfig: SiteConfig = {
   // ── Profil ──
@@ -188,7 +186,6 @@ const siteConfig: SiteConfig = {
       { id: 'fliege2', price: '14,44€', amountValue: 14.44, descKey: 'donations.fliege2.desc', textKey: 'donations.fliege2.text', audio: '/audio/Fliege2.mp3' },
       { id: '1920', price: '19,20€', amountValue: 19.20, descKey: 'donations.1920.desc', textKey: 'donations.1920.text', audio: '/audio/1920.mp3' },
       { id: 'fliege3', price: '19,66€', amountValue: 19.66, descKey: 'donations.fliege3.desc', textKey: 'donations.fliege3.text', audio: '/audio/Fliege3.mp3' },
-      //{ id: 'konfetti', price: '22,22€', amountValue: 22.22, descKey: 'donations.konfetti.desc', textKey: 'donations.konfetti.text' },
       { id: 'hotnuts', price: '25,00€', amountValue: 25.00, descKey: 'donations.hotnuts.desc', textKey: 'donations.hotnuts.text', audio: '/audio/FIRE.mp3' },
       { id: 'sandwich', price: 'x66,66€', amountValue: 66.66, descKey: 'donations.sandwich.desc', textKey: 'donations.sandwich.text', audio: '/audio/Sandwich.mp3' },
     ],
@@ -365,14 +362,13 @@ const siteConfig: SiteConfig = {
     { labelKey: 'footer.datenschutz', url: '/datenschutz' }
   ],
   copyrightHolder: 'FullHD Media',
-  
-  onlyBart: {
-    title: 'OnlyBart',
-    logoUrl: '/img/logos/OB.webp'
-  },
 
-  // ── Redirects ──
-  redirects: {
+   onlyBart: {
+     title: 'OnlyBart',
+     logoUrl: '/img/logos/OB.webp'
+   },
+
+   redirects: {
     "/instagram": "https://www.instagram.com/hd1920x1080/",
     "/insta":  "https://www.instagram.com/hd1920x1080/",
     "/yt":  "https://youtube.com/@hawedereplus",

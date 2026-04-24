@@ -179,7 +179,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
     canView: isAllowed,
     canPost: isBroadcaster,
     canLike: isAllowed && !isBroadcaster,
-    canSuperlike: isVip || isModerator, // VIPs und Moderatoren
+     canSuperlike: isVip || isModerator, // VIPs and moderators can superlike
     canComment: isAllowed,
     canDeleteComment: isBroadcaster || role === 'moderator',
     loading,

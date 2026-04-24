@@ -232,6 +232,10 @@
     "donateSpecific": "Spenden ({{amount}} €)"
   },
   "donations": {
+    "1920": {
+      "desc": "1920",
+      "text": "1920 wird abgespielt ⁉️"
+    },
     "taschengeld": {
       "desc": "Taschengeld",
       "text": "Donation Sounds wird abgespielt (Danke von den Kids) 🎉"
@@ -268,17 +272,9 @@
       "desc": "Fliege XXL — 2 Minuten",
       "text": "sehr nervige Fliege wird abgespielt 🪰"
     },
-    "1920": {
-      "desc": "1920",
-      "text": "1920 wird abgespielt ⁉️"
-    },
     "fliege3": {
       "desc": "Fliege ultra lang",
       "text": "ultra nervige Fliege wird abgespielt 🪰"
-    },
-    "konfetti": {
-      "desc": "Konfettikanone (nur wenn verfügbar)",
-      "text": "Stefan zündet eine Konfettikanone 🎉"
     },
     "hotnuts": {
       "desc": "8 Hot Nuts + FIRE!!! (nur wenn verfügbar)",
@@ -689,7 +685,113 @@
       "youHave": "Du hast: {{count}} Rebirths"
     },
     "autoBuyTitle": "Automatisch kaufen",
-    "clickBlocked": "Klicken ist aktuell blockiert!"
+    "clickBlocked": "Klicken ist aktuell blockiert!",
+    "unitArray": [
+      "",
+      "k",
+      "Mio",
+      "Mrd",
+      "Bio",
+      "Brd",
+      "Tril",
+      "Quad",
+      "Quin",
+      "Sext",
+      "Sept",
+      "Okt",
+      "Non",
+      "Dez",
+      "Udez",
+      "Ddez",
+      "Tdez",
+      "Qtde",
+      "Qnde",
+      "Sxde",
+      "Spde",
+      "Okde",
+      "Node",
+      "Vig",
+      "Uvig",
+      "Dvig",
+      "Tvig",
+      "Qtvg",
+      "Qnvg",
+      "Sxvg",
+      "Spvg",
+      "Okvg",
+      "Novg",
+      "Trig",
+      "Utrg",
+      "Dtrg",
+      "Ttrg",
+      "Qttr",
+      "Qnti",
+      "Sxtr",
+      "Sptr",
+      "Oktg",
+      "Notg",
+      "Quad",
+      "Uqad",
+      "Dqad",
+      "Tqad",
+      "Qtqa",
+      "Qnqa",
+      "Sxqa",
+      "Spqa",
+      "Okqa",
+      "Noqa",
+      "Quin",
+      "Uqui",
+      "Dqui",
+      "Tqui",
+      "Qtqu",
+      "Qnqu",
+      "Sxqu",
+      "Spqu",
+      "Okqu",
+      "Noqu",
+      "Sexa",
+      "Usex",
+      "Dsex",
+      "Tsex",
+      "Qtsx",
+      "Qnsx",
+      "Sxsx",
+      "Spsx",
+      "Oksx",
+      "Nosx",
+      "Sept",
+      "Usep",
+      "Dsep",
+      "Tsep",
+      "Qtsp",
+      "Qnsp",
+      "Sxsp",
+      "Spsp",
+      "Oksp",
+      "Nosp",
+      "Okto",
+      "Uokt",
+      "Dokt",
+      "Tokt",
+      "Qtok",
+      "Qnok",
+      "Sxok",
+      "Spok",
+      "Okok",
+      "Nook",
+      "Nona",
+      "Unon",
+      "Dnon",
+      "Tnon",
+      "Qtno",
+      "Qnno",
+      "Sxno",
+      "Spno",
+      "Okno",
+      "Nono",
+      "∞"
+    ]
   },
   "onlybart": {
     "filter": {
@@ -769,24 +871,7 @@
     ],
     "hint": "(Klick auf den Bart für mehr Weisheiten)"
   },
-  "rewards": {
-    "foo": {
-      "name": "Belohnung Foo",
-      "desc": "Dies ist eine Beispiel-Belohnung."
-    },
-    "bar": {
-      "name": "Belohnung Bar",
-      "desc": "Eine weitere Belohnung."
-    },
-    "rewardSourceLabel": "Quelle",
-    "rewardMediaUrlLabel": "Media-URL",
-    "rewardShowYoutubeVideoLabel": "YouTube Video anzeigen",
-    "rewardDescriptionLabel": "Beschreibung",
-    "rewardCustomImageUrlLabel": "Custom Image URL",
-    "rewardTextLabel": "TTS Text",
-    "rewardDurationLabel": "Dauer (Sekunden)",
-    "rewardOncePerStreamLabel": "Nur einmal pro Stream"
-  },
+  "rewards": {},
   "banned": {
     "title": "Account gesperrt",
     "message": "Dein Account wurde gesperrt. Bei Fragen wende dich bitte an den Support."

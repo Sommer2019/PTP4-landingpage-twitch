@@ -57,9 +57,9 @@ body {
   padding-top: var(--settingsbar-height, 64px); /* Abstand für SettingsBar */
 }
 
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   body {
-    padding-top: 0 !important;
+    padding-top: 0;
   }
 }
 

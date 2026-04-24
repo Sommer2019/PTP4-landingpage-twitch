@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   const signInWithTwitch = useCallback(async () => {
-    // Speichere den aktuellen Pfad vor der Anmeldung (BrowserRouter nutzt echte Pfade)
+    /** Store current path to redirect after auth completes */
     const path = window.location.pathname || '/'
     sessionStorage.setItem(REDIRECT_PATH_KEY, path)
 

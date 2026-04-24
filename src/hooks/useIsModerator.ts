@@ -17,7 +17,7 @@ export function useIsModerator() {
     if (authLoading) return
 
     if (!user) {
-      // Use a microtask to avoid synchronous setState in effect
+      /** Defer state updates to next event loop to prevent batching issues */
       queueMicrotask(() => {
         setIsMod(false)
         setIsBroadcaster(false)

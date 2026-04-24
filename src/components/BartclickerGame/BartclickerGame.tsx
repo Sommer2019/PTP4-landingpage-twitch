@@ -53,8 +53,10 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
             </div>
         );
     }
-    // Custom language-aware unit formatter that provides more compact units
-    // und eine drastisch erweiterte Skala (bis 10^99 und mehr)
+    /**
+     * Custom language-aware formatter that displays numbers with appropriate unit suffixes.
+     * Supports EN and DE locales with extended scale (up to 10^99).
+     */
     const formatWithUnits = (num: number, maximumFractionDigits = 2): string => {
         const locale = i18n?.language || undefined;
         const isNegative = num < 0;

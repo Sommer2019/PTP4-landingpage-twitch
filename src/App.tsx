@@ -27,7 +27,7 @@ import * as React from "react";
 import { useIsBanned } from './hooks/useIsBanned';
 import { useTranslation } from 'react-i18next';
 
-// Komponente für echte Browser-Redirects zu statischen HTML-Dateien
+/** Component for direct browser navigation (full page reload) */
 const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
     useLayoutEffect(() => {
         window.location.href = to
@@ -96,9 +96,9 @@ function App() {
         <BrowserRouter>
             <SettingsBar/>
             <PageTracker/>
-            <Routes>
-                {/* ── Externe Links → Redirect ── */}
-                {Object.keys(externalRedirects).map((path) => (
+             <Routes>
+                 {/* External redirect mappings */}
+                 {Object.keys(externalRedirects).map((path) => (
                     <Route key={path} path={path} element={<ExternalRedirectHandler />} />
                 ))}
                 <Route path="/" element={<HomePage/>}/>

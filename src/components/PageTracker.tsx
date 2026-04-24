@@ -5,18 +5,18 @@ import { supabase } from '../lib/supabase'
 const STORAGE_KEY = 'cookie-consent'
 const SESSION_KEY = 'pv-session-id'
 
-/** UUID v4 Fallback für Browser ohne crypto.randomUUID-Support. */
+/** UUID v4 fallback for browsers without native crypto.randomUUID support */
 function generateUUID(): string {
   try {
-    // Versuche native crypto.randomUUID zu verwenden
+    // Try native crypto.randomUUID
     if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
       return globalThis.crypto.randomUUID()
     }
   } catch {
-    // Fallback bei Fehler
+    // Fallback on error
   }
   
-  // Fallback: manuelles UUID v4
+  // Fallback: manual UUID v4 generation
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
     const v = c === 'x' ? r : (r & 0x3) | 0x8
@@ -24,7 +24,7 @@ function generateUUID(): string {
   })
 }
 
-/** Erzeugt (oder holt) eine anonyme Session-ID für diesen Browser-Tab. */
+/** Generate or retrieve anonymous session ID for this browser tab */
 function getSessionId(): string {
   let id = sessionStorage.getItem(SESSION_KEY)
   if (!id) {
@@ -47,25 +47,25 @@ export default function PageTracker() {
     if (consent !== 'accepted') return
 
     const path = location.pathname
-    // Doppeltes Tracking desselben Pfads direkt hintereinander vermeiden
+    /** Prevent duplicate tracking of same path in succession */
     if (path === prevPath.current) return
     prevPath.current = path
 
     const sessionId = getSessionId()
     const redirectInfo: Record<string, string> = {}
 
-    // document.referrer nur beim allerersten Aufruf sinnvoll
+    /** Capture referrer only on initial page load */
     if (document.referrer) {
       try {
         const ref = new URL(document.referrer)
-        // Nur externe Referrer speichern
+        /** Only store external referrers */
         if (ref.origin !== window.location.origin) {
           redirectInfo.referrer = document.referrer
         }
       } catch { /* invalid URL – ignore */ }
     }
 
-    // UTM-Parameter o.ä. aus der Query übernehmen
+    /** Capture UTM parameters and query string */
     if (location.search) {
       redirectInfo.query = location.search
     }

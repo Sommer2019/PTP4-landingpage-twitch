@@ -48,7 +48,7 @@ export default function LinkCard({ item, onDownload }: LinkCardProps) {
     </>
   )
 
-  // Interne Links verwenden React Router <Link>
+  // Use React Router for internal links
   if (isInternal) {
     return (
       <Link className="link-card" to={item.url} onClick={handleClick}>

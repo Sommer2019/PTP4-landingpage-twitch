@@ -6,7 +6,7 @@ import {useToast} from '../context/useToast'
 import SubPage from '../components/SubPage/SubPage'
 import type {VotingRound} from '../types/clipVoting'
 
-/* ═════════════════════════════════════════════════════════ */
+
 
 export default function ModerateVotingPage() {
     const {t} = useTranslation()
@@ -17,7 +17,7 @@ export default function ModerateVotingPage() {
     const [busy, setBusy] = useState(false)
     const [refreshKey, setRefreshKey] = useState(0)
 
-    /* ── Daten laden ── */
+    /** Fetch voting rounds **/
     useEffect(() => {
         (async () => {
             const [roundsRes] = await Promise.all([
@@ -28,7 +28,7 @@ export default function ModerateVotingPage() {
         })()
     }, [refreshKey])
 
-    /* ── RPC (Voting-Actions) ── */
+    /** Execute RPC voting actions **/
     async function callRpc(fn: string) {
         setBusy(true)
         const {data, error} = await supabase.rpc(fn)
