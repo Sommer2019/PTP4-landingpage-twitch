@@ -57,7 +57,7 @@ public class SupabaseClient {
     public void addOrUpdatePoints(String username, String userid, int points, String reason) {
         logger.info("addOrUpdatePoints: {} | {} | {}", username, points, reason);
         int current = getPoints(username, userid);
-        int finalPoints = current + points;
+        int finalPoints = (int) Math.min((long) current + points, Integer.MAX_VALUE);
         logger.info("Add points: {} (current: {} + points: {})", finalPoints, current, points);
 
         JSONObject json = new JSONObject();
