@@ -10,12 +10,13 @@ public class OverlayApiServer {
     private final SupabaseClient supabaseClient;
     private static final String EXTENSION_SECRET = System.getenv("EXTENSION_SECRET");
 
-    public OverlayApiServer(SupabaseClient supabaseClient) throws IOException {
+    public OverlayApiServer(SupabaseClient supabaseClient, TwitchBot bot) throws IOException {
         this.supabaseClient = supabaseClient;
         HttpServer server = HttpServer.create(new java.net.InetSocketAddress(8081), 0);
         server.createContext("/api/redeemed_rewards", new RedeemedRewardsHandler(supabaseClient));
         server.createContext("/api/rewards", new RewardsHandler(supabaseClient));
         server.createContext("/api/redeem_check", new RedeemCheckHandler(supabaseClient));
+        server.createContext("/api/redeem", new RedeemHandler(supabaseClient, bot));
         server.createContext("/api/points", new PointsHandler(supabaseClient));
         server.createContext("/api/leaderboard", new LeaderboardHandler(supabaseClient));
         server.createContext("/overlay.html", new StaticFileHandler("overlay.html", "text/html"));
@@ -36,7 +37,7 @@ public class OverlayApiServer {
             // Fallback for local testing / non-Twitch origins
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://supervisor.ext-twitch.tv");
         }
-        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, DELETE, OPTIONS");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, x-extension-jwt");
         exchange.getResponseHeaders().add("Vary", "Origin");
     }

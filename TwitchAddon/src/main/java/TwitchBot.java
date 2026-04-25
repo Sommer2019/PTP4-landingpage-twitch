@@ -285,6 +285,14 @@ public class TwitchBot {
         stopTimer();
     }
 
+    public boolean isStreamOnline() {
+        return lastStreamOnline;
+    }
+
+    public String getCurrentStreamSessionId() {
+        return currentStreamSessionId;
+    }
+
     public void connect() {
         logger.info("Bot tritt Channel {} bei...", channelName);
         twitchClient.getChat().joinChannel(channelName);

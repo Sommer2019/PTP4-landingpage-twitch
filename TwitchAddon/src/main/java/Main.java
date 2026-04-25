@@ -67,7 +67,7 @@ public class Main {
         TwitchBot bot = new TwitchBot(twitchOauthToken, twitchClientId, twitchClientSecret, twitchRefreshToken, channelName, pointsManager);
         bot.connect();
 
-        OverlayApiServer overlayApiServer = new OverlayApiServer(supabaseClient);
+        OverlayApiServer overlayApiServer = new OverlayApiServer(supabaseClient, bot);
 
         System.out.println("Bot läuft. Punkte werden in Supabase gespeichert.");
 

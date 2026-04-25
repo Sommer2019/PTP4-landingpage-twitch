@@ -548,6 +548,63 @@ public class SupabaseClient {
     }
 
     /**
+     * Gibt einen Reward anhand seiner ID zurück, oder null wenn nicht gefunden.
+     */
+    public JSONObject getRewardById(String rewardId) {
+        if (rewardId == null || rewardId.isBlank()) return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(supabaseUrl + "/rest/v1/rewards?id=eq." + rewardId))
+                .header("apikey", apiKey)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .build();
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                JSONArray arr = new JSONArray(response.body());
+                if (!arr.isEmpty()) return arr.getJSONObject(0);
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Supabase GET reward by id: {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * Ruft die Supabase RPC-Funktion 'redeem_reward' auf und gibt die vollständige Antwort zurück.
+     * Gibt null zurück wenn ein Netzwerk- oder HTTP-Fehler auftritt.
+     */
+    public JSONObject redeemRewardRpcFull(String twitchUserId, String rewardId, String description, int cost, String ttsText, String streamId) {
+        try {
+            JSONObject params = new JSONObject();
+            params.put("p_twitch_user_id", twitchUserId);
+            params.put("p_reward_id", rewardId);
+            params.put("p_description", description);
+            params.put("p_cost", cost);
+            params.put("p_ttstext", ttsText);
+            params.put("p_stream_id", streamId);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(supabaseUrl + "/rpc/redeem_reward"))
+                    .header("apikey", apiKey)
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(BodyPublishers.ofString(params.toString()))
+                    .timeout(Duration.ofSeconds(10))
+                    .build();
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
+                return new JSONObject(response.body());
+            }
+            logger.error("redeemRewardRpcFull: HTTP {} - {}", response.statusCode(), response.body());
+        } catch (Exception e) {
+            logger.error("Fehler beim Aufruf der RPC redeem_reward (full): {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
      * Gibt einen einzelnen eingelösten Reward anhand der ID zurück (aus redeemed_rewards).
      */
     public JSONObject getRedeemedRewardById(String id) {
