@@ -11,22 +11,25 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class TwitchBot {
     private static final Logger logger = LoggerFactory.getLogger(TwitchBot.class);
-    private final TwitchClient twitchClient;
+    private TwitchClient twitchClient;
     private final UserPointsManager pointsManager;
     private final String channelName;
     private final long timerIntervalMs;
     private Timer timer;
     private Timer streamStatusTimer;
     private boolean lastStreamOnline = false;
-    private String oauthToken;
+    private volatile String oauthToken;
     private final String clientId;
     private final String clientSecret;
     private final String refreshToken;
-    // Aktuelle Stream-Session-ID (stream_sessions.id)
     private String currentStreamSessionId = null;
+    private final ScheduledExecutorService tokenRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public TwitchBot(String oauthToken, String clientId, String clientSecret, String refreshToken, String channelName, UserPointsManager pointsManager) {
         this(oauthToken, clientId, clientSecret, refreshToken, channelName, pointsManager, 10000);
@@ -42,35 +45,73 @@ public class TwitchBot {
         this.pointsManager = pointsManager;
         this.timerIntervalMs = timerIntervalMs;
         try {
-            // HINWEIS: Der oauthToken MUSS ein Token deines Broadcaster-Accounts sein (z.B. aus .env oder Umgebungsvariable)
-            // Beispiel für .env: TWITCH_OAUTH_TOKEN=oauth:dein_token
             assert oauthToken != null;
-            OAuth2Credential credential = new OAuth2Credential("twitch", oauthToken);
-            this.twitchClient = TwitchClientBuilder.builder()
-                    .withEnableChat(true)
-                    .withEnableHelix(true)
-                    .withChatAccount(credential)
-                    .withClientId(clientId)
-                    .withClientSecret(clientSecret)
-                    .build();
+            this.twitchClient = buildTwitchClient(oauthToken);
             logger.info("TwitchBot initialisiert für Channel: {} (Timer-Intervall: {} ms)", channelName, timerIntervalMs);
-            logger.info("EventSub aktiviert: false (Polling wird verwendet)");
             registerListeners();
-            startStreamStatusPolling(clientId, oauthToken, channelName);
+            startStreamStatusPolling();
+            scheduleProactiveTokenRefresh();
         } catch (Exception e) {
             logger.error("Fehler beim Initialisieren des TwitchBot: {}", e.getMessage(), e);
             throw e;
         }
     }
 
+    private TwitchClient buildTwitchClient(String token) {
+        OAuth2Credential credential = new OAuth2Credential("twitch", token);
+        return TwitchClientBuilder.builder()
+                .withEnableChat(true)
+                .withEnableHelix(true)
+                .withChatAccount(credential)
+                .withClientId(clientId)
+                .withClientSecret(clientSecret)
+                .build();
+    }
+
+    /** Proaktiver Token-Refresh alle 2 Stunden, damit der Token nie abläuft. */
+    private void scheduleProactiveTokenRefresh() {
+        tokenRefreshExecutor.scheduleAtFixedRate(() -> {
+            logger.info("Proaktiver OAuth-Token-Refresh gestartet...");
+            refreshAndRebuild();
+        }, 2, 2, TimeUnit.HOURS);
+    }
+
+    private synchronized void refreshAndRebuild() {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            logger.error("Kein Refresh-Token vorhanden, OAuth-Token kann nicht erneuert werden!");
+            return;
+        }
+        try {
+            String newToken = TwitchOAuthUtil.refreshAccessToken(clientId, clientSecret, refreshToken);
+            if (newToken == null || newToken.isEmpty()) {
+                logger.error("Refresh-Token-Request lieferte kein neues Token.");
+                return;
+            }
+            this.oauthToken = newToken;
+            logger.info("OAuth-Token erneuert. Baue TwitchClient neu auf...");
+
+            try {
+                twitchClient.getChat().leaveChannel(channelName);
+                twitchClient.close();
+            } catch (Exception e) {
+                logger.warn("Fehler beim Schließen des alten TwitchClient: {}", e.getMessage());
+            }
+
+            this.twitchClient = buildTwitchClient(newToken);
+            registerListeners();
+            twitchClient.getChat().joinChannel(channelName);
+            logger.info("TwitchClient erfolgreich neu aufgebaut, Channel {} beigetreten.", channelName);
+        } catch (Exception e) {
+            logger.error("Fehler beim Rebuild nach Token-Refresh: {}", e.getMessage(), e);
+        }
+    }
+
     private void registerListeners() {
-        // Join Event
         twitchClient.getEventManager().onEvent(ChannelJoinEvent.class, event -> {
             String user = event.getUser().getName();
             logger.info("User joined: {}", user);
             String userId = null;
             try {
-                // Twitch-User-ID über Helix-API abfragen
                 userId = twitchClient.getHelix()
                         .getUsers(null, null, java.util.Collections.singletonList(user))
                         .execute()
@@ -87,16 +128,15 @@ public class TwitchBot {
             }
             pointsManager.userJoined(user, userId);
         });
-        // Part/Leave Event
+
         twitchClient.getEventManager().onEvent(ChannelLeaveEvent.class, event -> {
             String user = event.getUser().getName();
             logger.info("User left: {}", user);
             pointsManager.userLeft(user);
         });
-        // Online Event (GoLive)
+
         twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
             logger.info("Stream ist online!");
-            // Erstelle eine neue Stream-Session in der DB
             try {
                 String streamIdentifier = channelName + "-" + System.currentTimeMillis();
                 String sessionId = pointsManager.createStreamSession(streamIdentifier);
@@ -111,7 +151,7 @@ public class TwitchBot {
             }
             startTimer();
         });
-        // Offline Event
+
         twitchClient.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
             logger.info("Stream ist offline!");
             int sessionCount = pointsManager.getAllSessions().size();
@@ -123,7 +163,6 @@ public class TwitchBot {
                     session.hasReceivedStayTillEndPoints = true;
                 }
             }
-            // Beende Stream-Session und deaktiviere globale Einlösungen für diese Session
             try {
                 if (currentStreamSessionId != null) {
                     boolean deact = pointsManager.deactivateGlobalRedemptionsForSession(currentStreamSessionId);
@@ -132,11 +171,9 @@ public class TwitchBot {
                     logger.info("Stream-Session {} als beendet markiert: {}", currentStreamSessionId, ended);
                     currentStreamSessionId = null;
                 } else {
-                    // Fallback: deaktiviere alle aktiven globalen Einlösungen
                     boolean deactAll = pointsManager.deactivateAllActiveGlobalRedemptions();
                     logger.info("Alle aktiven redeemed_global Einträge deaktiviert: {}", deactAll);
                 }
-                // Leere redeemed_rewards für neuen Stream
                 boolean deletedRewards = pointsManager.deleteAllRedeemedRewards();
                 logger.info("Alle redeemed_rewards gelöscht: {}", deletedRewards);
             } catch (Exception e) {
@@ -159,17 +196,17 @@ public class TwitchBot {
                     long minutes = (now - session.joinTimestamp) / 60000;
                     if (minutes >= 5 && !session.hasReceived5MinPoints) {
                         logger.info("Punkte für 5 Minuten an {}", session.username);
-                        pointsManager.addPoints(session.username, session.userid,10, "5 Minuten");
+                        pointsManager.addPoints(session.username, session.userid, 10, "5 Minuten");
                         session.hasReceived5MinPoints = true;
                     }
                     if (minutes >= 30 && !session.hasReceived30MinPoints) {
                         logger.info("Punkte für 30 Minuten an {}", session.username);
-                        pointsManager.addPoints(session.username, session.userid,50, "30 Minuten");
+                        pointsManager.addPoints(session.username, session.userid, 50, "30 Minuten");
                         session.hasReceived30MinPoints = true;
                     }
                 }
             }
-        }, 0, timerIntervalMs); // Intervall jetzt variabel
+        }, 0, timerIntervalMs);
     }
 
     private void stopTimer() {
@@ -179,14 +216,15 @@ public class TwitchBot {
         }
     }
 
-    private void startStreamStatusPolling(String clientId, String oauthToken, String channelName) {
+    /** Polling benutzt this.oauthToken direkt — wird nach jedem Refresh automatisch aktuell. */
+    private void startStreamStatusPolling() {
         logger.info("Starte Stream-Status-Polling für {}...", channelName);
         streamStatusTimer = new Timer();
         streamStatusTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 try {
-                    boolean isOnline = checkStreamOnline(clientId, oauthToken, channelName);
+                    boolean isOnline = checkStreamOnline();
                     if (lastStreamOnline && !isOnline) {
                         logger.info("Stream wurde als OFFLINE erkannt (Polling).");
                         handleStreamEnd();
@@ -200,26 +238,30 @@ public class TwitchBot {
                     logger.error("Fehler beim Stream-Status-Polling: {}", e.getMessage(), e);
                 }
             }
-        }, 0, 30000); // alle 30 Sekunden
+        }, 0, 30000);
     }
 
-    private boolean checkStreamOnline(String clientId, String oauthToken, String channelName) throws Exception {
+    private boolean checkStreamOnline() throws Exception {
         java.net.http.HttpClient httpClient = java.net.http.HttpClient.newHttpClient();
         String url = "https://api.twitch.tv/helix/streams?user_login=" + channelName;
         java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
                 .uri(java.net.URI.create(url))
                 .header("Client-Id", clientId)
-                .header("Authorization", "Bearer " + oauthToken)
+                .header("Authorization", "Bearer " + this.oauthToken)
                 .GET()
                 .build();
         java.net.http.HttpResponse<String> response = httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 401) {
+            logger.warn("Helix API 401 beim Polling — Token möglicherweise abgelaufen, starte Refresh...");
+            refreshAndRebuild();
+            return false;
+        }
         if (response.statusCode() == 200) {
             org.json.JSONObject json = new org.json.JSONObject(response.body());
             return json.getJSONArray("data").length() > 0;
-        } else {
-            logger.warn("Helix API Fehler: {} {}", response.statusCode(), response.body());
-            return false;
         }
+        logger.warn("Helix API Fehler: {} {}", response.statusCode(), response.body());
+        return false;
     }
 
     private void handleStreamEnd() {
@@ -228,11 +270,10 @@ public class TwitchBot {
         for (UserSession session : pointsManager.getAllSessions().values()) {
             if (!session.hasReceivedStayTillEndPoints) {
                 logger.info("[Polling] Punkte für bis zum Ende geblieben: {}", session.username);
-                pointsManager.addPoints(session.username, session.userid,250, "Bis zum Ende geblieben");
+                pointsManager.addPoints(session.username, session.userid, 250, "Bis zum Ende geblieben");
                 session.hasReceivedStayTillEndPoints = true;
             }
         }
-        // Leere redeemed_rewards und deaktiviere alle globalen Einlösungen
         try {
             boolean deletedRewards = pointsManager.deleteAllRedeemedRewards();
             logger.info("[Polling] Alle redeemed_rewards gelöscht: {}", deletedRewards);
@@ -244,63 +285,8 @@ public class TwitchBot {
         stopTimer();
     }
 
-    // Wrapper für Helix-API-Calls mit automatischem Token-Refresh bei "invalid oauth token"
-    private <T> T executeWithTokenRetry(TokenApiCall<T> call) throws Exception {
-        try {
-            return call.execute(oauthToken);
-        } catch (Exception e) {
-            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("invalid oauth token")) {
-                logger.warn("OAuth-Token ungültig, versuche automatischen Refresh...");
-                if (refreshOAuthTokenIfNeeded()) {
-                    return call.execute(oauthToken);
-                } else {
-                    throw new Exception("OAuth-Token konnte nicht erneuert werden.", e);
-                }
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    @FunctionalInterface
-    private interface TokenApiCall<T> {
-        T execute(String token) throws Exception;
-    }
-
-    /**
-     * Erneuert das OAuth-Token mit dem Refresh-Token und aktualisiert den TwitchClient.
-     * Gibt true zurück, wenn erfolgreich.
-     */
-    private synchronized boolean refreshOAuthTokenIfNeeded() {
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            logger.error("Kein Refresh-Token vorhanden, kann OAuth-Token nicht erneuern!");
-            return false;
-        }
-        try {
-            String newToken = TwitchOAuthUtil.refreshAccessToken(clientId, clientSecret, refreshToken);
-            if (newToken != null && !newToken.isEmpty()) {
-                logger.info("Neues OAuth-Token per Refresh erhalten. Aktualisiere TwitchClient...");
-                this.oauthToken = newToken;
-                OAuth2Credential credential = new OAuth2Credential("twitch", newToken);
-                // TwitchClient kann nicht direkt das Token wechseln, daher ggf. Neustart nötig
-                // Workaround: Hinweis loggen, ggf. Bot-Neustart triggern
-                logger.warn("TwitchClient benötigt einen Neustart, um neues Token zu nutzen!");
-                return true;
-            } else {
-                logger.error("Konnte kein neues OAuth-Token generieren.");
-                return false;
-            }
-        } catch (Exception e) {
-            logger.error("Fehler beim Erneuern des OAuth-Tokens: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-
     public void connect() {
         logger.info("Bot tritt Channel {} bei...", channelName);
         twitchClient.getChat().joinChannel(channelName);
     }
 }
-
-// Beispielnutzung für Helix-API-Call:
-// User user = executeWithTokenRetry(token -> twitchClient.getHelix().getUsers(null, null, List.of(username)).execute().getUsers().get(0));
