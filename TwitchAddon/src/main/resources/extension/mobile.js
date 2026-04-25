@@ -1,28 +1,28 @@
 // Werte werden beim GitHub-Build per sed ersetzt (siehe build.yml)
-var EBS_BASE_URL  = '__EBS_BASE_URL__';
-var SUPABASE_URL  = '__SUPABASE_URL__';
-var SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
+const EBS_BASE_URL = '__EBS_BASE_URL__';
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
 
-var viewerUserId  = null;
-var viewerJwt     = null;
-var userPoints    = 0;
-var allRewards    = [];
-var selectedId    = null;
-var redeemBusy    = false;
-var cooldownTimer = null;
+let viewerUserId = null;
+let viewerJwt = null;
+let userPoints = 0;
+let allRewards = [];
+let selectedId = null;
+let redeemBusy = false;
+let cooldownTimer = null;
 
 function fmt(n) { return Number(n).toLocaleString('de-DE'); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function setRedeemStatus(msg, type) {
     type = type || 'success';
-    var el = document.getElementById('redeemStatus');
+    const el = document.getElementById('redeemStatus');
     el.innerHTML = msg ? '<div class="' + type + '-msg">' + msg + '</div>' : '';
     if (msg) setTimeout(function() { el.innerHTML = ''; }, 4000);
 }
 
 function updateFooterPoints(pts) {
-    var el = document.getElementById('pointsDisplay');
+    const el = document.getElementById('pointsDisplay');
     if (el) el.textContent = (pts !== null && pts !== undefined) ? fmt(pts) : '\u2013';
 }
 
@@ -49,7 +49,7 @@ function sbGet(table, qs) {
 
 // Loaders
 function loadMyPoints(uid, jwt) {
-    var headers = {};
+    const headers = {};
     if (jwt) headers['x-extension-jwt'] = jwt;
     fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid), { headers: headers })
         .then(function(res) { return res.json(); })
@@ -66,12 +66,12 @@ function loadMyPoints(uid, jwt) {
 }
 
 function loadLeaderboard() {
-    var el = document.getElementById('leaderboardList');
+    const el = document.getElementById('leaderboardList');
     fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Eintraege.</div>'; return; }
-            var medals = ['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49'];
+            const medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'];
             el.innerHTML = data.map(function(e, i) {
                 return '<div class="leaderboard-row">' +
                     '<span class="leaderboard-rank ' + (i < 3 ? 'top' + (i+1) : '') + '">' + (medals[i] || i+1) + '</span>' +
@@ -95,7 +95,7 @@ function loadRewards() {
 
 // Einspaltige Liste statt Grid
 function renderList() {
-    var el = document.getElementById('rewardsArea');
+    const el = document.getElementById('rewardsArea');
     if (!allRewards.length) { el.innerHTML = '<div class="status-msg">Keine Rewards verfuegbar.</div>'; return; }
     el.innerHTML = '<div class="reward-list">' + allRewards.map(function(r) {
         return '<button class="reward-item" data-id="' + esc(String(r.id)) + '">' +
@@ -113,10 +113,12 @@ function openReward(id) {
     selectedId = id;
     setRedeemStatus('');
     if (cooldownTimer) { clearInterval(cooldownTimer); cooldownTimer = null; }
-    var r = allRewards.find(function(x) { return String(x.id) === String(id); });
+    const r = allRewards.find(function (x) {
+        return String(x.id) === String(id);
+    });
     if (!r) return;
 
-    var el = document.getElementById('rewardsArea');
+    const el = document.getElementById('rewardsArea');
     el.innerHTML =
         '<div class="reward-detail">' +
         '<button class="back-btn" id="backBtn">\u2190 Zur\u00fcck</button>' +
@@ -130,7 +132,7 @@ function openReward(id) {
     document.getElementById('redeemBtn').addEventListener('click', handleRedeem);
 
     if (userPoints < r.cost) {
-        var btn = document.getElementById('redeemBtn');
+        const btn = document.getElementById('redeemBtn');
         btn.disabled = true;
         btn.textContent = 'Zu wenig Punkte (' + fmt(userPoints) + ' / ' + fmt(r.cost) + ')';
         return;
@@ -147,15 +149,15 @@ function backToList() {
 }
 
 function checkCooldown(reward) {
-    var btn = document.getElementById('redeemBtn');
+    const btn = document.getElementById('redeemBtn');
     if (!btn) return;
 
     sbGet('redeemed_global', '?reward_id=eq.' + reward.id + '&is_active=eq.true&limit=1')
         .then(function(rows) {
             if (rows && rows.length > 0) {
-                var g = rows[0];
+                const g = rows[0];
                 if (g.expires_at) {
-                    var rem = new Date(g.expires_at).getTime() - Date.now();
+                    const rem = new Date(g.expires_at).getTime() - Date.now();
                     if (rem > 0) { btn.disabled = true; btn.textContent = 'Cooldown: ' + Math.ceil(rem/1000) + 's'; return; }
                 } else {
                     btn.disabled = true; btn.textContent = 'Bereits eingelöst (Stream)'; return;
@@ -166,14 +168,14 @@ function checkCooldown(reward) {
                 '?twitch_user_id=eq.' + encodeURIComponent(viewerUserId) + '&reward_id=eq.' + reward.id + '&order=timestamp.desc&limit=1')
                 .then(function(rows2) {
                     if (rows2 && rows2.length > 0 && rows2[0].timestamp) {
-                        var last = new Date(rows2[0].timestamp).getTime();
-                        var rem2 = last + reward.cooldown * 1000 - Date.now();
+                        const last = new Date(rows2[0].timestamp).getTime();
+                        const rem2 = last + reward.cooldown * 1000 - Date.now();
                         if (rem2 > 0) {
                             btn.disabled = true;
                             btn.textContent = 'Cooldown: ' + Math.ceil(rem2/1000) + 's';
                             cooldownTimer = setInterval(function() {
-                                var r2 = last + reward.cooldown * 1000 - Date.now();
-                                var b = document.getElementById('redeemBtn');
+                                const r2 = last + reward.cooldown * 1000 - Date.now();
+                                const b = document.getElementById('redeemBtn');
                                 if (!b) { clearInterval(cooldownTimer); return; }
                                 if (r2 > 0) { b.textContent = 'Cooldown: ' + Math.ceil(r2/1000) + 's'; }
                                 else { clearInterval(cooldownTimer); b.disabled = false; b.textContent = 'Jetzt einl\u00f6sen'; }
@@ -186,11 +188,13 @@ function checkCooldown(reward) {
 
 function handleRedeem() {
     if (!selectedId || redeemBusy) return;
-    var r = allRewards.find(function(x) { return String(x.id) === String(selectedId); });
+    const r = allRewards.find(function (x) {
+        return String(x.id) === String(selectedId);
+    });
     if (!r || !viewerUserId) return;
 
-    var ttsEl   = document.getElementById('ttsInput');
-    var ttsText = ttsEl ? ttsEl.value.trim() : '';
+    const ttsEl = document.getElementById('ttsInput');
+    const ttsText = ttsEl ? ttsEl.value.trim() : '';
     if (r.istts && !r.text && !ttsText) return;
 
     if (userPoints < r.cost) {
@@ -199,21 +203,22 @@ function handleRedeem() {
     }
 
     redeemBusy = true;
-    var btn = document.getElementById('redeemBtn');
+    const btn = document.getElementById('redeemBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'L\u00e4dt\u2026'; }
 
     sbGet('stream_sessions', '?is_active=eq.true&order=started_at.desc&limit=1&select=id')
         .catch(function() { return []; })
         .then(function(sessions) {
-            var streamId = (sessions && sessions.length) ? (sessions[0].id || null) : null;
+            const streamId = (sessions && sessions.length) ? (sessions[0].id || null) : null;
 
             function replace(s) { return (s || '').replace(/%name%/g, viewerUserId); }
-            var description = null, ttsToSend = null;
+
+            let description, ttsToSend = null;
             if (r.istts) {
                 if (r.text) {
                     description = replace(r.text);
                 } else {
-                    var combined = r.description && ttsText ? r.description + ' ' + ttsText : (r.description || ttsText);
+                    const combined = r.description && ttsText ? r.description + ' ' + ttsText : (r.description || ttsText);
                     description = replace(combined);
                     ttsToSend = ttsText || null;
                 }
@@ -237,41 +242,51 @@ function handleRedeem() {
                 updateFooterPoints(userPoints);
                 setTimeout(backToList, 2000);
             } else if (data && data.error) {
-                var msgs = {
-                    cooldown_active:        'Cooldown aktiv \u2013 noch ' + (data.remaining || '?') + 's.',
+                const msgs = {
+                    cooldown_active: 'Cooldown aktiv \u2013 noch ' + (data.remaining || '?') + 's.',
                     once_per_stream_active: 'Einmalig pro Stream \u2013 bereits eingelöst.',
-                    reward_disabled:        'Reward gerade deaktiviert.',
-                    not_enough_points:      'Nicht genug Punkte.',
-                    user_not_found:         'Account nicht gefunden.',
+                    reward_disabled: 'Reward gerade deaktiviert.',
+                    not_enough_points: 'Nicht genug Punkte.',
+                    user_not_found: 'Account nicht gefunden.',
                 };
                 setRedeemStatus('\u274C ' + (msgs[data.error] || data.error), 'error');
-                var b = document.getElementById('redeemBtn');
+                const b = document.getElementById('redeemBtn');
                 if (b) { b.disabled = false; b.textContent = 'Jetzt einl\u00f6sen'; }
             } else {
                 setRedeemStatus('\u274C Unbekannte Antwort.', 'error');
-                var b2 = document.getElementById('redeemBtn');
+                const b2 = document.getElementById('redeemBtn');
                 if (b2) { b2.disabled = false; b2.textContent = 'Jetzt einl\u00f6sen'; }
             }
             redeemBusy = false;
         })
         .catch(function(e) {
             setRedeemStatus('\u274C Fehler: ' + esc(e.message), 'error');
-            var b = document.getElementById('redeemBtn');
+            const b = document.getElementById('redeemBtn');
             if (b) { b.disabled = false; b.textContent = 'Jetzt einl\u00f6sen'; }
             redeemBusy = false;
         });
 }
 
 // Twitch Auth
+function decodeJwtPayload(token) {
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(b64));
+    } catch(e) { return null; }
+}
+
 window.Twitch.ext.onAuthorized(function(auth) {
     viewerJwt = auth.token;
-    viewerUserId = (auth.userId && auth.userId !== '0') ? auth.userId : null;
+    // auth.userId is the opaque ID (U<hash>); the real numeric Twitch user ID is in the JWT payload
+    const payload = decodeJwtPayload(auth.token);
+    viewerUserId = (payload && payload.user_id) ? payload.user_id : null;
 
     if (!viewerUserId) {
         window.Twitch.ext.actions.requestIdShare();
     }
 
-    // Immer laden — Backend löst opaque ID via JWT auf
     loadMyPoints(auth.userId, auth.token);
 
     if (allRewards.length && !selectedId) renderList();
