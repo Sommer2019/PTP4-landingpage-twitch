@@ -749,4 +749,5 @@ CREATE POLICY "authenticated_can_read" ON public.stream_sessions
 --     Kann nicht per SQL aktiviert werden.
 --     → Supabase Dashboard > Authentication > Security >
 --       "Enable Leaked Password Protection" aktivieren.
+--  Für uns irrelevant, da auth per twitch und nicht im freeplan enthalten
 -- ────────────────────────────────────────────────────────────────
