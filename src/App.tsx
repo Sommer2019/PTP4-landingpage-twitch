@@ -1,31 +1,32 @@
 import {Routes, Route, Navigate, useLocation, BrowserRouter} from 'react-router-dom'
-import {useLayoutEffect} from 'react'
+import {useLayoutEffect, lazy, Suspense} from 'react'
 import SettingsBar from './components/SettingsBar/SettingsBar.tsx'
 import CookieBanner from './components/CookieBanner/CookieBanner'
 import PageTracker from './components/PageTracker'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import ModeratorRoute from './components/ModeratorRoute/ModeratorRoute'
 import BroadcasterRoute from './components/BroadcasterRoute/BroadcasterRoute'
-import HomePage from './pages/HomePage'
-import ImpressumPage from './pages/ImpressumPage'
-import DatenschutzPage from './pages/DatenschutzPage'
-import StreamplanPage from './pages/StreamplanPage/StreamplanPage'
-import StreamelementsPage from './pages/StreamelementsPage'
-import BartclickerPage from './pages/BartclickerPage'
-import ClipVotingPage from './pages/ClipVotingPage'
-import ModeratePage from './pages/ModeratePage'
-import ModerateVotingPage from './pages/ModerateVotingPage'
-import ModerateStatisticsPage from './pages/ModerateStatisticsPage/ModerateStatisticsPage'
-import ModerateSettingsPage from './pages/ModerateSettingsPage'
-import OnlyBartPage from './pages/OnlyBartPage/OnlyBartPage'
-import NotFoundPage from './pages/NotFoundPage/NotFoundPage'
-import ModerateAccountPage from './pages/ModerateAccountPage'
-import ModerateDonationTriggersPage from './pages/ModerateDonationTriggersPage'
 import './App.css'
 import siteConfig from "./config/siteConfig.ts";
 import * as React from "react";
 import { useIsBanned } from './hooks/useIsBanned';
 import { useTranslation } from 'react-i18next';
+
+const HomePage = lazy(() => import('./pages/HomePage'))
+const ImpressumPage = lazy(() => import('./pages/ImpressumPage'))
+const DatenschutzPage = lazy(() => import('./pages/DatenschutzPage'))
+const StreamplanPage = lazy(() => import('./pages/StreamplanPage/StreamplanPage'))
+const StreamelementsPage = lazy(() => import('./pages/StreamelementsPage'))
+const BartclickerPage = lazy(() => import('./pages/BartclickerPage'))
+const ClipVotingPage = lazy(() => import('./pages/ClipVotingPage'))
+const ModeratePage = lazy(() => import('./pages/ModeratePage'))
+const ModerateVotingPage = lazy(() => import('./pages/ModerateVotingPage'))
+const ModerateStatisticsPage = lazy(() => import('./pages/ModerateStatisticsPage/ModerateStatisticsPage'))
+const ModerateSettingsPage = lazy(() => import('./pages/ModerateSettingsPage'))
+const OnlyBartPage = lazy(() => import('./pages/OnlyBartPage/OnlyBartPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage/NotFoundPage'))
+const ModerateAccountPage = lazy(() => import('./pages/ModerateAccountPage'))
+const ModerateDonationTriggersPage = lazy(() => import('./pages/ModerateDonationTriggersPage'))
 
 /** Component for direct browser navigation (full page reload) */
 const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
@@ -96,6 +97,7 @@ function App() {
         <BrowserRouter>
             <SettingsBar/>
             <PageTracker/>
+            <Suspense fallback={null}>
              <Routes>
                  {/* External redirect mappings */}
                  {Object.keys(externalRedirects).map((path) => (
@@ -148,6 +150,7 @@ function App() {
 
                 <Route path="*" element={<NotFoundPage/>}/>
             </Routes>
+            </Suspense>
             <CookieBanner/>
         </BrowserRouter>
     )
