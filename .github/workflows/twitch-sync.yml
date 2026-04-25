@@ -2,8 +2,8 @@ name: Daily Twitch Sync
 
 on:
   schedule:
-    # 1x pro Stunde, um Twitch-Daten aktuell zu halten
-    - cron: '0 * * * *'
+    # alle 2h, um Twitch-Daten aktuell zu halten
+    - cron: '0 */2 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
