@@ -21,8 +21,8 @@ public class RedeemHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        OverlayApiServer.addCorsHeaders(exchange);
         if (OverlayApiServer.handleCorsPreFlight(exchange)) return;
+        OverlayApiServer.addCorsHeaders(exchange);
 
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
             exchange.sendResponseHeaders(405, -1);
