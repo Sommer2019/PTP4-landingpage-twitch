@@ -24,7 +24,7 @@ export default function WinnerDisplay({ type, winner }: WinnerDisplayProps) {
     <div className="winner-display">
       <div className="winner-display__label">🏆 {label}</div>
       <div className="winner-display__title">{clip.title}</div>
-      <ClipEmbed twitchClipId={clip.twitch_clip_id} />
+      <ClipEmbed twitchClipId={clip.twitch_clip_id} thumbnailUrl={clip.thumbnail_url} />
     </div>
   )
 }

@@ -37,7 +37,7 @@ export default function ClipCard({
 
   return (
     <div className={`clip-card${isVoted ? ' clip-card--voted' : ''}`}>
-      <ClipEmbed twitchClipId={clip.twitch_clip_id} />
+      <ClipEmbed twitchClipId={clip.twitch_clip_id} thumbnailUrl={clip.thumbnail_url} />
 
       <div className="clip-card__body">
         <div className="clip-card__title" title={clip.title}>

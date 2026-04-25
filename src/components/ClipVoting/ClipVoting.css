@@ -16,6 +16,44 @@
   border: 0;
 }
 
+/* Facade: thumbnail + play button, no iframe until clicked */
+.clip-embed--facade {
+  cursor: pointer;
+}
+
+.clip-embed__thumbnail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clip-embed__placeholder {
+  position: absolute;
+  inset: 0;
+  background: #111;
+}
+
+.clip-embed__play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  transition: background 0.15s;
+}
+
+.clip-embed--facade:hover .clip-embed__play {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.clip-embed__play svg {
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+}
+
 .clip-card {
   background: var(--box-gradient);
   border: 1px solid var(--box-border);
