@@ -427,6 +427,9 @@
     white-space: nowrap;
     flex: 1;
     min-width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .max-button {
@@ -440,6 +443,9 @@
     font-size: 0.75rem;
     transition: all 0.2s;
     min-width: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .buy-button:hover:not(:disabled) {
@@ -638,6 +644,10 @@
     font-size: 1rem;
     margin: 8px 0;
     color: #ffd700;
+    min-height: 2.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .relic-effect {
@@ -928,6 +938,20 @@
     }
 }
 
+@media screen and (max-width: 530px) {
+    .buy-button,
+    .max-button {
+        width: 100%;
+        min-width: unset;
+        padding: 8px 12px;
+    }
+
+    .button-group {
+        flex-direction: column;
+        width: 100%;
+    }
+}
+
 @media screen and (max-width: 480px) {
     .bartclicker-game {
         padding: 8px;
@@ -1013,18 +1037,6 @@
     }
 
     .item-header {
-        width: 100%;
-    }
-
-    .buy-button,
-    .max-button {
-        width: 100%;
-        min-width: unset;
-        padding: 8px 12px;
-    }
-
-    .button-group {
-        flex-direction: column;
         width: 100%;
     }
 
