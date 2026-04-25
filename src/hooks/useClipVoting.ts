@@ -46,6 +46,7 @@ export function useClipVoting(): VotingState & {
     userVote: null,
     monthlyWinner: null,
     yearlyWinner: null,
+    previousYearlyWinner: null,
     loading: true,
     error: null,
   })
@@ -119,14 +120,15 @@ export function useClipVoting(): VotingState & {
         .limit(1)
         .maybeSingle()
 
-      // 5 — Latest yearly winner
-      const { data: yw } = await supabase
+      // 5 — Last two yearly winners (current year + previous year)
+      const { data: ywList } = await supabase
         .schema('clipvoting')
         .from('yearly_winners')
         .select('*, clips(*)')
         .order('year', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+        .limit(2)
+
+      const yearlyWinners = (ywList ?? []) as YearlyWinner[]
 
       setState({
         phase: phase === 'loading' ? 'no-round' : phase,
@@ -134,7 +136,8 @@ export function useClipVoting(): VotingState & {
         clips,
         userVote,
         monthlyWinner: (mw as MonthlyWinner | null) ?? null,
-        yearlyWinner: (yw as YearlyWinner | null) ?? null,
+        yearlyWinner: yearlyWinners[0] ?? null,
+        previousYearlyWinner: yearlyWinners[1] ?? null,
         loading: false,
         error: null,
       })

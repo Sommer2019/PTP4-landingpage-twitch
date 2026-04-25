@@ -7,6 +7,7 @@ import SubPage from '../components/SubPage/SubPage'
 import ClipGrid from '../components/ClipVoting/ClipGrid'
 import VotingStatus from '../components/ClipVoting/VotingStatus'
 import WinnerDisplay from '../components/ClipVoting/WinnerDisplay'
+import YearlyStandingsDisplay from '../components/ClipVoting/YearlyStandingsDisplay'
 import '../components/ClipVoting/ClipVoting.css'
 
 export default function ClipVotingPage() {
@@ -20,12 +21,16 @@ export default function ClipVotingPage() {
     userVote,
     monthlyWinner,
     yearlyWinner,
+    previousYearlyWinner,
     loading,
     castVote,
   } = useClipVoting()
 
   const roundActive = round?.status === 'active'
   const canVote = !!user && roundActive && !userVote
+
+  const isYearlyPhase = phase === 'yearly-active' || phase === 'yearly-results'
+  const yearlyYear = round?.year ?? yearlyWinner?.year ?? new Date().getFullYear()
 
   async function handleVote(clipId: string) {
     const { error } = await castVote(clipId)
@@ -52,13 +57,13 @@ export default function ClipVotingPage() {
       <h1>{t('clipVotingPage.title')}</h1>
       <p>{t('clipVotingPage.intro')}</p>
 
-      {/* ── Yearly winner banner ── */}
-      {yearlyWinner && (
+      {/* ── Yearly winner banner (only when result is final) ── */}
+      {yearlyWinner && phase === 'yearly-results' && (
         <WinnerDisplay type="yearly" winner={yearlyWinner} />
       )}
 
-      {/* ── Monthly winner (between rounds) ── */}
-      {monthlyWinner && !roundActive && (
+      {/* ── Monthly winner (between rounds, not during yearly) ── */}
+      {monthlyWinner && !roundActive && !isYearlyPhase && (
         <WinnerDisplay type="monthly" winner={monthlyWinner} />
       )}
 
@@ -82,8 +87,17 @@ export default function ClipVotingPage() {
         </p>
       )}
 
-      {/* ── Clip grid ── */}
-      {clips.length > 0 ? (
+      {/* ── Yearly standings (Zwischenstand / Endstand) ── */}
+      {isYearlyPhase && clips.length > 0 && (
+        <YearlyStandingsDisplay
+          clips={clips}
+          year={yearlyYear}
+          isFinal={phase === 'yearly-results'}
+        />
+      )}
+
+      {/* ── Clip grid (voting + embeds) — not shown during yearly-results ── */}
+      {clips.length > 0 && phase !== 'yearly-results' ? (
         <ClipGrid
           clips={clips}
           userVoteClipId={userVote}
@@ -97,7 +111,20 @@ export default function ClipVotingPage() {
           <p className="clip-voting__hint">{t('clipVoting.noRound')}</p>
         )
       )}
+
+      {/* ── Previous yearly winner (always shown when available) ── */}
+      {previousYearlyWinner && (
+        <div className="previous-winner">
+          <WinnerDisplay type="yearly" winner={previousYearlyWinner} />
+        </div>
+      )}
+
+      {/* ── Yearly winner as "letztes Jahr" when no yearly phase active ── */}
+      {yearlyWinner && !isYearlyPhase && (
+        <div className="previous-winner">
+          <WinnerDisplay type="yearly" winner={yearlyWinner} />
+        </div>
+      )}
     </SubPage>
   )
 }
-

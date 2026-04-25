@@ -214,6 +214,196 @@
   margin: 0 auto;
 }
 
+/* ── YearlyStandingsDisplay ── */
+.yearly-standings {
+  background: var(--box-gradient);
+  border: 1px solid var(--box-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.yearly-standings__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.yearly-standings__trophy {
+  font-size: 1.3rem;
+}
+
+.yearly-standings__title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.yearly-standings__live-badge {
+  background: rgba(76, 175, 80, 0.18);
+  color: #4caf50;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.yearly-standings__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.yearly-standings__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.yearly-standings__item--first {
+  border-color: rgba(255, 215, 0, 0.35);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.yearly-standings__rank {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--accent);
+  min-width: 28px;
+  text-align: center;
+}
+
+.yearly-standings__item--first .yearly-standings__rank {
+  color: var(--gold);
+}
+
+.yearly-standings__thumb-btn {
+  position: relative;
+  flex-shrink: 0;
+  width: 80px;
+  height: 45px;
+  border: none;
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  background: #000;
+}
+
+.yearly-standings__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yearly-standings__thumb--placeholder {
+  background: #1a1a1a;
+}
+
+.yearly-standings__thumb-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.yearly-standings__thumb-btn:hover .yearly-standings__thumb-icon {
+  opacity: 1;
+}
+
+.yearly-standings__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.yearly-standings__clip-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yearly-standings__creator {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.yearly-standings__bar-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.yearly-standings__bar {
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  min-width: 2px;
+  transition: width 0.4s ease;
+  flex-shrink: 0;
+}
+
+.yearly-standings__item--first .yearly-standings__bar {
+  background: var(--gold);
+}
+
+.yearly-standings__votes {
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.yearly-standings__embed {
+  margin-top: 16px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Previous year winner section ── */
+.previous-winner {
+  opacity: 0.85;
+}
+
+.previous-winner .winner-display__label {
+  color: var(--muted);
+}
+
+@media screen and (max-width: 480px) {
+  .yearly-standings__thumb-btn {
+    width: 60px;
+    height: 34px;
+  }
+  .yearly-standings {
+    padding: 14px;
+  }
+}
+
 .clip-voting__login {
   text-align: center;
   margin: 16px 0;

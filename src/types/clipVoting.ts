@@ -91,6 +91,7 @@ export interface VotingState {
   userVote: string | null
   monthlyWinner: MonthlyWinner | null
   yearlyWinner: YearlyWinner | null
+  previousYearlyWinner: YearlyWinner | null
   loading: boolean
   error: string | null
 }

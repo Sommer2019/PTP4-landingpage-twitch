@@ -575,6 +575,10 @@
       "clip_not_in_round": "This clip is not in the current round.",
       "round_not_found": "Round not found."
     },
+    "yearlyStandingsLive": "Clip of the Year {{year}} – Live Standings",
+    "yearlyStandingsFinal": "Clip of the Year {{year}} – Final Standings",
+    "expandClip": "Play clip",
+    "collapseClip": "Close clip",
     "confirmVote": "Are you sure you want to vote for this clip?",
     "confirm": "Confirm",
     "cancel": "Cancel"

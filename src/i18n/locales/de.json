@@ -577,6 +577,10 @@
       "clip_not_in_round": "Dieser Clip gehört nicht zur aktuellen Runde.",
       "round_not_found": "Runde nicht gefunden."
     },
+    "yearlyStandingsLive": "Clip des Jahres {{year}} – Zwischenstand",
+    "yearlyStandingsFinal": "Clip des Jahres {{year}} – Endstand",
+    "expandClip": "Clip abspielen",
+    "collapseClip": "Clip schließen",
     "confirmVote": "Bist du sicher, dass du für diesen Clip abstimmen möchtest?",
     "confirm": "Bestätigen",
     "cancel": "Abbrechen"
