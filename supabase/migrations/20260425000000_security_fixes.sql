@@ -751,3 +751,305 @@ CREATE POLICY "authenticated_can_read" ON public.stream_sessions
 --       "Enable Leaked Password Protection" aktivieren.
 --  Für uns irrelevant, da auth per twitch und nicht im freeplan enthalten
 -- ────────────────────────────────────────────────────────────────
+
+-- ────────────────────────────────────────────────────────────────
+-- 11. Auth RLS Initplan: (select auth.<fn>()) / (select current_setting())
+--     auth.uid(), auth.role() und current_setting() werden in RLS-Policies
+--     standardmäßig pro Zeile neu ausgewertet. Mit (select ...) wird der
+--     Wert einmalig pro Query berechnet (Init Plan).
+-- ────────────────────────────────────────────────────────────────
+
+-- bartclicker_scores
+DROP POLICY IF EXISTS "update_self" ON public.bartclicker_scores;
+CREATE POLICY "update_self" ON public.bartclicker_scores
+  FOR UPDATE
+  USING  ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "insert_self" ON public.bartclicker_scores;
+CREATE POLICY "insert_self" ON public.bartclicker_scores
+  FOR INSERT
+  WITH CHECK ((select auth.uid()) = user_id);
+
+-- profiles
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile" ON public.profiles
+  FOR UPDATE
+  USING ((select auth.uid()) = id);
+
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can insert own profile" ON public.profiles
+  FOR INSERT
+  WITH CHECK ((select auth.uid()) = id);
+
+-- user_roles
+DROP POLICY IF EXISTS "Users can read own roles" ON public.user_roles;
+CREATE POLICY "Users can read own roles" ON public.user_roles
+  FOR SELECT
+  USING ((select auth.uid()) = user_id);
+
+-- onlybart.onlybart_posts
+DROP POLICY IF EXISTS "All logged-in users can view posts" ON onlybart.onlybart_posts;
+CREATE POLICY "All logged-in users can view posts" ON onlybart.onlybart_posts
+  FOR SELECT
+  USING ((select auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "Broadcaster can insert posts" ON onlybart.onlybart_posts;
+CREATE POLICY "Broadcaster can insert posts" ON onlybart.onlybart_posts
+  FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = (select auth.uid()) AND is_broadcaster = true
+  ));
+
+DROP POLICY IF EXISTS "Broadcaster can update own posts" ON onlybart.onlybart_posts;
+CREATE POLICY "Broadcaster can update own posts" ON onlybart.onlybart_posts
+  FOR UPDATE
+  USING (EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = (select auth.uid()) AND is_broadcaster = true
+  ));
+
+-- onlybart.onlybart_likes
+DROP POLICY IF EXISTS "All logged-in users can view likes" ON onlybart.onlybart_likes;
+CREATE POLICY "All logged-in users can view likes" ON onlybart.onlybart_likes
+  FOR SELECT
+  USING ((select auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "All logged-in users can insert likes, superlike nur VIP/Mod" ON onlybart.onlybart_likes;
+CREATE POLICY "All logged-in users can insert likes, superlike nur VIP/Mod" ON onlybart.onlybart_likes
+  FOR INSERT
+  WITH CHECK (
+    (select auth.role()) = 'authenticated'
+    AND NOT public.is_broadcaster_role()
+    AND (
+      is_superlike = false
+      OR (is_superlike = true AND (public.is_vip_role() OR public.is_moderator_role()))
+    )
+  );
+
+DROP POLICY IF EXISTS "Users can remove own likes" ON onlybart.onlybart_likes;
+CREATE POLICY "Users can remove own likes" ON onlybart.onlybart_likes
+  FOR DELETE
+  USING ((select auth.uid()) = user_id);
+
+-- onlybart.onlybart_comments
+DROP POLICY IF EXISTS "All logged-in users can view comments" ON onlybart.onlybart_comments;
+CREATE POLICY "All logged-in users can view comments" ON onlybart.onlybart_comments
+  FOR SELECT
+  USING ((select auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "All logged-in users can insert comments" ON onlybart.onlybart_comments;
+CREATE POLICY "All logged-in users can insert comments" ON onlybart.onlybart_comments
+  FOR INSERT
+  WITH CHECK ((select auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "User kann eigenen Kommentar löschen, Mod/Broadcaster alle" ON onlybart.onlybart_comments;
+CREATE POLICY "User kann eigenen Kommentar löschen, Mod/Broadcaster alle" ON onlybart.onlybart_comments
+  FOR DELETE
+  USING (
+    (select auth.uid()) = user_id
+    OR public.is_moderator_role()
+    OR public.is_broadcaster_role()
+  );
+
+-- mod_sync_excluded
+DROP POLICY IF EXISTS "delete_mod_sync_excluded" ON public.mod_sync_excluded;
+CREATE POLICY "delete_mod_sync_excluded" ON public.mod_sync_excluded
+  FOR DELETE
+  USING ((select auth.uid()) IS NOT NULL);
+
+-- rewards
+DROP POLICY IF EXISTS "Allow select for authenticated users" ON public.rewards;
+CREATE POLICY "Allow select for authenticated users" ON public.rewards
+  FOR SELECT
+  USING ((select auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "Moderatoren/Broadcaster können Rewards löschen" ON public.rewards;
+CREATE POLICY "Moderatoren/Broadcaster können Rewards löschen" ON public.rewards
+  FOR DELETE
+  USING (
+    (select current_setting('request.jwt.claim.role', true)) = 'service_role'
+    OR public.is_moderator_role()
+    OR public.is_broadcaster_role()
+  );
+
+DROP POLICY IF EXISTS "Broadcaster kann Rewards einfügen" ON public.rewards;
+CREATE POLICY "Broadcaster kann Rewards einfügen" ON public.rewards
+  FOR INSERT
+  WITH CHECK (
+    (select current_setting('request.jwt.claim.role', true)) = 'service_role'
+    OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = (select auth.uid()) AND is_broadcaster = true)
+    OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = (select auth.uid()) AND is_moderator  = true)
+  );
+
+DROP POLICY IF EXISTS "Broadcaster kann Rewards ändern" ON public.rewards;
+CREATE POLICY "Broadcaster kann Rewards ändern" ON public.rewards
+  FOR UPDATE
+  USING (
+    (select current_setting('request.jwt.claim.role', true)) = 'service_role'
+    OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = (select auth.uid()) AND is_broadcaster = true)
+    OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = (select auth.uid()) AND is_moderator  = true)
+  )
+  WITH CHECK (
+    (select current_setting('request.jwt.claim.role', true)) = 'service_role'
+    OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = (select auth.uid()) AND is_broadcaster = true)
+    OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = (select auth.uid()) AND is_moderator  = true)
+  );
+
+-- redeemed_rewards
+DROP POLICY IF EXISTS "Users can insert their own redeemed rewards" ON public.redeemed_rewards;
+CREATE POLICY "Users can insert their own redeemed rewards" ON public.redeemed_rewards
+  FOR INSERT
+  WITH CHECK ((select auth.uid()) IS NOT NULL);
+
+
+-- ────────────────────────────────────────────────────────────────
+-- 12. Multiple Permissive Policies: Redundante Policies mergen
+--     Mehrere permissive Policies für dieselbe Aktion werden alle
+--     ausgewertet (OR-Logik). Zusammenfassen auf eine Policy pro
+--     Aktion vermeidet unnötige Doppelauswertung.
+-- ────────────────────────────────────────────────────────────────
+
+-- banned_accounts SELECT: select_banned (is_moderator) ⊂ select_own_ban
+--   (get_my_twitch_id() OR is_moderator) → select_banned ist redundant
+DROP POLICY IF EXISTS "select_banned" ON public.banned_accounts;
+
+-- moderators SELECT: "Check Twitch Ban" (ALL) + "select" (USING true)
+--   "select" gewährt bereits allen Lesezugriff; der Ban-Check wird für
+--   SELECT nie wirksam. Die ALL-Policy entfällt; service_role schreibt
+--   die Tabelle direkt ohne RLS.
+DROP POLICY IF EXISTS "Check Twitch Ban" ON public.moderators;
+
+-- points SELECT: 3 Policies (Check Twitch Ban, Moderatoren können Punkte
+--   verwalten, Nutzer können eigene Punkte sehen) → eine vereinheitlichte
+--   Policy. Ban-Check war mit OR-Logik ohnehin wirkungslos.
+DROP POLICY IF EXISTS "Check Twitch Ban" ON public.points;
+DROP POLICY IF EXISTS "Nutzer können eigene Punkte sehen" ON public.points;
+DROP POLICY IF EXISTS "Moderatoren können Punkte verwalten" ON public.points;
+DROP POLICY IF EXISTS "points_access" ON public.points;
+CREATE POLICY "points_access" ON public.points
+  USING (
+    (select current_setting('request.jwt.claim.role', true)) = 'service_role'
+    OR public.is_moderator_role()
+    OR public.is_broadcaster_role()
+    OR twitch_user_id = public.get_my_twitch_id()
+  )
+  WITH CHECK (
+    (select current_setting('request.jwt.claim.role', true)) = 'service_role'
+    OR public.is_moderator_role()
+    OR public.is_broadcaster_role()
+  );
+
+-- redeemed_global: service_role_full_access (ALL) + mods_can_read (SELECT)
+--   → READ: service_role + Mods/Broadcaster; WRITE: nur service_role (via SECURITY DEFINER RPC)
+DROP POLICY IF EXISTS "service_role_full_access" ON public.redeemed_global;
+DROP POLICY IF EXISTS "mods_can_read" ON public.redeemed_global;
+DROP POLICY IF EXISTS "redeemed_global_read" ON public.redeemed_global;
+DROP POLICY IF EXISTS "redeemed_global_insert" ON public.redeemed_global;
+DROP POLICY IF EXISTS "redeemed_global_update" ON public.redeemed_global;
+DROP POLICY IF EXISTS "redeemed_global_delete" ON public.redeemed_global;
+DROP POLICY IF EXISTS "stream_sessions_read" ON public.stream_sessions;
+DROP POLICY IF EXISTS "stream_sessions_insert" ON public.stream_sessions;
+DROP POLICY IF EXISTS "stream_sessions_update" ON public.stream_sessions;
+DROP POLICY IF EXISTS "stream_sessions_delete" ON public.stream_sessions;
+CREATE POLICY "redeemed_global_read" ON public.redeemed_global
+  FOR SELECT
+  USING (
+    (select current_setting('request.jwt.claim.role', true)) = 'service_role'
+    OR public.is_moderator_role()
+    OR public.is_broadcaster_role()
+  );
+CREATE POLICY "redeemed_global_insert" ON public.redeemed_global
+  FOR INSERT
+  WITH CHECK ((select current_setting('request.jwt.claim.role', true)) = 'service_role');
+CREATE POLICY "redeemed_global_update" ON public.redeemed_global
+  FOR UPDATE
+  USING  ((select current_setting('request.jwt.claim.role', true)) = 'service_role')
+  WITH CHECK ((select current_setting('request.jwt.claim.role', true)) = 'service_role');
+CREATE POLICY "redeemed_global_delete" ON public.redeemed_global
+  FOR DELETE
+  USING ((select current_setting('request.jwt.claim.role', true)) = 'service_role');
+
+-- stream_sessions: service_role_full_access (ALL) + authenticated_can_read (USING true)
+--   → Stream-Status ist öffentlich; WRITE nur service_role
+DROP POLICY IF EXISTS "service_role_full_access" ON public.stream_sessions;
+DROP POLICY IF EXISTS "authenticated_can_read" ON public.stream_sessions;
+CREATE POLICY "stream_sessions_read" ON public.stream_sessions
+  FOR SELECT USING (true);
+CREATE POLICY "stream_sessions_insert" ON public.stream_sessions
+  FOR INSERT
+  WITH CHECK ((select current_setting('request.jwt.claim.role', true)) = 'service_role');
+CREATE POLICY "stream_sessions_update" ON public.stream_sessions
+  FOR UPDATE
+  USING  ((select current_setting('request.jwt.claim.role', true)) = 'service_role')
+  WITH CHECK ((select current_setting('request.jwt.claim.role', true)) = 'service_role');
+CREATE POLICY "stream_sessions_delete" ON public.stream_sessions
+  FOR DELETE
+  USING ((select current_setting('request.jwt.claim.role', true)) = 'service_role');
+
+-- twitch_permissions: "Broadcaster can update twitch_permissions" hatte kein FOR-Clause
+--   (= ALL) und überschnitt sich mit SELECT und INSERT.
+--   Korrigiert zu FOR UPDATE; INSERT-Policy separat mit initplan-Fix.
+DROP POLICY IF EXISTS "Broadcaster can update twitch_permissions" ON public.twitch_permissions;
+DROP POLICY IF EXISTS "Broadcaster can insert twitch_permissions" ON public.twitch_permissions;
+CREATE POLICY "Broadcaster can update twitch_permissions" ON public.twitch_permissions
+  FOR UPDATE
+  USING (EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = (select auth.uid()) AND is_broadcaster = true
+  ));
+CREATE POLICY "Broadcaster can insert twitch_permissions" ON public.twitch_permissions
+  FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = (select auth.uid()) AND is_broadcaster = true
+  ));
+
+
+-- ────────────────────────────────────────────────────────────────
+-- 13. Fehlende Indexes auf Foreign Keys
+--     FK-Lookups ohne Index zwingen Postgres bei Deletes/Updates
+--     auf dem referenzierten Datensatz zu Seq-Scans.
+-- ────────────────────────────────────────────────────────────────
+
+CREATE INDEX IF NOT EXISTS idx_monthly_winners_clip_id
+  ON clipvoting.monthly_winners (clip_id);
+
+CREATE INDEX IF NOT EXISTS idx_round_clips_clip_id
+  ON clipvoting.round_clips (clip_id);
+
+CREATE INDEX IF NOT EXISTS idx_votes_clip_id
+  ON clipvoting.votes (clip_id);
+
+CREATE INDEX IF NOT EXISTS idx_votes_user_id
+  ON clipvoting.votes (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_yearly_winners_clip_id
+  ON clipvoting.yearly_winners (clip_id);
+
+CREATE INDEX IF NOT EXISTS idx_onlybart_comments_post_id
+  ON onlybart.onlybart_comments (post_id);
+
+CREATE INDEX IF NOT EXISTS idx_onlybart_comments_user_id
+  ON onlybart.onlybart_comments (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_onlybart_likes_user_id
+  ON onlybart.onlybart_likes (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_onlybart_posts_broadcaster_id
+  ON onlybart.onlybart_posts (broadcaster_id);
+
+CREATE INDEX IF NOT EXISTS idx_redeemed_rewards_reward_id
+  ON public.redeemed_rewards (reward_id);
+
+
+-- ────────────────────────────────────────────────────────────────
+-- 14. Ungenutzte Indexes entfernen
+--     idx_bartclicker_user_id: redundant, da idx_bartclicker_user_unique
+--     (UNIQUE) denselben FK bereits abdeckt.
+--     idx_page_views_path: nie für einen Query-Plan genutzt.
+-- ────────────────────────────────────────────────────────────────
+
+DROP INDEX IF EXISTS public.idx_bartclicker_user_id;
+DROP INDEX IF EXISTS public.idx_page_views_path;
