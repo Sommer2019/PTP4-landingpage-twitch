@@ -1,21 +1,47 @@
-#!/usr/bin/env node
 // ──────────────────────────────────────────────────────────
-//  fetch-clips.mjs  –  Twitch Clip Fetch + Round 1 creation
+//  fetch-clips.ts  –  Twitch Clip Fetch + Round 1 creation
 //  Runs on the 21st of each month via GitHub Actions.
 // ──────────────────────────────────────────────────────────
 
-const {
-  TWITCH_CLIENT_ID,
-  TWITCH_CLIENT_SECRET,
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  TWITCH_CHANNEL = 'hd1920x1080',
-} = process.env
+const TWITCH_CLIENT_ID     = process.env.TWITCH_CLIENT_ID
+const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET
+const SUPABASE_URL         = process.env.SUPABASE_URL
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const TWITCH_CHANNEL       = process.env.TWITCH_CHANNEL ?? 'hd1920x1080'
 
 if (!TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Missing required environment variables')
   process.exit(1)
 }
+
+// ── Types ─────────────────────────────────────────────────
+
+interface TwitchClip {
+  id: string
+  title: string
+  creator_name: string
+  thumbnail_url: string
+  embed_url: string
+  url: string
+  view_count: number
+  duration: number
+  created_at: string
+}
+
+interface VotingRound {
+  id: string
+  type: string
+  status: string
+  year: number
+  month: number
+}
+
+interface DbClip {
+  id: string
+  twitch_clip_id: string
+}
+
+// ── Supabase helpers ──────────────────────────────────────
 
 const SB_HEADERS = {
   apikey: SUPABASE_SERVICE_ROLE_KEY,
@@ -23,28 +49,26 @@ const SB_HEADERS = {
   'Content-Type': 'application/json',
   Prefer: 'return=representation',
   'Accept-Profile': 'clipvoting',
-  'Content-Profile': 'clipvoting'
+  'Content-Profile': 'clipvoting',
 }
 
-// ── Helpers ──────────────────────────────────────────────
-
-async function sbGet(table, query = '') {
+async function sbGet<T>(table: string, query = ''): Promise<T[]> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { headers: SB_HEADERS })
   if (!res.ok) throw new Error(`SB GET ${table}: ${res.status} ${await res.text()}`)
-  return res.json()
+  return res.json() as Promise<T[]>
 }
 
-async function sbPost(table, body) {
+async function sbPost<T>(table: string, body: unknown): Promise<T[]> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST', headers: SB_HEADERS, body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(`SB POST ${table}: ${res.status} ${await res.text()}`)
-  return res.json()
+  return res.json() as Promise<T[]>
 }
 
 // ── Twitch OAuth ─────────────────────────────────────────
 
-async function getTwitchToken() {
+async function getTwitchToken(): Promise<string> {
   const res = await fetch('https://id.twitch.tv/oauth2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -54,24 +78,29 @@ async function getTwitchToken() {
       grant_type: 'client_credentials',
     }),
   })
-  const data = await res.json()
+  const data = await res.json() as { access_token?: string }
   if (!data.access_token) throw new Error('Failed to get Twitch token')
   return data.access_token
 }
 
 // ── Twitch API ───────────────────────────────────────────
 
-async function getBroadcasterId(token) {
+async function getBroadcasterId(token: string): Promise<string | undefined> {
   const res = await fetch(
     `https://api.twitch.tv/helix/users?login=${TWITCH_CHANNEL}`,
     { headers: { Authorization: `Bearer ${token}`, 'Client-Id': TWITCH_CLIENT_ID } },
   )
-  const data = await res.json()
+  const data = await res.json() as { data?: { id: string }[] }
   return data.data?.[0]?.id
 }
 
-async function fetchAllClips(token, broadcasterId, startedAt, endedAt) {
-  const clips = []
+async function fetchAllClips(
+  token: string,
+  broadcasterId: string,
+  startedAt: string,
+  endedAt: string,
+): Promise<TwitchClip[]> {
+  const clips: TwitchClip[] = []
   let cursor = ''
   do {
     const params = new URLSearchParams({
@@ -85,18 +114,18 @@ async function fetchAllClips(token, broadcasterId, startedAt, endedAt) {
     const res = await fetch(`https://api.twitch.tv/helix/clips?${params}`, {
       headers: { Authorization: `Bearer ${token}`, 'Client-Id': TWITCH_CLIENT_ID },
     })
-    const data = await res.json()
+    const data = await res.json() as { data?: TwitchClip[], pagination?: { cursor?: string } }
     if (!data.data) break
     clips.push(...data.data)
-    cursor = data.pagination?.cursor || ''
+    cursor = data.pagination?.cursor ?? ''
   } while (cursor)
 
   return clips
 }
 
-// ── Notify Discord via render endpoint ───────────────────
+// ── Discord notification ──────────────────────────────────
 
-async function notifyDiscord(endpoint) {
+async function notifyDiscord(endpoint: string): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 120_000))
   try {
     const res = await fetch(`https://ptp4-landingpage-twitch-hd.onrender.com${endpoint}`, {
@@ -109,18 +138,17 @@ async function notifyDiscord(endpoint) {
     if (!res.ok) console.warn(`Discord notify ${endpoint}: ${res.status}`)
     else console.log(`Discord notified: ${endpoint}`)
   } catch (err) {
-    console.warn(`Discord notify failed (${endpoint}):`, err.message)
+    console.warn(`Discord notify failed (${endpoint}):`, err instanceof Error ? err.message : err)
   }
 }
 
 // ── Main ─────────────────────────────────────────────────
 
-async function main() {
+async function main(): Promise<void> {
   const now = new Date()
   const year = now.getUTCFullYear()
-  const month = now.getUTCMonth() + 1 // 1-based
+  const month = now.getUTCMonth() + 1
 
-  // Date range: 22nd of previous month → 21st of current month (EOD)
   const prevMonth = month === 1 ? 12 : month - 1
   const prevYear  = month === 1 ? year - 1 : year
 
@@ -129,8 +157,7 @@ async function main() {
 
   console.log(`Fetching clips from ${startedAt} to ${endedAt}`)
 
-  // Check if round already exists for this month
-  const existing = await sbGet('voting_rounds',
+  const existing = await sbGet<{ id: string }>('voting_rounds',
     `year=eq.${year}&month=eq.${month}&type=eq.round1&select=id`)
   if (existing.length > 0) {
     console.log('Round 1 already exists for this month, skipping.')
@@ -149,13 +176,11 @@ async function main() {
     return
   }
 
-  // Calculate ends_at: 1st of next month 00:00 UTC
   const endsMonth = month === 12 ? 1 : month + 1
   const endsYear  = month === 12 ? year + 1 : year
   const endsAt = `${endsYear}-${String(endsMonth).padStart(2, '0')}-01T00:00:00Z`
 
-  // Create voting round
-  const [round] = await sbPost('voting_rounds', {
+  const [round] = await sbPost<VotingRound>('voting_rounds', {
     type: 'round1',
     status: 'active',
     year,
@@ -165,10 +190,9 @@ async function main() {
   })
   console.log(`Created round1: ${round.id}`)
 
-  // Upsert clips (ignore duplicates via twitch_clip_id)
   for (const c of twitchClips) {
     try {
-      const [clip] = await sbPost('clips', {
+      const [clip] = await sbPost<DbClip>('clips', {
         twitch_clip_id: c.id,
         title: c.title,
         creator_name: c.creator_name,
@@ -179,15 +203,14 @@ async function main() {
         duration: c.duration,
         twitch_created_at: c.created_at,
       })
-      // Link clip to round
       await sbPost('round_clips', { round_id: round.id, clip_id: clip.id })
-    } catch (err) {
-      // Clip may already exist (duplicate) — fetch existing and link
-      const [existing] = await sbGet('clips', `twitch_clip_id=eq.${encodeURIComponent(c.id)}&select=id`)
+    } catch {
+      const [existing] = await sbGet<DbClip>('clips',
+        `twitch_clip_id=eq.${encodeURIComponent(c.id)}&select=id`)
       if (existing) {
         try { await sbPost('round_clips', { round_id: round.id, clip_id: existing.id }) } catch { /* already linked */ }
       } else {
-        console.warn(`Failed to insert clip ${c.id}:`, err.message)
+        console.warn(`Failed to insert clip ${c.id}`)
       }
     }
   }
@@ -198,4 +221,3 @@ async function main() {
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })
-

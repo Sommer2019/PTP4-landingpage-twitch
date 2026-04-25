@@ -17,6 +17,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Fetch clips and create voting round
         env:
           TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
@@ -24,4 +27,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           TWITCH_CHANNEL: ${{ secrets.CHANNEL_NAME }}
-        run: node .github/scripts/fetch-clips.mjs
+        run: npx tsx .github/scripts/fetch-clips.ts

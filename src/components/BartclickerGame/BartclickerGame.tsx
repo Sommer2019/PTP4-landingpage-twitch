@@ -129,6 +129,12 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
         return formatWithUnits(num, 2);
     };
 
+    const formatItemCPS = (num: number) => {
+        const isWhole = Number.isInteger(num);
+        if (Math.abs(num) < 1000) return isWhole ? num.toFixed(0) : num.toFixed(1);
+        return formatWithUnits(num, isWhole ? 0 : 1);
+    };
+
     const formatOfflineTime = (seconds: number): string => {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
@@ -359,7 +365,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                                         <span className="item-icon">{item.icon}</span>
                                         <div className="item-info">
                                             <h4 className="item-name">{item.name}</h4>
-                                            <p className="item-cps">{item.cps?.toFixed(1)}/s</p>
+                                            <p className="item-cps">{item.cps != null ? formatItemCPS(item.cps) : '0'}/s</p>
                                         </div>
                                         <span className="item-count">×{item.count}</span>
                                         {gameState.click_upgrade_buyer_enabled ? (

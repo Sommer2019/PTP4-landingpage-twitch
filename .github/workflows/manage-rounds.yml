@@ -29,9 +29,12 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run round management
         env:
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ACTION: ${{ github.event.inputs.action || 'auto' }}
-        run: node .github/scripts/manage-rounds.mjs
+        run: npx tsx .github/scripts/manage-rounds.ts
