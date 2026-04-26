@@ -1,15 +1,17 @@
 /**
  * TwitchBot — ersetzt TwitchBot.java + TwitchOAuthUtil.java.
  * Verwendet rohen IRC-WebSocket statt Twitch4J und Bun-fetch statt OkHttp.
+ *
+ * Token-Strategie: kein Zeitplan — Refresh nur bei echtem 401 (auth error).
+ * Damit ist der Token immer genau so lange gültig wie Twitch ihn ausstellt,
+ * ohne unnötige Requests oder Drift durch feste Intervalle.
  */
 
 import type { UserSession } from './types.ts'
 import { type SupabaseClient, refreshOauthToken } from './supabase.ts'
 
-const POINT_INTERVAL_MS   = 10_000              // Timer-Check alle 10 Sekunden
-const STREAM_POLL_MS      = 30_000              // Stream-Status prüfen alle 30 Sekunden
-const TOKEN_REFRESH_MS    = 60 * 60 * 1000      // Proaktiver Token-Refresh alle 1h (Twitch-Token läuft nach 4h ab)
-const TOKEN_RETRY_MS      = 10 * 60 * 1000      // Retry nach Fehlschlag in 10 Minuten
+const POINT_INTERVAL_MS = 10_000   // Timer-Check alle 10 Sekunden
+const STREAM_POLL_MS    = 30_000   // Stream-Status prüfen alle 30 Sekunden
 
 export class TwitchBot {
   private oauthToken: string
@@ -20,7 +22,9 @@ export class TwitchBot {
   private streamOnline = false
   private currentStreamSessionId: string | null = null
 
-  // username → UserSession (aktive Chat-Mitglieder)
+  // Verhindert parallele Refresh-Aufrufe (z.B. Polling + IRC gleichzeitig)
+  private refreshPromise: Promise<void> | null = null
+
   private readonly sessions = new Map<string, UserSession>()
 
   constructor(
@@ -34,7 +38,6 @@ export class TwitchBot {
   ) {
     this.oauthToken = oauthToken
     this.startStreamPolling()
-    this.scheduleTokenRefresh()
   }
 
   connect(): void {
@@ -44,6 +47,33 @@ export class TwitchBot {
   isStreamOnline(): boolean { return this.streamOnline }
   getCurrentStreamSessionId(): string | null { return this.currentStreamSessionId }
   getAllSessions(): Map<string, UserSession> { return this.sessions }
+
+  // ── Token-Refresh bei Auth-Fehler ────────────────────────────────────────────
+
+  /** Holt einen neuen Token. Läuft ein Refresh bereits, wird auf dessen Ergebnis gewartet. */
+  private refreshOnAuthError(): Promise<void> {
+    if (!this.refreshPromise) {
+      this.refreshPromise = this.doRefresh().finally(() => { this.refreshPromise = null })
+    }
+    return this.refreshPromise
+  }
+
+  private async doRefresh(): Promise<void> {
+    console.log('[Bot] 401 empfangen — hole neuen OAuth-Token...')
+    const newToken = await refreshOauthToken(this.clientId, this.clientSecret, this.refreshToken)
+    if (!newToken) {
+      console.error('[Bot] Token-Refresh fehlgeschlagen')
+      return
+    }
+    this.oauthToken = newToken
+    this.supabase.setTwitchCredentials(this.clientId, newToken)
+    console.log('[Bot] Neuer Token erhalten — IRC wird neu verbunden')
+    this.reconnectIrc()
+  }
+
+  private get bareToken(): string {
+    return this.oauthToken.startsWith('oauth:') ? this.oauthToken.slice(6) : this.oauthToken
+  }
 
   // ── IRC ──────────────────────────────────────────────────────────────────────
 
@@ -78,6 +108,13 @@ export class TwitchBot {
   private handleLine(line: string): void {
     if (line.startsWith('PING')) {
       this.ws?.send('PONG :tmi.twitch.tv')
+      return
+    }
+
+    // Twitch meldet ungültiges Token mit NOTICE vor dem Login
+    if (line.includes('Login authentication failed') || line.includes('Login unsuccessful')) {
+      console.warn('[IRC] Auth fehlgeschlagen — hole neuen Token...')
+      void this.refreshOnAuthError()
       return
     }
 
@@ -116,15 +153,24 @@ export class TwitchBot {
 
   private async onUserJoined(username: string): Promise<void> {
     console.log('[Bot] User joined:', username)
-    // Twitch-User-ID per Helix ermitteln (für Punkte-Buchungen)
     let userId: string | null = null
     try {
-      const token = this.oauthToken.startsWith('oauth:') ? this.oauthToken.slice(6) : this.oauthToken
       const r = await fetch(`https://api.twitch.tv/helix/users?login=${username}`, {
-        headers: { 'Client-Id': this.clientId, Authorization: `Bearer ${token}` },
+        headers: { 'Client-Id': this.clientId, Authorization: `Bearer ${this.bareToken}` },
         signal: AbortSignal.timeout(10_000),
       })
-      if (r.ok) {
+      if (r.status === 401) {
+        await this.refreshOnAuthError()
+        // Einmal mit neuem Token wiederholen
+        const retry = await fetch(`https://api.twitch.tv/helix/users?login=${username}`, {
+          headers: { 'Client-Id': this.clientId, Authorization: `Bearer ${this.bareToken}` },
+          signal: AbortSignal.timeout(10_000),
+        })
+        if (retry.ok) {
+          const json = await retry.json() as { data: { id: string }[] }
+          userId = json.data[0]?.id ?? null
+        }
+      } else if (r.ok) {
         const json = await r.json() as { data: { id: string }[] }
         userId = json.data[0]?.id ?? null
       }
@@ -136,7 +182,7 @@ export class TwitchBot {
       console.error('[Bot] Konnte User-ID für', username, 'nicht ermitteln')
       return
     }
-    if (userId === this.broadcasterId) return  // Broadcaster bekommt keine Zeit-Punkte
+    if (userId === this.broadcasterId) return
 
     this.sessions.set(username, {
       username,
@@ -147,7 +193,6 @@ export class TwitchBot {
       hasReceivedStayTillEndPoints: false,
     })
 
-    // User in DB anlegen falls noch nicht vorhanden
     if (!await this.supabase.existsUser(userId)) {
       await this.supabase.createUser(userId)
     }
@@ -161,7 +206,7 @@ export class TwitchBot {
   // ── Punkte-Timer ─────────────────────────────────────────────────────────────
 
   private startTimer(): void {
-    if (this.pointTimer) return  // läuft bereits
+    if (this.pointTimer) return
     console.log('[Bot] Punkte-Timer gestartet')
     this.pointTimer = setInterval(() => {
       const now = Date.now()
@@ -198,16 +243,15 @@ export class TwitchBot {
 
   private async pollStreamStatus(): Promise<void> {
     try {
-      const token = this.oauthToken.startsWith('oauth:') ? this.oauthToken.slice(6) : this.oauthToken
       const r = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this.channelName}`, {
-        headers: { 'Client-Id': this.clientId, Authorization: `Bearer ${token}` },
+        headers: { 'Client-Id': this.clientId, Authorization: `Bearer ${this.bareToken}` },
         signal: AbortSignal.timeout(10_000),
       })
 
       if (r.status === 401) {
-        console.warn('[Bot] Helix 401 beim Polling — starte Token-Refresh...')
-        await this.doTokenRefresh()
-        return
+        console.warn('[Bot] Helix 401 beim Stream-Polling')
+        await this.refreshOnAuthError()
+        return  // nächster Poll-Tick läuft dann mit neuem Token
       }
 
       if (!r.ok) {
@@ -219,12 +263,10 @@ export class TwitchBot {
       const isOnline = json.data.length > 0
 
       if (this.streamOnline && !isOnline) {
-        console.log('[Bot] Stream OFFLINE erkannt (Polling)')
+        console.log('[Bot] Stream OFFLINE erkannt')
         await this.handleStreamEnd()
-      }
-
-      if (!this.streamOnline && isOnline) {
-        console.log('[Bot] Stream ONLINE erkannt (Polling)')
+      } else if (!this.streamOnline && isOnline) {
+        console.log('[Bot] Stream ONLINE erkannt')
         await this.handleStreamStart()
       }
 
@@ -245,7 +287,6 @@ export class TwitchBot {
   }
 
   private async handleStreamEnd(): Promise<void> {
-    // Punkte für alle, die bis zum Ende geblieben sind
     for (const session of this.sessions.values()) {
       if (!session.hasReceivedStayTillEndPoints) {
         console.log('[Bot] Bis-zum-Ende-Punkte für', session.username)
@@ -253,8 +294,6 @@ export class TwitchBot {
         session.hasReceivedStayTillEndPoints = true
       }
     }
-
-    // Stream-Session beenden und globale Locks zurücksetzen
     if (this.currentStreamSessionId) {
       await this.supabase.deactivateGlobalRedemptionsForStream(this.currentStreamSessionId)
       await this.supabase.endStreamSession(this.currentStreamSessionId)
@@ -262,36 +301,7 @@ export class TwitchBot {
     } else {
       await this.supabase.deactivateAllActiveGlobalRedemptions()
     }
-
     await this.supabase.deleteAllRedeemedRewards()
     this.stopTimer()
-  }
-
-  // ── Token-Refresh ────────────────────────────────────────────────────────────
-
-  private scheduleTokenRefresh(): void {
-    setTimeout(() => void this.doTokenRefresh(), TOKEN_REFRESH_MS)
-  }
-
-  private async doTokenRefresh(): Promise<void> {
-    if (!this.refreshToken) {
-      console.error('[Bot] Kein Refresh-Token — OAuth-Token kann nicht erneuert werden')
-      setTimeout(() => void this.doTokenRefresh(), TOKEN_REFRESH_MS)
-      return
-    }
-    console.log('[Bot] Proaktiver OAuth-Token-Refresh...')
-    const newToken = await refreshOauthToken(this.clientId, this.clientSecret, this.refreshToken)
-    if (!newToken) {
-      // Bei Fehlschlag in 10 Minuten erneut versuchen, nicht erst in 1h
-      console.error('[Bot] Token-Refresh fehlgeschlagen — Retry in 10 Minuten')
-      setTimeout(() => void this.doTokenRefresh(), TOKEN_RETRY_MS)
-      return
-    }
-    this.oauthToken = newToken
-    this.supabase.setTwitchCredentials(this.clientId, newToken)
-    console.log('[Bot] Token erneuert — IRC wird neu verbunden')
-    this.reconnectIrc()
-    // Nächsten Refresh in 1h einplanen
-    setTimeout(() => void this.doTokenRefresh(), TOKEN_REFRESH_MS)
   }
 }
