@@ -37,16 +37,6 @@
   color: var(--muted);
 }
 
-.hero-mascot {
-  width: 72px;
-  height: 72px;
-  margin-left: auto;
-  flex-shrink: 0;
-  opacity: 0.9;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
-  display: block;
-}
-
 @media screen and (max-width: 520px) {
   .profile-box {
     gap: 12px;
@@ -57,9 +47,5 @@
   .profile-img {
     width: 64px;
     height: 64px;
-  }
-  .hero-mascot {
-    width: 52px;
-    height: 52px;
   }
 }
