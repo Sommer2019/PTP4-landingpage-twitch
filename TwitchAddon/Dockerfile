@@ -1,7 +1,14 @@
-FROM eclipse-temurin:21-jre-alpine
+FROM oven/bun:1-alpine
 
 WORKDIR /app
 
-COPY TwitchAddon/target/ChannelPointsBot-1.0-SNAPSHOT.jar app.jar
+COPY TwitchAddon/package.json ./
+COPY TwitchAddon/index.ts ./
+COPY TwitchAddon/bot/ ./bot/
 
-CMD ["java", "-jar", "app.jar"]
+# Statische Assets (Extension-HTML, Overlay, Media)
+COPY TwitchAddon/extension/ ./extension/
+COPY TwitchAddon/overlay.html ./
+COPY TwitchAddon/media/ ./media/
+
+CMD ["bun", "run", "index.ts"]

@@ -2,7 +2,7 @@
 
 Diese Anleitung beschreibt, wie du die **Kanalpunkte-Extension** als Twitch Panel Extension in deinem Kanal einbindest.
 
-> **Hinweis:** Der Java-Bot läuft auf deinem lokalen Rechner (`localhost:8081`).  
+> **Hinweis:** Der Bot läuft auf deinem lokalen Rechner (`localhost:8081`) als Bun-Prozess — ~40–60 MB RAM statt ~350 MB mit Java.  
 > Da Twitch Extensions ausschließlich HTTPS-Verbindungen erlauben, wird der lokale Bot über einen **ngrok-Tunnel** nach außen erreichbar gemacht.
 
 ---
@@ -11,14 +11,14 @@ Diese Anleitung beschreibt, wie du die **Kanalpunkte-Extension** als Twitch Pane
 
 | Anforderung | Details |
 |---|---|
-| Java 21+ | Für den TwitchAddon-Bot |
+| [Bun](https://bun.sh) ≥ 1.0 | Laufzeitumgebung (ersetzt Java + Maven) |
 | [ngrok](https://ngrok.com) | Um den lokalen Bot per HTTPS erreichbar zu machen |
 | Supabase-Projekt | Mit den nötigen Tabellen (`points`, `rewards`, `redeemed_rewards`, …) |
 | Twitch Developer Account | Für die Extension-Registrierung |
 
 ---
 
-## 1. Java-Bot konfigurieren
+## 1. Bot konfigurieren
 
 Kopiere die Beispiel-Umgebungsdatei und fülle alle Werte aus:
 
@@ -37,6 +37,7 @@ CHANNEL_NAME=<dein-kanalname>
 
 # Twitch Extension
 EXTENSION_CLIENT_ID=<extension-client-id-aus-dem-twitch-developer-dashboard>
+EXTENSION_SECRET=<base64-extension-secret-aus-dem-twitch-developer-dashboard>
 ```
 
 ---
@@ -45,11 +46,10 @@ EXTENSION_CLIENT_ID=<extension-client-id-aus-dem-twitch-developer-dashboard>
 
 ```bash
 cd TwitchAddon
-mvn package -q
-java -jar target/ChannelPointsBot-1.0-SNAPSHOT.jar
+bun run index.ts
 ```
 
-Der Bot startet den **OverlayApiServer** auf `http://localhost:8081` und läuft solange das Terminal offen ist.
+Der Bot startet den HTTP-Server auf `http://localhost:8081` und läuft solange das Terminal offen ist.
 
 ---
 
@@ -132,7 +132,7 @@ After=network.target
 [Service]
 User=www-data
 WorkingDirectory=/opt/channelpointsbot
-ExecStart=/usr/bin/java -jar /opt/channelpointsbot/ChannelPointsBot-1.0-SNAPSHOT.jar
+ExecStart=/usr/local/bin/bun run /opt/channelpointsbot/index.ts
 Restart=always
 EnvironmentFile=/opt/channelpointsbot/.env
 
@@ -179,9 +179,10 @@ Die `docker-compose.yml` im Repository-Root startet Bot und Supabase gemeinsam.
 | Problem | Lösung |
 |---|---|
 | Extension zeigt „⚠️ Extension benötigt HTTPS" | ngrok muss laufen und die Testing Base URI muss die ngrok-HTTPS-URL sein |
-| Bot nicht erreichbar | Prüfe ob `java -jar …` noch im Terminal läuft und Port `8081` frei ist |
+| Bot nicht erreichbar | Prüfe ob `bun run index.ts` noch im Terminal läuft und Port `8081` frei ist |
 | Punkte werden nicht angezeigt | Prüfe ob `SUPABASE_URL` und `SUPABASE_API_KEY` korrekt gesetzt sind |
 | CORS-Fehler in der Browser-Konsole | Stelle sicher, dass die Extension über `*.twitch.tv` oder `*.ext-twitch.tv` geladen wird |
-| Bot startet nicht | Java 21+ prüfen: `java -version` |
-| OAuth-Token abgelaufen | `TWITCH_REFRESH_TOKEN` setzen, Bot erneuert Token automatisch |
+| Bot startet nicht | Bun installiert? `bun --version` prüfen |
+| OAuth-Token abgelaufen | `TWITCH_REFRESH_TOKEN` setzen, Bot erneuert Token automatisch alle 2 Stunden |
+| JWT-Verifikation schlägt fehl | `EXTENSION_SECRET` muss dem Base64-kodierten Secret aus dem Twitch Developer Dashboard entsprechen |
 | ngrok-URL ändert sich | Nach jedem ngrok-Neustart die Testing Base URI im Twitch Developer Dashboard aktualisieren |
