@@ -62,10 +62,13 @@ jobs:
             -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
             "$EXT/mobile.js"
 
-      # 4. Standalone-EXE bauen (kein Bun auf dem Zielrechner nötig)
-      - name: Build standalone EXE
+      # 4. Standalone-EXEs bauen (kein Bun auf dem Zielrechner nötig)
+      - name: Build TwitchAddon EXE
         working-directory: TwitchAddon
         run: bun build --compile --target=bun-windows-x64 index.ts --outfile dist/TwitchAddon.exe
+
+      - name: Build Setup-Wizard EXE
+        run: bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
 
       # 5. Alles in ein ZIP packen: EXE + .env + extension/ + overlay.html + media/
       - name: Package release ZIP
@@ -97,5 +100,6 @@ jobs:
           files: |
             TwitchAddon/dist/TwitchAddon-Release.zip
             TwitchAddon/dist/extension.zip
+            setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

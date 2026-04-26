@@ -1,8 +1,8 @@
 import * as fs from 'fs'
 import {createClient} from '@supabase/supabase-js'
 
-// ── Environment Variables ──
-// Required in GitHub Secrets
+// ── Umgebungsvariablen ──
+// Müssen als GitHub Secrets gesetzt sein
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const TWITCH_CLIENT_ID = process.env.VITE_TWITCH_CLIENT_ID
@@ -11,13 +11,13 @@ const TWITCH_REFRESH_TOKEN = process.env.TWITCH_REFRESH_TOKEN
 const CHANNEL_NAME = process.env.CHANNEL_NAME
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET || !TWITCH_REFRESH_TOKEN || !CHANNEL_NAME) {
-    console.error('Missing environment variables. Please check GitHub Secrets.')
+    console.error('Umgebungsvariablen fehlen. Bitte GitHub Secrets prüfen.')
     process.exit(1)
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-// ── Types ──
+// ── Typen ──
 interface TwitchUser {
     id: string;
     login: string;
@@ -29,10 +29,10 @@ interface TwitchMod {
     user_name: string
 }
 
-// ── Helpers ──
+// ── Hilfsfunktionen ──
 
 async function getAccessToken() {
-    console.log('Refreshing Twitch Token...')
+    console.log('Twitch-Token wird erneuert...')
     const params = new URLSearchParams()
     params.append('client_id', TWITCH_CLIENT_ID!)
     params.append('client_secret', TWITCH_CLIENT_SECRET!)
@@ -45,7 +45,7 @@ async function getAccessToken() {
     })
 
     if (!res.ok) {
-        throw new Error(`Failed to refresh token: ${await res.text()}`)
+        throw new Error(`Token-Erneuerung fehlgeschlagen: ${await res.text()}`)
     }
 
     const data = await res.json()
@@ -74,27 +74,27 @@ async function twitchGet<T>(endpoint: string, token: string): Promise<T> {
     })
     if (!res.ok) {
         const text = await res.text()
-        // If 401, maybe try re-refresh? For simplicity, just fail script.
-        throw new Error(`Twitch API Error ${res.status}: ${text}`)
+        // Bei 401: Token abgelaufen – Script schlägt fehl, nächster Lauf erneuert automatisch
+        throw new Error(`Twitch API Fehler ${res.status}: ${text}`)
     }
     return res.json() as Promise<T>
 }
 
-// ── Main Logic ──
+// ── Hauptlogik ──
 
 async function main() {
     try {
         const accessToken = await getAccessToken()
 
-        // 1. Get Broadcaster ID
+        // 1. Broadcaster-ID ermitteln
         const users = await twitchGet<{ data: TwitchUser[] }>(`users?login=${CHANNEL_NAME}`, accessToken)
         const broadcaster = users.data[0]
-        if (!broadcaster) throw new Error(`Broadcaster ${CHANNEL_NAME} not found`)
+        if (!broadcaster) throw new Error(`Broadcaster ${CHANNEL_NAME} nicht gefunden`)
 
         console.log(`Broadcaster: ${broadcaster.display_name} (${broadcaster.id})`)
 
-        // ── SYNC MODS ──
-        console.log('Fetching Moderators...')
+        // ── MODS SYNCHRONISIEREN ──
+        console.log('Moderatoren werden abgerufen...')
         const mods: TwitchMod[] = []
         let cursor = ''
         do {
@@ -108,14 +108,12 @@ async function main() {
             cursor = page.pagination?.cursor || ''
         } while (cursor)
 
-        console.log(`Found ${mods.length} moderators.`)
+        console.log(`${mods.length} Moderatoren gefunden.`)
 
-        // Upsert Mods (Using existing RPC logic locally or replicate strict upsert?)
-        // The RPC `sync_moderators` cleans up removed mods too. Let's call it via RPC.
-        // Note: RPC requires `p_mods` as JSON array.
-
+        // RPC `sync_moderators` synchronisiert auch entfernte Mods.
+        // Erwartet `p_mods` als JSON-Array.
         const modsPayload = [
-            {user_id: broadcaster.id, user_name: broadcaster.display_name}, // Add Broadcaster as Mod
+            {user_id: broadcaster.id, user_name: broadcaster.display_name}, // Broadcaster als Mod hinzufügen
             ...mods
         ]
 
@@ -125,13 +123,13 @@ async function main() {
         })
 
         if (modError) {
-            console.error('Suppbase sync_moderators failed:', modError)
+            console.error('Supabase sync_moderators fehlgeschlagen:', modError)
         } else {
-            console.log('Moderators synced:', modResult)
+            console.log('Moderatoren synchronisiert:', modResult)
         }
 
-        // ── SYNC VIPs & SUBs (OnlyBart) ──
-        console.log('Fetching VIPs...')
+        // ── VIPs & ABONNENTEN SYNCHRONISIEREN (OnlyBart) ──
+        console.log('VIPs werden abgerufen...')
         const vips: string[] = []
         cursor = ''
         try {
@@ -145,12 +143,12 @@ async function main() {
                 cursor = page.pagination?.cursor || ''
             } while (cursor)
         } catch (e) {
-            console.warn('Error fetching VIPs (maybe no scope?):', e)
+            console.warn('Fehler beim Abrufen der VIPs (fehlender Scope?):', e)
         }
 
-        console.log(`Found ${vips.length} VIPs.`)
+        console.log(`${vips.length} VIPs gefunden.`)
 
-        console.log('Fetching Subscribers...')
+        console.log('Abonnenten werden abgerufen...')
         const subs: string[] = []
         cursor = ''
         try {
@@ -164,13 +162,12 @@ async function main() {
                 cursor = page.pagination?.cursor || ''
             } while (cursor)
         } catch (e) {
-            console.warn('Error fetching Subs (maybe no scope?):', e)
+            console.warn('Fehler beim Abrufen der Abonnenten (fehlender Scope?):', e)
         }
 
-        console.log(`Found ${subs.length} Subscribers.`)
+        console.log(`${subs.length} Abonnenten gefunden.`)
 
-        // Upsert into `twitch_permissions`
-        // We want to combine lists.
+        // VIPs und Abonnenten in `twitch_permissions` zusammenführen und speichern
         const uniqueIds = new Set([...vips, ...subs])
         const updates = Array.from(uniqueIds).map(id => ({
             twitch_id: id,
@@ -179,23 +176,23 @@ async function main() {
             last_updated: new Date().toISOString()
         }))
 
-        console.log(`Updating ${updates.length} permission records...`)
+        console.log(`${updates.length} Berechtigungseinträge werden aktualisiert...`)
 
-        // Batch upsert (Supabase handles large batches well, but safe to chunk)
+        // Batch-Upsert – Supabase verarbeitet große Batches gut, sicherheitshalber aufgeteilt
         const BATCH_SIZE = 1000
         for (let i = 0; i < updates.length; i += BATCH_SIZE) {
             const batch = updates.slice(i, i + BATCH_SIZE)
             const {error} = await supabase.from('twitch_permissions').upsert(batch, {onConflict: 'twitch_id'})
             if (error) {
-                console.error('Error batch upserting permissions:', error)
-                throw error // Fail action
+                console.error('Fehler beim Batch-Upsert der Berechtigungen:', error)
+                throw error // Action fehlschlagen lassen
             }
         }
 
-        console.log('Sync completed successfully.')
+        console.log('Synchronisierung erfolgreich abgeschlossen.')
         process.exit(0)
     } catch (err) {
-        console.error('Script failed:', err)
+        console.error('Script fehlgeschlagen:', err)
         process.exit(1)
     }
 }

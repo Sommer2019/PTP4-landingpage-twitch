@@ -259,7 +259,7 @@ function decodeJwtPayload(token) {
 
 window.Twitch.ext.onAuthorized(function(auth) {
     viewerJwt = auth.token;
-    // auth.userId is the opaque ID (U<hash>); the real numeric Twitch user ID is in the JWT payload
+    // auth.userId ist die opake ID (U<hash>); die echte numerische Twitch-User-ID steckt im JWT-Payload
     const payload = decodeJwtPayload(auth.token);
     viewerUserId = (payload && payload.user_id) ? payload.user_id : null;
 

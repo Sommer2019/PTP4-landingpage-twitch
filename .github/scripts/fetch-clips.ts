@@ -1,6 +1,6 @@
 // ──────────────────────────────────────────────────────────
-//  fetch-clips.ts  –  Twitch Clip Fetch + Round 1 creation
-//  Runs on the 21st of each month via GitHub Actions.
+//  fetch-clips.ts  –  Twitch-Clips laden + Runde 1 erstellen
+//  Läuft am 21. jeden Monats via GitHub Actions.
 // ──────────────────────────────────────────────────────────
 
 const TWITCH_CLIENT_ID     = process.env.TWITCH_CLIENT_ID
@@ -10,11 +10,11 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const TWITCH_CHANNEL       = process.env.TWITCH_CHANNEL ?? 'hd1920x1080'
 
 if (!TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Missing required environment variables')
+  console.error('Erforderliche Umgebungsvariablen fehlen')
   process.exit(1)
 }
 
-// ── Types ─────────────────────────────────────────────────
+// ── Typen ─────────────────────────────────────────────────
 
 interface TwitchClip {
   id: string
@@ -41,7 +41,7 @@ interface DbClip {
   twitch_clip_id: string
 }
 
-// ── Supabase helpers ──────────────────────────────────────
+// ── Supabase-Hilfsfunktionen ──────────────────────────────
 
 const SB_HEADERS = {
   apikey: SUPABASE_SERVICE_ROLE_KEY,
@@ -79,7 +79,7 @@ async function getTwitchToken(): Promise<string> {
     }),
   })
   const data = await res.json() as { access_token?: string }
-  if (!data.access_token) throw new Error('Failed to get Twitch token')
+  if (!data.access_token) throw new Error('Twitch-Token konnte nicht abgerufen werden')
   return data.access_token
 }
 
@@ -123,7 +123,7 @@ async function fetchAllClips(
   return clips
 }
 
-// ── Discord notification ──────────────────────────────────
+// ── Discord-Benachrichtigung ──────────────────────────────
 
 async function notifyDiscord(endpoint: string): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 120_000))
@@ -135,14 +135,14 @@ async function notifyDiscord(endpoint: string): Promise<void> {
         'x-api-key': SUPABASE_SERVICE_ROLE_KEY,
       },
     })
-    if (!res.ok) console.warn(`Discord notify ${endpoint}: ${res.status}`)
-    else console.log(`Discord notified: ${endpoint}`)
+    if (!res.ok) console.warn(`Discord-Benachrichtigung ${endpoint}: ${res.status}`)
+    else console.log(`Discord benachrichtigt: ${endpoint}`)
   } catch (err) {
-    console.warn(`Discord notify failed (${endpoint}):`, err instanceof Error ? err.message : err)
+    console.warn(`Discord-Benachrichtigung fehlgeschlagen (${endpoint}):`, err instanceof Error ? err.message : err)
   }
 }
 
-// ── Main ─────────────────────────────────────────────────
+// ── Hauptfunktion ─────────────────────────────────────────
 
 async function main(): Promise<void> {
   const now = new Date()
@@ -155,24 +155,24 @@ async function main(): Promise<void> {
   const startedAt = `${prevYear}-${String(prevMonth).padStart(2, '0')}-22T00:00:00Z`
   const endedAt   = `${year}-${String(month).padStart(2, '0')}-21T23:59:59Z`
 
-  console.log(`Fetching clips from ${startedAt} to ${endedAt}`)
+  console.log(`Clips werden geladen von ${startedAt} bis ${endedAt}`)
 
   const existing = await sbGet<{ id: string }>('voting_rounds',
     `year=eq.${year}&month=eq.${month}&type=eq.round1&select=id`)
   if (existing.length > 0) {
-    console.log('Round 1 already exists for this month, skipping.')
+    console.log('Runde 1 für diesen Monat existiert bereits – wird übersprungen.')
     return
   }
 
   const token = await getTwitchToken()
   const broadcasterId = await getBroadcasterId(token)
-  if (!broadcasterId) throw new Error(`Broadcaster "${TWITCH_CHANNEL}" not found`)
+  if (!broadcasterId) throw new Error(`Broadcaster "${TWITCH_CHANNEL}" nicht gefunden`)
 
   const twitchClips = await fetchAllClips(token, broadcasterId, startedAt, endedAt)
-  console.log(`Fetched ${twitchClips.length} clips from Twitch`)
+  console.log(`${twitchClips.length} Clips von Twitch geladen`)
 
   if (twitchClips.length === 0) {
-    console.log('No clips found, skipping round creation.')
+    console.log('Keine Clips gefunden – Runde wird nicht erstellt.')
     return
   }
 
@@ -188,7 +188,7 @@ async function main(): Promise<void> {
     starts_at: now.toISOString(),
     ends_at: endsAt,
   })
-  console.log(`Created round1: ${round.id}`)
+  console.log(`Runde 1 erstellt: ${round.id}`)
 
   for (const c of twitchClips) {
     try {
@@ -208,14 +208,14 @@ async function main(): Promise<void> {
       const [existing] = await sbGet<DbClip>('clips',
         `twitch_clip_id=eq.${encodeURIComponent(c.id)}&select=id`)
       if (existing) {
-        try { await sbPost('round_clips', { round_id: round.id, clip_id: existing.id }) } catch { /* already linked */ }
+        try { await sbPost('round_clips', { round_id: round.id, clip_id: existing.id }) } catch { /* Duplikat */ }
       } else {
-        console.warn(`Failed to insert clip ${c.id}`)
+        console.warn(`Clip ${c.id} konnte nicht eingefügt werden`)
       }
     }
   }
 
-  console.log(`Done – ${twitchClips.length} clips linked to round ${round.id}`)
+  console.log(`Fertig – ${twitchClips.length} Clips mit Runde ${round.id} verknüpft`)
 
   await notifyDiscord('/start-runde-1')
 }

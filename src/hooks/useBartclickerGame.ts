@@ -527,7 +527,7 @@ export function useBartclickerGame() {
     }
   }, [user?.id, gameState]);
 
-  // Handle click – mit optionalem Auto-Klick-Bypass für Anti-Autoclicker
+  // Klick verarbeiten – mit optionalem Auto-Klick-Bypass für Anti-Autoclicker
   const handleClick = useCallback((isAutoClick = false) => {
     const now = performance.now();
 
@@ -666,7 +666,7 @@ export function useBartclickerGame() {
     [gameState.energy, gameState.shop_items]
   );
 
-  // Buy max items – item.cost ist bereits der aktuelle Preis (inkl. Rebirth-Skalierung)
+  // Maximal kaufen – item.cost ist bereits der aktuelle Preis (inkl. Rebirth-Skalierung)
   const buyMaxItems = useCallback(
     (itemId: number) => {
       const item = gameState.shop_items.find((i) => i.id === itemId);
