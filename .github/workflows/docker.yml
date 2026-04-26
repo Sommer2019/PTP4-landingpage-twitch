@@ -55,7 +55,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Platzhalter in den Extension-JS-Dateien ersetzen (neue Pfade nach Refactoring)
+      # Frisches OAuth-Token holen (Twitch-Tokens laufen nach 4h ab)
+      - name: Get Twitch OAuth Access Token
+        id: get_oauth
+        run: |
+          RESPONSE=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
+            -d "client_id=${{ secrets.VITE_TWITCH_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.TWITCH_CLIENT_SECRET }}" \
+            -d "grant_type=refresh_token" \
+            -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      # .env ins Image einbinden (wie früher das .env im JAR)
+      - name: Create .env
+        run: |
+          printf 'SUPABASE_URL=%s\n'          "${{ secrets.VITE_SUPABASE_URL }}"      > TwitchAddon/.env
+          printf 'SUPABASE_API_KEY=%s\n'      "${{ secrets.SUPABASE_API_KEY }}"       >> TwitchAddon/.env
+          printf 'TWITCH_OAUTH_TOKEN=%s\n'    "${{ env.TWITCH_OAUTH_TOKEN }}"         >> TwitchAddon/.env
+          printf 'TWITCH_CLIENT_ID=%s\n'      "${{ secrets.VITE_TWITCH_CLIENT_ID }}"  >> TwitchAddon/.env
+          printf 'TWITCH_CLIENT_SECRET=%s\n'  "${{ secrets.TWITCH_CLIENT_SECRET }}"   >> TwitchAddon/.env
+          printf 'CHANNEL_NAME=%s\n'          "${{ secrets.CHANNEL_NAME }}"           >> TwitchAddon/.env
+          printf 'TWITCH_REFRESH_TOKEN=%s\n'  "${{ secrets.TWITCH_REFRESH_TOKEN }}"   >> TwitchAddon/.env
+          printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
+          printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
+
+      # Platzhalter in den Extension-JS-Dateien ersetzen
       - name: Inject config into extension JS files
         run: |
           EXT="TwitchAddon/extension"
@@ -84,8 +110,6 @@ jobs:
             type=sha,prefix=sha-
             type=raw,value=latest
 
-      # Secrets werden NICHT ins Image gebacken — beim Start per --env-file übergeben:
-      # docker run --env-file TwitchAddon/.env ghcr.io/.../twitchaddon:latest
       - name: Build and push TwitchAddon Docker image
         uses: docker/build-push-action@v6
         with:

@@ -6,9 +6,10 @@
 import type { UserSession } from './types.ts'
 import { type SupabaseClient, refreshOauthToken } from './supabase.ts'
 
-const POINT_INTERVAL_MS = 10_000   // Timer-Check alle 10 Sekunden
-const STREAM_POLL_MS   = 30_000   // Stream-Status prüfen alle 30 Sekunden
-const TOKEN_REFRESH_MS = 2 * 60 * 60 * 1000  // Proaktiver Token-Refresh alle 2h
+const POINT_INTERVAL_MS   = 10_000              // Timer-Check alle 10 Sekunden
+const STREAM_POLL_MS      = 30_000              // Stream-Status prüfen alle 30 Sekunden
+const TOKEN_REFRESH_MS    = 60 * 60 * 1000      // Proaktiver Token-Refresh alle 1h (Twitch-Token läuft nach 4h ab)
+const TOKEN_RETRY_MS      = 10 * 60 * 1000      // Retry nach Fehlschlag in 10 Minuten
 
 export class TwitchBot {
   private oauthToken: string
@@ -269,23 +270,28 @@ export class TwitchBot {
   // ── Token-Refresh ────────────────────────────────────────────────────────────
 
   private scheduleTokenRefresh(): void {
-    setInterval(() => void this.doTokenRefresh(), TOKEN_REFRESH_MS)
+    setTimeout(() => void this.doTokenRefresh(), TOKEN_REFRESH_MS)
   }
 
   private async doTokenRefresh(): Promise<void> {
     if (!this.refreshToken) {
       console.error('[Bot] Kein Refresh-Token — OAuth-Token kann nicht erneuert werden')
+      setTimeout(() => void this.doTokenRefresh(), TOKEN_REFRESH_MS)
       return
     }
     console.log('[Bot] Proaktiver OAuth-Token-Refresh...')
     const newToken = await refreshOauthToken(this.clientId, this.clientSecret, this.refreshToken)
     if (!newToken) {
-      console.error('[Bot] Token-Refresh fehlgeschlagen')
+      // Bei Fehlschlag in 10 Minuten erneut versuchen, nicht erst in 1h
+      console.error('[Bot] Token-Refresh fehlgeschlagen — Retry in 10 Minuten')
+      setTimeout(() => void this.doTokenRefresh(), TOKEN_RETRY_MS)
       return
     }
     this.oauthToken = newToken
     this.supabase.setTwitchCredentials(this.clientId, newToken)
     console.log('[Bot] Token erneuert — IRC wird neu verbunden')
     this.reconnectIrc()
+    // Nächsten Refresh in 1h einplanen
+    setTimeout(() => void this.doTokenRefresh(), TOKEN_REFRESH_MS)
   }
 }
