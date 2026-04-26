@@ -15,7 +15,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback((message: string) => {
     const id = nextId++
     setToasts((prev) => [...prev, { id, message }])
-    /** Auto-dismiss notification after 2 seconds */
+    // Toast nach 2 Sekunden automatisch ausblenden
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 2000)

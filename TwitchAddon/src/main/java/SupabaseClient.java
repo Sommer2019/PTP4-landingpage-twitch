@@ -23,20 +23,13 @@ public class SupabaseClient {
     private final String tableName = "points";
     private String twitchClientId = System.getenv("TWITCH_CLIENT_ID");
     private String twitchOauthToken = System.getenv("TWITCH_OAUTH_TOKEN");
-    private String twitchRefreshToken = System.getenv("TWITCH_REFRESH_TOKEN");
+    private final String twitchRefreshToken = System.getenv("TWITCH_REFRESH_TOKEN");
     private final String twitchClientSecret = System.getenv("TWITCH_CLIENT_SECRET");
     private final Map<String, CachedUsername> usernameCache = new ConcurrentHashMap<>();
     private static final long USERNAME_CACHE_TTL_MS = 6L * 60L * 60L * 1000L;
     private static final long USERNAME_NEGATIVE_CACHE_TTL_MS = 10L * 60L * 1000L;
 
-    private static class CachedUsername {
-        private final String username;
-        private final long expiresAt;
-
-        private CachedUsername(String username, long expiresAt) {
-            this.username = username;
-            this.expiresAt = expiresAt;
-        }
+    private record CachedUsername(String username, long expiresAt) {
     }
 
     public SupabaseClient(String supabaseUrl, String apiKey) {
@@ -62,7 +55,7 @@ public class SupabaseClient {
 
         JSONObject json = new JSONObject();
         json.put("twitch_user_id", userid);
-        json.put("points", finalPoints);  // Immer addieren
+        json.put("points", finalPoints);
         json.put("reason", reason);
         json.put("timestamp", System.currentTimeMillis());
 
@@ -284,7 +277,7 @@ public class SupabaseClient {
                     );
                     if (newToken != null) {
                         setTwitchCredentials(twitchClientId, newToken);
-                        // Einmal wiederholen mit neuem Token
+                        // Einmal mit neuem Token wiederholen
                         HttpRequest retryRequest = HttpRequest.newBuilder()
                             .uri(URI.create("https://api.twitch.tv/helix/channels?broadcaster_id=" + twitchUserId))
                             .header("Client-ID", twitchClientId)
@@ -384,29 +377,7 @@ public class SupabaseClient {
         return false;
     }
 
-    // Fügt einen Reward als Upsert in die Tabelle rewards ein
-    public void upsertReward(JSONObject reward) {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(supabaseUrl + "/rest/v1/rewards"))
-            .header("apikey", apiKey)
-            .header("Authorization", "Bearer " + apiKey)
-            .header("Content-Type", "application/json")
-            .header("Prefer", "resolution=merge-duplicates")
-            .POST(BodyPublishers.ofString("[" + reward.toString() + "]"))
-            .timeout(Duration.ofSeconds(10))
-            .build();
-        try {
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-            logger.info("Supabase UPSERT Reward Status: {} | Body: {}", response.statusCode(), response.body());
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                logger.error("Supabase UPSERT Reward fehlgeschlagen: {} {}", response.statusCode(), response.body());
-            }
-        } catch (IOException | InterruptedException e) {
-            logger.error("Fehler beim Supabase UPSERT Reward: {}", e.getMessage(), e);
-        }
-    }
-
-    // Gibt den Cooldown einer Belohnung aus der DB zurück (in Sekunden)
+    /** Gibt den Cooldown einer Belohnung in Sekunden zurück (0 = kein Cooldown). */
     public int getRewardCooldownFromDb(String rewardId) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -454,7 +425,9 @@ public class SupabaseClient {
         return false;
     }
 
-    // Gibt den letzten Einlösezeitpunkt für einen Reward eines Users zurück (Unix-Timestamp in ms, 0 falls nie eingelöst)
+    /**
+     * Gibt den letzten Einlösezeitpunkt für einen Reward eines Users zurück (Unix-Timestamp in ms, 0, falls nie eingelöst)
+     **/
     public long getLastRedemptionTimestampFromRedeemedRewards(String userId, String rewardId) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -475,37 +448,6 @@ public class SupabaseClient {
             logger.error("Fehler beim Supabase GET redeemed_rewards (timestamp): {}", e.getMessage(), e);
         }
         return 0;
-    }
-
-    // Fügt eine Reward-Einlösung in redeemed_rewards ein
-    public void insertRedeemedReward(JSONObject redeemedReward) {
-        // DEPRECATED: Verwende stattdessen redeemRewardRpc(...) um atomare Prüfungen (cooldown/oncePerStream) serverseitig durchzuführen.
-        try {
-            String rewardId = redeemedReward.optString("reward_id", null);
-            String twitchId = redeemedReward.optString("twitch_user_id", null);
-            String description = redeemedReward.optString("description", null);
-            int cost = redeemedReward.optInt("cost", 0);
-            String tts = redeemedReward.has("ttsText") ? redeemedReward.optString("ttsText", null) : null;
-            // Falls die RPC nicht existiert, fällt redeemRewardRpc intern auf direktes Insert zurück
-            boolean ok = redeemRewardRpc(twitchId, rewardId, description, cost, tts, null);
-            if (!ok) {
-                logger.warn("insertRedeemedReward: redeemRewardRpc returned false, fallback to direct insert");
-                HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(supabaseUrl + "/rest/v1/redeemed_rewards"))
-                    .header("apikey", apiKey)
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .POST(BodyPublishers.ofString("[" + redeemedReward.toString() + "]"))
-                    .timeout(Duration.ofSeconds(10))
-                    .build();
-                HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-                if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                    logger.error("Supabase INSERT redeemed_rewards fehlgeschlagen (fallback): {} {}", response.statusCode(), response.body());
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Fehler beim Supabase INSERT redeemed_rewards (via RPC fallback): {}", e.getMessage(), e);
-        }
     }
 
     /**
@@ -537,7 +479,7 @@ public class SupabaseClient {
                 if (res.has("success") && res.getBoolean("success")) {
                     return true;
                 } else {
-                    logger.info("redeemRewardRpc: returned: {}", res.toString());
+                    logger.info("redeemRewardRpc: returned: {}", res);
                     return false;
                 }
             }
@@ -554,12 +496,12 @@ public class SupabaseClient {
         if (rewardId == null || rewardId.isBlank()) return null;
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(supabaseUrl + "/rest/v1/rewards?id=eq." + rewardId))
-                .header("apikey", apiKey)
-                .header("Authorization", "Bearer " + apiKey)
-                .header("Accept", "application/json")
-                .timeout(Duration.ofSeconds(10))
-                .build();
+                    .uri(URI.create(supabaseUrl + "/rest/v1/rewards?id=eq." + rewardId))
+                    .header("apikey", apiKey)
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(10))
+                    .build();
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
                 JSONArray arr = new JSONArray(response.body());
@@ -620,7 +562,7 @@ public class SupabaseClient {
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
                 JSONArray arr = new JSONArray(response.body());
-                if (arr.length() > 0) {
+                if (!arr.isEmpty()) {
                     return arr.getJSONObject(0);
                 }
             }
@@ -630,7 +572,6 @@ public class SupabaseClient {
         return null;
     }
 
-    // Gibt alle Rewards aus der Tabelle rewards zurück
     public JSONArray getRewards() {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(supabaseUrl + "/rest/v1/rewards"))
@@ -671,7 +612,7 @@ public class SupabaseClient {
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
                 JSONArray arr = new JSONArray(response.body());
                 if (arr.isEmpty()) return false;
-                // Check expires_at: consider entry active only if expires_at is null or in the future
+                // Eintrag gilt nur als aktiv wenn expires_at null oder in der Zukunft liegt
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject obj = arr.getJSONObject(i);
                     if (!obj.has("expires_at") || obj.isNull("expires_at")) {
@@ -712,7 +653,7 @@ public class SupabaseClient {
                 if (!arr.isEmpty()) {
                     String ts = arr.getJSONObject(0).optString("redeemed_at", null);
                     if (ts != null) {
-                        // parse ISO timestamptz und zurückgeben als epoch ms
+                        // ISO-Zeitstempel (timestamptz) in Unix-Millisekunden umrechnen
                         java.time.OffsetDateTime odt = java.time.OffsetDateTime.parse(ts);
                         return odt.toInstant().toEpochMilli();
                     }
@@ -738,7 +679,7 @@ public class SupabaseClient {
                     .header("apikey", apiKey)
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
-                    // return representation so we get the created row with id
+                    // Supabase gibt die erzeugte Zeile zurück, damit wir die generierte ID auslesen können
                     .header("Prefer", "return=representation")
                     .POST(BodyPublishers.ofString("[" + json + "]"))
                     .timeout(Duration.ofSeconds(10))
@@ -886,7 +827,7 @@ public class SupabaseClient {
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300 && response.body() != null) {
                 JSONArray arr = new JSONArray(response.body());
-                // Resolve usernames for each entry
+                // Twitch-Anzeigenamen für jeden Eintrag auflösen
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject entry = arr.getJSONObject(i);
                     String userId = entry.optString("twitch_user_id", null);

@@ -58,10 +58,9 @@ public class RedeemedRewardsHandler implements HttpHandler {
             String rewardId = redeemedReward.getString("reward_id");
             String redeemedBy = redeemedReward.optString("twitch_user_id", null);
 
-            // 1. Einfach und ohne Wenn und Aber aus der Warteschlange löschen!
             boolean success = supabaseClient.deleteRedeemedReward(id);
 
-            // 2. redeemed_global per Plugin setzen, sobald es erfolgreich verarbeitet wurde
+            // Globalen Lock setzen, sobald die Einlösung erfolgreich verarbeitet wurde
             if (success) {
                 boolean oncePerStream = supabaseClient.isRewardOncePerStream(rewardId);
                 int cooldown = supabaseClient.getRewardCooldownFromDb(rewardId);
@@ -72,9 +71,9 @@ public class RedeemedRewardsHandler implements HttpHandler {
                     globalLock.put("redeemed_by", redeemedBy);
                     globalLock.put("is_active", true);
 
-                    // Wenn oncePerStream, läuft es bis zum Stream-Ende (wo dein TwitchBot es ohnehin löscht).
-                    // Falls es nur ein Cooldown ist, setzen wir die genaue Ablaufzeit.
-                    if (!oncePerStream && cooldown > 0) {
+                    // Bei oncePerStream läuft der Lock bis zum Stream-Ende (TwitchBot räumt dann auf).
+                    // Bei reinem Cooldown wird die genaue Ablaufzeit gesetzt.
+                    if (!oncePerStream) {
                         java.time.OffsetDateTime expires = java.time.OffsetDateTime.now().plusSeconds(cooldown);
                         globalLock.put("expires_at", expires.toString());
                     }

@@ -97,7 +97,7 @@
 
 .trigger-item:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 36px rgba(124, 77, 255, 0.08);
+  box-shadow: 0 12px 36px rgba(var(--accent-rgb), 0.08);
 }
 
 .price-badge {
@@ -108,7 +108,7 @@
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.95rem;
-  box-shadow: 0 6px 18px rgba(124, 77, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(var(--accent-rgb), 0.12);
 }
 
 .trigger-desc {
@@ -163,14 +163,14 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
   text-decoration: none;
   color: inherit;
-  border: 1px solid rgba(124, 77, 255, 0.06);
+  border: 1px solid rgba(var(--accent-rgb), 0.06);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   margin-top: 16px;
 }
 
 .se-donate-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(124, 77, 255, 0.12);
+  box-shadow: 0 8px 30px rgba(var(--accent-rgb), 0.12);
 }
 
 .se-donate-icon {

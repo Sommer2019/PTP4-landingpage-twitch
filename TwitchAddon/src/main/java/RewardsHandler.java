@@ -19,7 +19,7 @@ public class RewardsHandler implements HttpHandler {
         OverlayApiServer.addCorsHeaders(exchange);
         String method = exchange.getRequestMethod();
         if (method.equalsIgnoreCase("GET")) {
-            JSONArray rewards = supabaseClient.getRewards(); // Annahme: getRewards() liefert alle Rewards aus der DB
+            JSONArray rewards = supabaseClient.getRewards();
             String response = rewards.toString();
             byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");

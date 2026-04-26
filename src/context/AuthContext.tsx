@@ -10,9 +10,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Listen for auth state changes (login, logout, token refresh)
+  // Auth-Status-Änderungen beobachten (Login, Logout, Token-Refresh)
   useEffect(() => {
-    // Get initial session with retry for 503 errors
+    // Initiale Session mit Retry-Logik holen — Supabase kann bei 503 kurz überfordert sein
     const getSessionWithRetry = async (retries = 2, delay = 1000) => {
       for (let i = 0; i <= retries; i++) {
         try {
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, session])
 
-  // Auto-create profile on login & transfer roles from twitch_permissions → user_roles
+  // Profil anlegen und Rollen aus twitch_permissions → user_roles übertragen
   useEffect(() => {
     if (user) {
       const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   const signInWithTwitch = useCallback(async () => {
-    /** Store current path to redirect after auth completes */
+    // Aktuellen Pfad speichern, damit nach dem Login dorthin zurückgeleitet werden kann
     const path = window.location.pathname || '/'
     sessionStorage.setItem(REDIRECT_PATH_KEY, path)
 
@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: 'twitch',
       options: {
         redirectTo: window.location.origin + window.location.pathname,
-        scopes: 'user:read:subscriptions', // Request access to check subscription status
+        scopes: 'user:read:subscriptions', // Zugriff auf Abo-Status des Nutzers anfragen
       },
     })
   }, [])

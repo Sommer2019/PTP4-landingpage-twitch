@@ -7,7 +7,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('[supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set – Supabase disabled.')
 }
 
-// Fallback to avoid crash if env vars missing
+// Fallback-Werte verhindern einen Crash wenn die Env-Variablen fehlen
 const validUrl = supabaseUrl || 'https://placeholder.supabase.co'
 const validKey = supabaseAnonKey || 'placeholder'
 

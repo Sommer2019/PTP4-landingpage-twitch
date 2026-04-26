@@ -231,60 +231,6 @@
     "close": "Schließen",
     "donateSpecific": "Spenden ({{amount}} €)"
   },
-  "donations": {
-    "1920": {
-      "desc": "1920",
-      "text": "1920 wird abgespielt ⁉️"
-    },
-    "taschengeld": {
-      "desc": "Taschengeld",
-      "text": "Donation Sounds wird abgespielt (Danke von den Kids) 🎉"
-    },
-    "tts": {
-      "desc": "TTS",
-      "text": "Text to Speech wird abgespielt 🔊"
-    },
-    "knock": {
-      "desc": "KnockKnock",
-      "text": "Knock Knock wird abgespielt 🚪"
-    },
-    "majortom": {
-      "desc": "Major Tom",
-      "text": "Major Tom wird abgespielt 🧑🏼‍🚀"
-    },
-    "scream": {
-      "desc": "Scream",
-      "text": "Scream wird abgespielt 😱"
-    },
-    "fliege1": {
-      "desc": "nervige Fliege (60 Sekunden)",
-      "text": "nervige Fliege wird abgespielt 🪰"
-    },
-    "centershock": {
-      "desc": "Sauer macht Lustig – CenterShock",
-      "text": "Stefan isst einen CenterShock & Sound wird abgespielt 🍋"
-    },
-    "ytSound": {
-      "desc": "Youtube Mitglieder Sound",
-      "text": "Youtube Mitglieder Sound wird abgespielt 🪩"
-    },
-    "fliege2": {
-      "desc": "Fliege XXL — 2 Minuten",
-      "text": "sehr nervige Fliege wird abgespielt 🪰"
-    },
-    "fliege3": {
-      "desc": "Fliege ultra lang",
-      "text": "ultra nervige Fliege wird abgespielt 🪰"
-    },
-    "hotnuts": {
-      "desc": "8 Hot Nuts + FIRE!!! (nur wenn verfügbar)",
-      "text": "Stefan isst 8 Hot Nuts & Sound wird abgespielt 🔥"
-    },
-    "sandwich": {
-      "desc": "Satanisches Sandwich (nur wenn verfügbar)",
-      "text": "Stefan isst ein satanisches Sandwich (Oreo + Hotnuts + Centershock) & Sound wird abgespielt 🔥"
-    }
-  },
   "auth": {
     "loading": "Lade…",
     "loginRequired": "Login erforderlich",

@@ -59,7 +59,7 @@ public class UserPointsManager {
         return sessions;
     }
 
-    // --- Stream session / global redemption helpers (wrappers around SupabaseClient)
+    // --- Delegierte Methoden für Stream-Sessions und globale Reward-Locks ---
     public String createStreamSession(String streamIdentifier) {
         return supabaseClient.createStreamSession(streamIdentifier);
     }

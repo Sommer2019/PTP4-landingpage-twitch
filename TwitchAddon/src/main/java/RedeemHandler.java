@@ -29,7 +29,7 @@ public class RedeemHandler implements HttpHandler {
             return;
         }
 
-        // 1. Verify JWT — extract real Twitch user ID from signature, never from request body
+        // 1. JWT prüfen — echte Twitch-User-ID aus der Signatur lesen, niemals aus dem Request-Body
         String jwt = exchange.getRequestHeaders().getFirst("x-extension-jwt");
         String twitchUserId = OverlayApiServer.resolveUserIdFromJwt(jwt);
         if (twitchUserId == null) {
@@ -38,14 +38,14 @@ public class RedeemHandler implements HttpHandler {
             return;
         }
 
-        // 2. Check stream is live
+        // 2. Stream-Status prüfen
         if (!bot.isStreamOnline()) {
             logger.info("RedeemHandler: Einlösung abgelehnt — Stream offline (user={})", twitchUserId);
             sendJson(exchange, 403, new JSONObject().put("error", "stream_offline"));
             return;
         }
 
-        // 3. Parse request body — only reward_id and tts_text are accepted; cost/user_id from body are ignored
+        // 3. Request-Body parsen — nur reward_id und tts_text werden akzeptiert; cost/user_id aus dem Body werden ignoriert
         JSONObject body;
         try {
             body = parseBody(exchange);
@@ -62,7 +62,7 @@ public class RedeemHandler implements HttpHandler {
             return;
         }
 
-        // 4. Load reward from DB — authoritative source for cost, enabled status, and description
+        // 4. Reward aus der DB laden — maßgebliche Quelle für Kosten, Status und Beschreibung
         JSONObject reward = supabaseClient.getRewardById(rewardId);
         if (reward == null) {
             sendJson(exchange, 404, new JSONObject().put("error", "reward_not_found"));
@@ -74,7 +74,7 @@ public class RedeemHandler implements HttpHandler {
         }
         int cost = reward.optInt("cost", 0);
 
-        // 5. Server-side points check using DB cost — client cannot influence this value
+        // 5. Punkte serverseitig prüfen — der Client kann den Kostenwert nicht beeinflussen
         int currentPoints = supabaseClient.getPointsByUserId(twitchUserId);
         if (currentPoints < 0) {
             sendJson(exchange, 403, new JSONObject().put("error", "user_not_found"));
@@ -86,11 +86,11 @@ public class RedeemHandler implements HttpHandler {
             return;
         }
 
-        // 6. Build description server-side from DB reward fields + user's tts_text
+        // 6. Beschreibung serverseitig aus DB-Feldern und optionalem TTS-Text zusammenbauen
         String description = buildDescription(reward, ttsText, twitchUserId);
         String ttsToSend = resolveTtsToSend(reward, ttsText);
 
-        // 7. Call Supabase RPC with service_role key — twitchUserId is from verified JWT only
+        // 7. Supabase RPC aufrufen — twitchUserId stammt ausschließlich aus dem verifizierten JWT
         String streamId = bot.getCurrentStreamSessionId();
         JSONObject result = supabaseClient.redeemRewardRpcFull(twitchUserId, rewardId, description, cost, ttsToSend, streamId);
 

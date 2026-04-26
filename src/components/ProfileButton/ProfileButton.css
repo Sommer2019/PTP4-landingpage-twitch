@@ -81,7 +81,7 @@ r.profile-button {
 }
 
 .menu-item:hover {
-  background-color: rgba(124, 77, 255, 0.15);
+  background-color: rgba(var(--accent-rgb), 0.15);
 }
 
 .menu-item:first-child {

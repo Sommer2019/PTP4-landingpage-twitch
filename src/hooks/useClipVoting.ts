@@ -10,7 +10,7 @@ import type {
   VotingState,
 } from '../types/clipVoting'
 
-/* ── Derive the UI phase from DB data ── */
+/* ── UI-Phase aus den DB-Daten ableiten ── */
 function derivePhase(
   active: VotingRound | null,
   pending: VotingRound | null,
@@ -22,7 +22,7 @@ function derivePhase(
     return 'yearly-active'
   }
   if (pending) {
-    // round2 pending → show round1 results
+    // Runde 2 noch ausstehend → Ergebnisse von Runde 1 anzeigen
     if (pending.type === 'round2') return 'round1-results'
     return 'no-round'
   }
@@ -51,10 +51,10 @@ export function useClipVoting(): VotingState & {
     error: null,
   })
 
-  /* ── Fetch everything the UI needs ── */
+  /* ── Alle für die UI benötigten Daten laden ── */
   const fetchState = useCallback(async () => {
     try {
-      // 1 — Fetch the three most relevant rounds
+      // 1 — Aktuellste Voting-Runden laden
       const { data: rounds } = await supabase
         .schema('clipvoting')
         .from('voting_rounds')
@@ -69,14 +69,14 @@ export function useClipVoting(): VotingState & {
 
       const phase = derivePhase(active, pending, completed)
 
-      // The round we display clips for
+      // Runde, deren Clips angezeigt werden
       const displayRound: VotingRound | null = active ?? pending ?? completed
 
-      // 2 — Clips for the display round
+      // 2 — Clips der anzuzeigenden Runde laden
       let clips: ClipWithVotes[] = []
       if (displayRound) {
-        // If the display round is pending (round2 not started yet)
-        // show the completed round1 clips so users can see the top-10 results
+        // Bei ausstehender Runde 2 die abgeschlossene Runde 1 anzeigen,
+        // damit Zuschauer die Top-10-Ergebnisse sehen
         const roundIdForClips =
           displayRound.status === 'pending'
             ? list.find(
@@ -98,7 +98,7 @@ export function useClipVoting(): VotingState & {
         clips = (data ?? []) as ClipWithVotes[]
       }
 
-      // 3 — User's vote in the active round
+      // 3 — Eigene Stimme des Users in der aktiven Runde laden
       let userVote: string | null = null
       if (active && user) {
         const { data } = await supabase
@@ -111,7 +111,7 @@ export function useClipVoting(): VotingState & {
         userVote = (data as { clip_id: string } | null)?.clip_id ?? null
       }
 
-      // 4 — Latest monthly winner
+      // 4 — Aktuellsten Monatssieger laden
       const { data: mw } = await supabase
         .schema('clipvoting')
         .from('monthly_winners')
@@ -120,7 +120,7 @@ export function useClipVoting(): VotingState & {
         .limit(1)
         .maybeSingle()
 
-      // 5 — Last two yearly winners (current year + previous year)
+      // 5 — Die letzten zwei Jahressieger laden (aktuelles und vorheriges Jahr)
       const { data: ywList } = await supabase
         .schema('clipvoting')
         .from('yearly_winners')
@@ -153,11 +153,11 @@ export function useClipVoting(): VotingState & {
 
   useEffect(() => {
     fetchState()
-    const id = setInterval(fetchState, 30_000) // poll every 30 s
+    const id = setInterval(fetchState, 30_000) // alle 30 Sekunden aktualisieren
     return () => clearInterval(id)
   }, [fetchState])
 
-  /* ── Cast a vote ── */
+  /* ── Stimme abgeben ── */
   const castVote = useCallback(
     async (clipId: string): Promise<{ error?: string }> => {
       if (!state.round || state.round.status !== 'active')
@@ -172,7 +172,7 @@ export function useClipVoting(): VotingState & {
       const result = data as { error?: string; success?: boolean } | null
       if (result?.error) return { error: result.error }
 
-      // Optimistic UI: set userVote immediately then refresh
+      // Optimistisches Update: userVote sofort setzen, dann Daten aktualisieren
       setState((prev) => ({ ...prev, userVote: clipId }))
       await fetchState()
       return {}

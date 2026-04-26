@@ -231,60 +231,6 @@
     "close": "Close",
     "donateSpecific": "Donate ({{amount}} €)"
   },
-  "donations": {
-    "1920": {
-      "desc": "1920",
-      "text": "1920 plays ⁉️"
-    },
-    "taschengeld": {
-      "desc": "Pocket Money",
-      "text": "Donation sound plays (Thanks from the kids) 🎉"
-    },
-    "tts": {
-      "desc": "TTS",
-      "text": "Text to Speech plays 🔊"
-    },
-    "knock": {
-      "desc": "KnockKnock",
-      "text": "Knock Knock plays 🚪"
-    },
-    "majortom": {
-      "desc": "Major Tom",
-      "text": "Major Tom plays 🧑🏼‍🚀"
-    },
-    "scream": {
-      "desc": "Scream",
-      "text": "Scream plays 😱"
-    },
-    "fliege1": {
-      "desc": "Annoying fly (60 seconds)",
-      "text": "Annoying fly plays 🪰"
-    },
-    "centershock": {
-      "desc": "Sour makes funny – CenterShock",
-      "text": "Stefan eats a CenterShock & sound plays 🍋"
-    },
-    "ytSound": {
-      "desc": "YouTube Members Sound",
-      "text": "YouTube Members Sound plays 🪩"
-    },
-    "fliege2": {
-      "desc": "Fly XXL — 2 minutes",
-      "text": "Very annoying fly plays 🪰"
-    },
-    "fliege3": {
-      "desc": "Ultra long fly",
-      "text": "Ultra annoying fly plays 🪰"
-    },
-    "hotnuts": {
-      "desc": "8 Hot Nuts + FIRE!!! (if available)",
-      "text": "Stefan eats 8 Hot Nuts & sound plays 🔥"
-    },
-    "sandwich": {
-      "desc": "Satanic Sandwich (if available)",
-      "text": "Stefan eats a satanic sandwich (Oreo + Hotnuts + Centershock) & sound plays 🔥"
-    }
-  },
   "auth": {
     "loading": "Loading…",
     "loginRequired": "Login required",

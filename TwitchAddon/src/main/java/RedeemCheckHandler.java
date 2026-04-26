@@ -3,7 +3,6 @@ import com.sun.net.httpserver.HttpHandler;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 public class RedeemCheckHandler implements HttpHandler {
     private final SupabaseClient supabaseClient;
@@ -43,13 +42,12 @@ public class RedeemCheckHandler implements HttpHandler {
             return;
         }
 
-        // DEPRECATED: Diese Prüfung sollte nur noch zur Info dienen.
-        // Die Cooldown/Once-Per-Stream Prüfung und Punkte-Debit erfolgen jetzt ALLE in der RPC-Funktion!
-        // Daher werden hier KEINE Punkte mehr automatisch zurückgegeben.
+        // Hinweis: Cooldown/Once-Per-Stream und Punkte-Debit werden vollständig in der RPC-Funktion geprüft.
+        // Dieser Endpunkt dient nur noch zur Statusabfrage — er gibt keine Punkte zurück.
 
         String rewardId = redeemedReward.optString("reward_id", null);
 
-        // Check once-per-stream (nur zur Info)
+        // Once-Per-Stream prüfen (nur zur Information, die RPC blockiert bereits)
         boolean oncePerStream = supabaseClient.isRewardOncePerStream(rewardId);
         if (oncePerStream) {
             boolean activeGlobal = supabaseClient.hasActiveGlobalRedemption(rewardId, null);
@@ -67,7 +65,7 @@ public class RedeemCheckHandler implements HttpHandler {
             }
         }
 
-        // Check global cooldown (nur zur Info)
+        // Globalen Cooldown prüfen (nur zur Information, die RPC blockiert bereits)
         long lastGlobal = supabaseClient.getLastGlobalRedemptionTimestamp(rewardId);
         int cooldown = supabaseClient.getRewardCooldownFromDb(rewardId);
         long now = System.currentTimeMillis();
@@ -88,7 +86,7 @@ public class RedeemCheckHandler implements HttpHandler {
             }
         }
 
-        // No block -> allowed
+        // Kein Blocker — Einlösung erlaubt
         JSONObject ok = new JSONObject();
         ok.put("allowed", true);
         String okStr = ok.toString();

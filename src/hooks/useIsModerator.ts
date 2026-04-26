@@ -3,8 +3,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 
 /**
- * Checks whether the currently logged-in user is in the `moderators` table.
- * Uses the Supabase RPC function `is_moderator()`.
+ * Prüft ob der eingeloggte User Moderator oder Broadcaster ist.
+ * Nutzt die Supabase-RPC-Funktionen `is_moderator()` und `is_broadcaster()` mit Fallback auf die `moderators`-Tabelle.
  */
 export function useIsModerator() {
   const { user, loading: authLoading } = useAuth()
@@ -17,7 +17,7 @@ export function useIsModerator() {
     if (authLoading) return
 
     if (!user) {
-      /** Defer state updates to next event loop to prevent batching issues */
+      // State-Updates in die nächste Microtask verschieben um React-Batching-Probleme zu vermeiden
       queueMicrotask(() => {
         setIsMod(false)
         setIsBroadcaster(false)
@@ -29,9 +29,8 @@ export function useIsModerator() {
 
     let cancelled = false
     ;(async () => {
-      // Fetch both roles in parallel. If the RPCs are unavailable due to RLS
-      // or other permission issues, fall back to checking the `moderators` table
-      // for a row matching the current Twitch ID.
+      // Beide Rollen parallel abfragen. Bei RLS-Fehlern oder nicht erreichbarer RPC
+      // auf die `moderators`-Tabelle zurückfallen.
       const twitchId = user.user_metadata?.sub || user.user_metadata?.provider_id
       const modRpc = supabase.rpc('is_moderator')
       const broadcasterRpc = supabase.rpc('is_broadcaster')
@@ -46,11 +45,9 @@ export function useIsModerator() {
         const rpcSaysBroadcaster = !broadcasterRes.error && broadcasterRes.data === true
         const tableRow = manualRes.data ?? null
 
-        // If RPCs are not allowed for the anon/public role, the RPC call may
-        // return an error. In that case fall back to presence of a row in the
-        // moderators table (manualRes) to determine moderator status. Also
-        // treat the table's is_broadcaster flag as authoritative for the
-        // broadcaster role when present.
+        // Falls die RPCs für anonyme Nutzer nicht erlaubt sind, zeigt sich das als Fehler.
+        // Fallback: Zeile in der moderators-Tabelle als Berechtigungsnachweis werten.
+        // Das is_broadcaster-Flag der Tabelle gilt dabei als maßgeblich.
         setIsMod(rpcSaysMod || !!tableRow)
         setIsBroadcaster(rpcSaysBroadcaster || tableRow?.is_broadcaster === true)
         setIsManual(tableRow?.is_manual === true)

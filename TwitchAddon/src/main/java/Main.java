@@ -35,7 +35,6 @@ public class Main {
         SupabaseClient supabaseClient = new SupabaseClient(supabaseUrl, supabaseApiKey);
         // Setze die Twitch-Credentials im SupabaseClient (für Username-Auflösung via Helix API)
         supabaseClient.setTwitchCredentials(twitchClientId, twitchOauthToken);
-        // OverlayApiServer.syncRewardsFromJson entfernt, da rewards.json nicht mehr verwendet wird
         System.out.println("[Main] Starte Overlay-API-Server...");
 
         // Broadcaster-ID ermitteln
@@ -67,7 +66,7 @@ public class Main {
         TwitchBot bot = new TwitchBot(twitchOauthToken, twitchClientId, twitchClientSecret, twitchRefreshToken, channelName, pointsManager);
         bot.connect();
 
-        OverlayApiServer overlayApiServer = new OverlayApiServer(supabaseClient, bot);
+        new OverlayApiServer(supabaseClient, bot);
 
         System.out.println("Bot läuft. Punkte werden in Supabase gespeichert.");
 

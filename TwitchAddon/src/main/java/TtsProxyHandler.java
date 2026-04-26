@@ -68,13 +68,12 @@ public class TtsProxyHandler implements HttpHandler {
             }
         }
 
-        // Google Translate TTS URL
         String ttsUrl = "https://translate.google.com/translate_tts?ie=UTF-8&tl=de&client=tw-ob&q="
                 + java.net.URLEncoder.encode(text, java.nio.charset.StandardCharsets.UTF_8);
 
         java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
                 .uri(URI.create(ttsUrl))
-                .header("User-Agent", "Mozilla/5.0") // Wichtig, um 404 zu vermeiden
+                .header("User-Agent", "Mozilla/5.0") // Ohne Browser-User-Agent antwortet Google Translate mit 404
                 .GET()
                 .build();
 

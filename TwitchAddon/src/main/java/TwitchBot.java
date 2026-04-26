@@ -9,6 +9,9 @@ import com.github.twitch4j.helix.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -22,7 +25,6 @@ public class TwitchBot {
     private final String channelName;
     private final long timerIntervalMs;
     private Timer timer;
-    private Timer streamStatusTimer;
     private boolean lastStreamOnline = false;
     private volatile String oauthToken;
     private final String clientId;
@@ -219,7 +221,7 @@ public class TwitchBot {
     /** Polling benutzt this.oauthToken direkt — wird nach jedem Refresh automatisch aktuell. */
     private void startStreamStatusPolling() {
         logger.info("Starte Stream-Status-Polling für {}...", channelName);
-        streamStatusTimer = new Timer();
+        Timer streamStatusTimer = new Timer();
         streamStatusTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -242,15 +244,15 @@ public class TwitchBot {
     }
 
     private boolean checkStreamOnline() throws Exception {
-        java.net.http.HttpClient httpClient = java.net.http.HttpClient.newHttpClient();
+        HttpClient httpClient = HttpClient.newHttpClient();
         String url = "https://api.twitch.tv/helix/streams?user_login=" + channelName;
-        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
                 .uri(java.net.URI.create(url))
                 .header("Client-Id", clientId)
                 .header("Authorization", "Bearer " + this.oauthToken)
                 .GET()
                 .build();
-        java.net.http.HttpResponse<String> response = httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 401) {
             logger.warn("Helix API 401 beim Polling — Token möglicherweise abgelaufen, starte Refresh...");
             refreshAndRebuild();
@@ -258,7 +260,7 @@ public class TwitchBot {
         }
         if (response.statusCode() == 200) {
             org.json.JSONObject json = new org.json.JSONObject(response.body());
-            return json.getJSONArray("data").length() > 0;
+            return !json.getJSONArray("data").isEmpty();
         }
         logger.warn("Helix API Fehler: {} {}", response.statusCode(), response.body());
         return false;

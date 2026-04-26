@@ -112,7 +112,7 @@
 }
 
 .moderate-stats-dl div {
-  background: rgba(124, 77, 255, 0.08);
+  background: rgba(var(--accent-rgb), 0.08);
   border-radius: 8px;
   padding: 8px;
 }
@@ -181,7 +181,7 @@
   width: 100%;
   max-width: 18px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(124, 77, 255, 0.95), rgba(100, 50, 240, 0.95));
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.95), rgba(100, 50, 240, 0.95));
   transition: height 0.3s ease;
 }
 

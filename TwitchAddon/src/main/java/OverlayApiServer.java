@@ -7,11 +7,9 @@ import io.jsonwebtoken.security.Keys;
 import java.io.IOException;
 
 public class OverlayApiServer {
-    private final SupabaseClient supabaseClient;
     private static final String EXTENSION_SECRET = System.getenv("EXTENSION_SECRET");
 
     public OverlayApiServer(SupabaseClient supabaseClient, TwitchBot bot) throws IOException {
-        this.supabaseClient = supabaseClient;
         HttpServer server = HttpServer.create(new java.net.InetSocketAddress(8081), 0);
         server.createContext("/api/redeemed_rewards", new RedeemedRewardsHandler(supabaseClient));
         server.createContext("/api/rewards", new RewardsHandler(supabaseClient));
@@ -28,13 +26,13 @@ public class OverlayApiServer {
         server.start();
     }
 
-    /** Adds CORS headers required for Twitch Extensions. Only allows Twitch Extension origins. */
+    /** Setzt CORS-Header für Twitch-Extension-Ursprünge. Nicht-Twitch-Origins erhalten einen sicheren Fallback. */
     public static void addCorsHeaders(HttpExchange exchange) {
         String origin = exchange.getRequestHeaders().getFirst("Origin");
         if (origin != null && (origin.endsWith(".twitch.tv") || origin.endsWith(".ext-twitch.tv"))) {
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", origin);
         } else {
-            // Fallback for local testing / non-Twitch origins
+            // Fallback für lokale Tests / fremde Origins
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://supervisor.ext-twitch.tv");
         }
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
@@ -42,7 +40,7 @@ public class OverlayApiServer {
         exchange.getResponseHeaders().add("Vary", "Origin");
     }
 
-    /** Handles CORS pre-flight OPTIONS request; returns true when handled. */
+    /** Beantwortet CORS-Preflight-OPTIONS-Anfragen; gibt true zurück wenn behandelt. */
     public static boolean handleCorsPreFlight(HttpExchange exchange) throws IOException {
         if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
             addCorsHeaders(exchange);
@@ -65,7 +63,7 @@ public class OverlayApiServer {
                 .build()
                 .parseSignedClaims(jwt)
                 .getPayload();
-            // user_id ist die echte Twitch-ID wenn Identity Linking aktiv ist
+            // Enthält die echte Twitch-ID nur wenn Identity Linking in der Extension aktiv ist
             String userId = claims.get("user_id", String.class);
             return (userId != null && !userId.isBlank()) ? userId : null;
         } catch (Exception e) {

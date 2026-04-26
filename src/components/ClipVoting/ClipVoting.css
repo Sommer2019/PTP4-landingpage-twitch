@@ -64,12 +64,13 @@
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 .clip-card:hover {
-  border-color: rgba(124, 77, 255, 0.25);
+  border-color: rgba(var(--accent-rgb), 0.25);
 }
 
-.clip-card--voted {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.35);
+.clip-card--voted,
+.clip-card--voted:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.35);
 }
 .clip-card__body {
   padding: 12px 14px;
@@ -122,7 +123,7 @@
   transition: background 0.2s;
 }
 .clip-card__vote-btn:hover:not(:disabled) {
-  background: rgba(124, 77, 255, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
 }
 .clip-card__vote-btn:disabled {
   opacity: 0.45;
@@ -173,7 +174,7 @@
   color: #ffc107;
 }
 .voting-status__badge--completed {
-  background: rgba(124, 77, 255, 0.18);
+  background: rgba(var(--accent-rgb), 0.18);
   color: var(--accent);
 }
 .voting-status__info {

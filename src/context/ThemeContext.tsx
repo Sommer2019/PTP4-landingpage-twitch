@@ -15,7 +15,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(getInitialMode)
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme)
 
-  // Listen to system theme changes
+  // Systemweite Theme-Änderungen beobachten (z.B. Wechsel von Hell- zu Dunkelmodus)
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = (e: MediaQueryListEvent) => setSystemTheme(e.matches ? 'dark' : 'light')
@@ -24,7 +24,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const resolved = mode === 'system' ? systemTheme : mode
-  /** Apply resolved theme preference to document element */
+  // Aufgelöstes Theme als data-theme-Attribut am Root-Element setzen
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', resolved)
   }, [resolved])

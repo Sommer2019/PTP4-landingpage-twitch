@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import siteConfig from '../../config/siteConfig'
+import { Mascot } from '../../config/mascotConfig'
 import './Hero.css'
 
 export default function Hero() {
@@ -15,6 +16,7 @@ export default function Hero() {
             <h1>{profile.name}</h1>
             <p>{t(profile.subtitleKey)}</p>
           </div>
+          <Mascot className="hero-mascot" />
         </div>
       </div>
     </header>

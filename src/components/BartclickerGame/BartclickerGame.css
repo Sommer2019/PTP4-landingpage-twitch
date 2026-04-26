@@ -162,7 +162,7 @@
 }
 
 .click-button:not(:disabled) .beard-svg:hover {
-    filter: drop-shadow(0 0 20px rgba(124, 77, 255, 0.6));
+    filter: drop-shadow(0 0 20px rgba(var(--accent-rgb), 0.6));
 }
 
 .click-button.pulse {
@@ -293,7 +293,7 @@
 }
 
 .shop-subtab:hover {
-    background: rgba(124, 77, 255, 0.08);
+    background: rgba(var(--accent-rgb), 0.08);
     border-color: var(--accent);
     color: var(--accent);
 }
@@ -302,7 +302,7 @@
     background: var(--accent);
     border-color: var(--accent);
     color: var(--color-btn-bg);
-    box-shadow: 0 0 10px rgba(124, 77, 255, 0.5);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
 }
 
 /* Content Areas */
@@ -330,7 +330,7 @@
 .relics-content::-webkit-scrollbar-track,
 .autobuyer-content::-webkit-scrollbar-track,
 .stats-content::-webkit-scrollbar-track {
-    background: rgba(124, 77, 255, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     border-radius: 10px;
 }
 
@@ -339,7 +339,7 @@
 .relics-content::-webkit-scrollbar-thumb,
 .autobuyer-content::-webkit-scrollbar-thumb,
 .stats-content::-webkit-scrollbar-thumb {
-    background: #7c4dff;
+    background: var(--accent);
     border-radius: 10px;
 }
 
@@ -362,7 +362,7 @@
 }
 
 .shop-item:hover {
-    background: rgba(124, 77, 255, 0.06);
+    background: rgba(var(--accent-rgb), 0.06);
     border-color: var(--accent);
 }
 
@@ -450,7 +450,7 @@
 
 .buy-button:hover:not(:disabled) {
     background: #9c27b0;
-    box-shadow: 0 0 10px rgba(124, 77, 255, 0.5);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
 }
 
 .buy-button:disabled {
@@ -461,8 +461,8 @@
 }
 
 .max-button:hover:not(:disabled) {
-    background: #7c4dff;
-    box-shadow: 0 0 10px rgba(124, 77, 255, 0.5);
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
 }
 
 .max-button:disabled {
@@ -476,7 +476,7 @@
 .rebirth-section {
     margin-top: 20px;
     padding: 15px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(124, 77, 255, 0.15));
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(var(--accent-rgb), 0.15));
     border: 2px solid #ffd700;
     border-radius: 8px;
     text-align: center;
@@ -530,8 +530,8 @@
 }
 
 .booster-card {
-    background: rgba(124, 77, 255, 0.15);
-    border: 1px solid #7c4dff;
+    background: rgba(var(--accent-rgb), 0.15);
+    border: 1px solid var(--accent);
     border-radius: 8px;
     padding: 15px;
     text-align: center;
@@ -539,9 +539,9 @@
 }
 
 .booster-card:hover {
-    background: rgba(124, 77, 255, 0.25);
+    background: rgba(var(--accent-rgb), 0.25);
     transform: translateY(-2px);
-    box-shadow: 0 0 15px rgba(124, 77, 255, 0.4);
+    box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.4);
 }
 
 .booster-card.booster-active {
@@ -630,8 +630,8 @@
 }
 
 .relic-card:hover:not(.unlocked) {
-    background: rgba(124, 77, 255, 0.15);
-    border-color: #7c4dff;
+    background: rgba(var(--accent-rgb), 0.15);
+    border-color: var(--accent);
     transform: translateY(-2px);
 }
 
@@ -680,7 +680,7 @@
 
 .autobuyer-card h3 {
     margin: 0 0 8px 0;
-    color: #7c4dff;
+    color: var(--accent);
     font-size: 1rem;
 }
 
@@ -748,7 +748,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-    background-color: #7c4dff;
+    background-color: var(--accent);
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -759,7 +759,7 @@
 /* Coming Soon */
 .coming-soon {
     text-align: center;
-    color: #7c4dff;
+    color: var(--accent);
     padding: 30px;
     font-style: italic;
 }
@@ -797,11 +797,11 @@
     grid-template-columns: 30px 1fr 60px 60px;
     gap: 8px;
     padding: 8px;
-    background: rgba(124, 77, 255, 0.15);
+    background: rgba(var(--accent-rgb), 0.15);
     border-radius: 6px 6px 0 0;
     font-weight: 600;
     font-size: 0.75rem;
-    color: #7c4dff;
+    color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 10px;
@@ -822,8 +822,8 @@
 }
 
 .leaderboard-item:hover {
-    background: rgba(124, 77, 255, 0.15);
-    border-color: #7c4dff;
+    background: rgba(var(--accent-rgb), 0.15);
+    border-color: var(--accent);
 }
 
 .leaderboard-item.top-1 {
@@ -875,7 +875,7 @@
     padding: 40px 20px;
     background: rgba(50, 50, 70, 0.3);
     border-radius: 8px;
-    border: 1px dashed #7c4dff;
+    border: 1px dashed var(--accent);
 }
 
 .leaderboard-placeholder p {
@@ -920,7 +920,7 @@
     }
 
     .click-button:hover:not(:disabled) .beard-svg {
-        filter: drop-shadow(0 0 20px rgba(124, 77, 255, 0.6));
+        filter: drop-shadow(0 0 20px rgba(var(--accent-rgb), 0.6));
     }
 
     .shop-content,
@@ -960,8 +960,8 @@
 
     .bartclicker-header {
         grid-template-columns: 1fr;
-        background: rgba(124, 77, 255, 0.1);
-        border: 1px solid #7c4dff;
+        background: rgba(var(--accent-rgb), 0.1);
+        border: 1px solid var(--accent);
         border-radius: 8px;
         padding: 8px;
         display: flex;
@@ -1029,11 +1029,11 @@
         font-size: 0.75rem;
         white-space: nowrap;
         flex-shrink: 0;
-        border: 1px solid rgba(124, 77, 255, 0.3);
+        border: 1px solid rgba(var(--accent-rgb), 0.3);
     }
 
     .shop-subtab.active {
-        border-color: #7c4dff;
+        border-color: var(--accent);
     }
 
     .item-header {
@@ -1131,29 +1131,32 @@
     color: #fff;
 }
 
-/* Theme helper classes */
-.highlight-warning {
-    color: var(--warning) !important;
+/* Utility-Farb-Klassen — Komponenten-Styles gezielt überschreiben */
+.bartclicker-game .highlight-warning,
+[data-theme] .bartclicker-game .highlight-warning {
+    color: var(--warning);
 }
 
-.muted-text {
-    color: var(--color-muted) !important;
+.bartclicker-game .muted-text,
+[data-theme] .bartclicker-game .muted-text {
+    color: var(--color-muted);
 }
 
-.gold-text {
-    color: var(--gold) !important;
+.bartclicker-game .gold-text,
+[data-theme] .bartclicker-game .gold-text {
+    color: var(--gold);
     font-weight: bold;
 }
 
 [data-theme="light"] .bartclicker-header {
-    background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%) !important;
+    background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%);
     border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
+    box-shadow: 0 2px 12px 0 rgba(var(--accent-rgb), 0.06), 0 1.5px 0 #e0e0e0;
 }
 
 [data-theme="dark"] .bartclicker-header {
-    background: var(--box-gradient, #181028) !important;
-    background-color: #181028 !important;
+    background: var(--box-gradient, #181028);
+    background-color: #181028;
     border-bottom: 1px solid #222;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
@@ -1163,20 +1166,20 @@
         position: sticky;
         top: 56px;
         z-index: 200;
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
+        background: var(--box-gradient, #181028);
+        background-color: #181028;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     [data-theme="light"] .bartclicker-header {
-        background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%) !important;
+        background: #fff linear-gradient(180deg, #fff 90%, #f5f5f7 100%);
         border-bottom: 1px solid #e0e0e0;
-        box-shadow: 0 2px 12px 0 rgba(124, 77, 255, 0.06), 0 1.5px 0 #e0e0e0;
+        box-shadow: 0 2px 12px 0 rgba(var(--accent-rgb), 0.06), 0 1.5px 0 #e0e0e0;
     }
 
     [data-theme="dark"] .bartclicker-header {
-        background: var(--box-gradient, #181028) !important;
-        background-color: #181028 !important;
+        background: var(--box-gradient, #181028);
+        background-color: #181028;
         border-bottom: 1px solid #222;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
@@ -1184,13 +1187,13 @@
 
 /* Whitemode Styles für Booster, Relikte, Autobuyer, Offline */
 [data-theme='light'] .booster-card {
-    background: rgba(124, 77, 255, 0.07);
+    background: rgba(var(--accent-rgb), 0.07);
     border: 1px solid #bdb6e6;
     color: #2d2150;
 }
 
 [data-theme='light'] .booster-card:hover {
-    background: rgba(124, 77, 255, 0.13);
+    background: rgba(var(--accent-rgb), 0.13);
 }
 
 [data-theme='light'] .booster-card.booster-active {
@@ -1199,7 +1202,7 @@
 }
 
 [data-theme='light'] .booster-card h3 {
-    color: #7c4dff;
+    color: var(--accent);
 }
 
 [data-theme='light'] .booster-effect {
@@ -1232,7 +1235,7 @@
 }
 
 [data-theme='light'] .relic-card h3 {
-    color: #7c4dff;
+    color: var(--accent);
 }
 
 [data-theme='light'] .relic-effect {
@@ -1251,7 +1254,7 @@
 }
 
 [data-theme='light'] .autobuyer-card h3 {
-    color: #7c4dff;
+    color: var(--accent);
 }
 
 [data-theme='light'] .autobuyer-card p {
@@ -1276,7 +1279,7 @@
 }
 
 [data-theme='light'] .rebirth-info {
-    color: #7c4dff;
+    color: var(--accent);
 }
 
 [data-theme='light'] .rebirth-button {

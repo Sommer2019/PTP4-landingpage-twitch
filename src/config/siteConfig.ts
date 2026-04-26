@@ -37,19 +37,6 @@ export interface Link {
   url: string
 }
 
-export interface DonationTrigger {
-  id: string
-  price: string
-  /**
-   * Numeric value for the donation link (e.g. 4.20).
-   * If set, a "Donate {price}" button will be shown.
-   */
-  amountValue?: number
-  descKey: string
-  textKey?: string // Added textKey to fix TS errors
-  audio?: string // Added audio to fix TS errors
-}
-
 export interface OnlyBartConfig { // New interface for OnlyBart settings
     title: string;
     logoUrl: string;
@@ -77,7 +64,6 @@ export interface StreamplanConfig {
 
 export interface StreamElementsConfig {
   donationUrl: string
-  triggers: DonationTrigger[]
 }
 
 export interface SiteConfig {
@@ -95,6 +81,8 @@ export interface SiteConfig {
    copyrightHolder: string
    onlyBart: OnlyBartConfig
    redirects: Record<string, string>
+   /** Primäre Akzentfarbe als Hex-Wert (#RRGGBB). Wird per JS als --accent CSS-Variable gesetzt. */
+   accentColor: string
  }
 
 const siteConfig: SiteConfig = {
@@ -174,21 +162,6 @@ const siteConfig: SiteConfig = {
   // ── StreamElements / Donations ──
   streamelements: {
     donationUrl: 'https://streamelements.com/hd1920x1080-5003/tip',
-    triggers: [
-      { id: 'taschengeld', price: '1€ – 1,19€', amountValue: 1.00, descKey: 'donations.taschengeld.desc', textKey: 'donations.taschengeld.text' },
-      { id: 'tts', price: 'ab 1,20€', amountValue: 1.20, descKey: 'donations.tts.desc', textKey: 'donations.tts.text' },
-      { id: 'knock', price: '4,20€', amountValue: 4.20, descKey: 'donations.knock.desc', textKey: 'donations.knock.text', audio: '/audio/knock.mp3' },
-      { id: 'majortom', price: '5,00€', amountValue: 5.00, descKey: 'donations.majortom.desc', textKey: 'donations.majortom.text', audio: '/audio/MajorTom.mp3' },
-      { id: 'scream', price: '6,66€', amountValue: 6.66, descKey: 'donations.scream.desc', textKey: 'donations.scream.text', audio: '/audio/scream.mp3' },
-      { id: 'fliege1', price: '7,77€', amountValue: 7.77, descKey: 'donations.fliege1.desc', textKey: 'donations.fliege1.text', audio: '/audio/Fliege1.mp3' },
-      { id: 'centershock', price: '9,20€', amountValue: 9.20, descKey: 'donations.centershock.desc', textKey: 'donations.centershock.text', audio: '/audio/CenterShock.mp3' },
-      { id: 'yt-sound', price: '10,80€', amountValue: 10.80, descKey: 'donations.ytSound.desc', textKey: 'donations.ytSound.text', audio: '/audio/1080.mp3' },
-      { id: 'fliege2', price: '14,44€', amountValue: 14.44, descKey: 'donations.fliege2.desc', textKey: 'donations.fliege2.text', audio: '/audio/Fliege2.mp3' },
-      { id: '1920', price: '19,20€', amountValue: 19.20, descKey: 'donations.1920.desc', textKey: 'donations.1920.text', audio: '/audio/1920.mp3' },
-      { id: 'fliege3', price: '19,66€', amountValue: 19.66, descKey: 'donations.fliege3.desc', textKey: 'donations.fliege3.text', audio: '/audio/Fliege3.mp3' },
-      { id: 'hotnuts', price: '25,00€', amountValue: 25.00, descKey: 'donations.hotnuts.desc', textKey: 'donations.hotnuts.text', audio: '/audio/FIRE.mp3' },
-      { id: 'sandwich', price: 'x66,66€', amountValue: 66.66, descKey: 'donations.sandwich.desc', textKey: 'donations.sandwich.text', audio: '/audio/Sandwich.mp3' },
-    ],
   },
 
   // ── Haupt-Links ──
@@ -273,7 +246,7 @@ const siteConfig: SiteConfig = {
       id: 'tanggle',
       titleKey: 'games.tanggle.title',
       descKey: 'games.tanggle.desc',
-      url: 'http://tng.gl/c/hd1920x1080',
+      url: 'https://tng.gl/c/hd1920x1080',
       icon: '/img/logos/Puzzle.svg',
       target: '_blank',
     },
@@ -367,6 +340,8 @@ const siteConfig: SiteConfig = {
      title: 'OnlyBart',
      logoUrl: '/img/logos/OB.webp'
    },
+
+   accentColor: '#7C4DFF',
 
    redirects: {
     "/instagram": "https://www.instagram.com/hd1920x1080/",

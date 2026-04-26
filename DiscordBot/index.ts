@@ -28,7 +28,6 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
-// Hilfsfunktion zum Nachrichtensenden
 const sendDiscordMessage = async (message: string) => {
     try {
         const channel = await client.channels.fetch(CHANNEL_ID!) as TextChannel;
@@ -72,12 +71,11 @@ app.post('/ende-jahr', (_req: Request, res: Response) => {
     res.status(200).send({ status: 'Gesendet' });
 });
 
-// Health check endpoint (vor dem client.login)
+// Health-Check — muss vor client.login registriert sein, damit der Server sofort antwortet
 app.get('/', (_req: Request, res: Response) => {
     res.status(200).send('OK');
 });
 
-// Bot starten
 client.once('clientReady', () => {
     console.log(`Eingeloggt als ${client.user?.tag}`);
     app.listen(PORT, '0.0.0.0', () => {

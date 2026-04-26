@@ -101,7 +101,7 @@ export default function ModerateVotingPage() {
                     <span style={{
                         padding: '2px 8px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 700,
                         background: r.status === 'active' ? 'rgba(76,175,80,.18)' :
-                            r.status === 'pending' ? 'rgba(255,193,7,.18)' : 'rgba(124,77,255,.18)',
+                            r.status === 'pending' ? 'rgba(255,193,7,.18)' : 'rgba(var(--accent-rgb),.18)',
                         color: r.status === 'active' ? '#4caf50' :
                             r.status === 'pending' ? '#ffc107' : 'var(--accent)',
                     }}>{r.status}</span>
