@@ -31,41 +31,27 @@ const ICS_SOURCE_URL = getMainCalendarUrl()
  * Lies die Site-Config (als Text), extrahiert via Regex alle Streamplan-Kategorien (ID + URL)
  * und baut daraus Proxy-Regeln (Dev) und Download-Regeln (Build).
  */
-function getCategoryCalendars(): Array<{ id: string; url: string }> {
+function getCategoryCalendars(): Array<{ id: number; url: string }> {
   try {
     const configPath = path.resolve(__dirname, 'src/config/siteConfig.ts')
     if (!fs.existsSync(configPath)) return []
 
     const content = fs.readFileSync(configPath, 'utf-8')
-    // Suche nach id: '...', ... url: '...' Blöcken im streamplan.categories Array
-    // Da das Parsen von TS/JS regex-basiert schwierig ist, machen wir es etwas simpler:
-    // Wir suchen alle Vorkommen von id: '...' gefolgt (irgendwann) von url: '...'
-    
-    // Besserer Ansatz: 
-    // Wir suchen einfach nach dem Muster:  id: '([^']+)',[\s\S]*?url: '([^']+)'
-    // Aber das könnte fehlschlagen, wenn die Reihenfolge anders ist.
-    
-    // Alternativ: Hardcoded Liste hier duplicated, falls das Parsen zu fragil ist.
-    // Probiere Regex für Objekt-Literale in categories: [ ... ]
-    
     const categoryBlockMatch = content.match(/categories:\s*\[([\s\S]*?)]/)
     if (!categoryBlockMatch) return []
-    
+
     const block = categoryBlockMatch[1]
-    const entries: Array<{ id: string; url: string }> = []
-    
-    // Splitte beim Start eines neuen Objekts "{"
-    const objectChunks = block.split('{')
-    
-    for (const chunk of objectChunks) {
-      const idMatch = chunk.match(/id:\s*'([^']+)'/)
+    const entries: Array<{ id: number; url: string }> = []
+
+    for (const chunk of block.split('{')) {
+      // id ist jetzt eine Zahl (kein String mit Anführungszeichen)
+      const idMatch = chunk.match(/id:\s*(\d+)/)
       const urlMatch = chunk.match(/url:\s*'([^']+)'/)
-      
       if (idMatch && urlMatch) {
-        entries.push({ id: idMatch[1], url: urlMatch[1] })
+        entries.push({ id: Number(idMatch[1]), url: urlMatch[1] })
       }
     }
-    
+
     return entries
   } catch (e) {
     console.warn('Could not parse siteConfig for calendars:', e)

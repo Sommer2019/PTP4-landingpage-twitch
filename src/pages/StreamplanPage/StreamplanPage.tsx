@@ -10,13 +10,13 @@ import { FiInfo, FiCheck, FiCopy } from 'react-icons/fi'
 import './StreamplanPage.css'
 
 interface CalendarEvent {
-  id: string // Unique ID (uid + category)
+  id: string
   title: string
   description?: string
   startDate: Date
   endDate: Date
   location?: string
-  categoryId: string
+  categoryId: number
   color: string
 }
 
@@ -31,7 +31,7 @@ export default function StreamplanPage() {
 
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeFilters, setActiveFilters] = useState<string[]>([]) // Empty = All
+  const [activeFilters, setActiveFilters] = useState<number[]>([]) // leer = Alle
   const [expanded, setExpanded] = useState(false)
 
   // Date-fns locale
@@ -100,7 +100,7 @@ export default function StreamplanPage() {
     fetchCalendars()
   }, [categories]) // Empty dependency array is fine as categories from config are constant
 
-  const toggleFilter = (catId: string, event: React.MouseEvent<HTMLButtonElement>) => {
+  const toggleFilter = (catId: number, event: React.MouseEvent<HTMLButtonElement>) => {
     // Wenn Shift gedrückt ist und aktuell "Alle" (leeres Array) aktiv sind:
     // Wähle ALLE Kategorien aus, außer der angeklickten.
     if (event.shiftKey && activeFilters.length === 0) {
@@ -110,7 +110,7 @@ export default function StreamplanPage() {
     }
 
     setActiveFilters((prev) => {
-      let nextFilters: string[]
+      let nextFilters: number[]
       if (prev.includes(catId)) {
         nextFilters = prev.filter(id => id !== catId)
       } else {

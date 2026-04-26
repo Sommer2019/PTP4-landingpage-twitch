@@ -2,7 +2,6 @@
  */
 
 export interface LinkItem {
-  id: string
   /** i18n key for the card title, e.g. "links.youtube.title" */
   titleKey: string
   /** i18n key for the card description */
@@ -51,7 +50,8 @@ export interface ImpressumConfig {
 }
 
 export interface StreamplanCategory {
-  id: string
+  /** Stabiler numerischer Bezeichner — wird intern für ICS-URL-Pfade und Filter verwendet. */
+  id: number
   labelKey: string
   url: string
   color: string
@@ -121,40 +121,40 @@ const siteConfig: SiteConfig = {
     icsUrl: 'https://export.kalender.digital/ics/0/4ccef74582e0eb8d7026/twitchhd1920x1080.ics',
     categories: [
       {
-        id: 'gog',
+        id: 1,
         labelKey: 'streamplan.categories.gog',
         url: 'https://export.kalender.digital/ics/4648294/4ccef74582e0eb8d7026/gog-goodoldgames.ics',
-        color: '#d4af37', // Gold/Classic
+        color: '#d4af37',
       },
       {
-        id: 'justchatting',
+        id: 2,
         labelKey: 'streamplan.categories.justchatting',
         url: 'https://export.kalender.digital/ics/4648295/4ccef74582e0eb8d7026/justchattingreactioncommunitygames.ics',
-        color: '#a970ff', // Twitch Purple
+        color: '#a970ff',
       },
       {
-        id: 'grind',
+        id: 3,
         labelKey: 'streamplan.categories.grind',
         url: 'https://export.kalender.digital/ics/4648296/4ccef74582e0eb8d7026/grindgames.ics',
-        color: '#e91e63', // Pink/Red
+        color: '#e91e63',
       },
       {
-        id: 'special',
+        id: 4,
         labelKey: 'streamplan.categories.special',
         url: 'https://export.kalender.digital/ics/4648297/4ccef74582e0eb8d7026/besonderesevent.ics',
-        color: '#ffd700', // Gold/Highlight
+        color: '#ffd700',
       },
       {
-        id: 'multiplayer',
+        id: 5,
         labelKey: 'streamplan.categories.multiplayer',
         url: 'https://export.kalender.digital/ics/4648298/4ccef74582e0eb8d7026/multi-playertime.ics',
-        color: '#00bcd4', // Cyan
+        color: '#00bcd4',
       },
       {
-        id: 'action',
+        id: 6,
         labelKey: 'streamplan.categories.action',
         url: 'https://export.kalender.digital/ics/4649039/4ccef74582e0eb8d7026/actiongames.ics',
-        color: '#ff5722', // Orange
+        color: '#ff5722',
       },
     ],
   },
@@ -167,7 +167,6 @@ const siteConfig: SiteConfig = {
   // ── Haupt-Links ──
   links: [
     {
-      id: 'streamplan',
       titleKey: 'links.streamplan.title',
       descKey: 'links.streamplan.desc',
       url: '/streamplan',
@@ -175,7 +174,6 @@ const siteConfig: SiteConfig = {
       target: '_self',
     },
     {
-      id: 'streamelements',
       titleKey: 'links.streamelements.title',
       descKey: 'links.streamelements.desc',
       url: '/streamelements',
@@ -183,7 +181,6 @@ const siteConfig: SiteConfig = {
       target: '_self',
     },
     {
-      id: 'clipdesmonats',
       titleKey: 'links.clipdesmonats.title',
       descKey: 'links.clipdesmonats.desc',
       url: '/clipdesmonats',
@@ -191,7 +188,6 @@ const siteConfig: SiteConfig = {
       target: '_self',
     },
     {
-      id: 'youtube',
       titleKey: 'links.youtube.title',
       descKey: 'links.youtube.desc',
       url: 'https://youtube.com/@hawedereplus',
@@ -199,7 +195,6 @@ const siteConfig: SiteConfig = {
       target: '_blank',
     },
     {
-      id: 'tiktok',
       titleKey: 'links.tiktok.title',
       descKey: 'links.tiktok.desc',
       url: 'https://tiktok.com/@hd1920x1080',
@@ -207,7 +202,6 @@ const siteConfig: SiteConfig = {
       target: '_blank',
     },
     {
-      id: 'instagram',
       titleKey: 'links.instagram.title',
       descKey: 'links.instagram.desc',
       url: 'https://www.instagram.com/hd1920x1080/',
@@ -215,7 +209,6 @@ const siteConfig: SiteConfig = {
       target: '_blank',
     },
     {
-      id: 'onlybart',
       titleKey: 'links.onlybart.title',
       descKey: 'links.onlybart.desc',
       url: '/onlybart',
@@ -223,7 +216,6 @@ const siteConfig: SiteConfig = {
       target: '_self',
     },
     {
-      id: 'discord',
       titleKey: 'links.discord.title',
       descKey: 'links.discord.desc',
       url: 'https://discord.gg/Zp5KNqCHzc',
@@ -231,7 +223,6 @@ const siteConfig: SiteConfig = {
       target: '_blank',
     },
     {
-      id: 'email',
       titleKey: 'links.email.title',
       descKey: 'links.email.desc',
       url: 'mailto:Admin@HD1920x1080.de?subject=Kontaktanfrage',
@@ -243,7 +234,6 @@ const siteConfig: SiteConfig = {
   // ── Games ──
   games: [
     {
-      id: 'tanggle',
       titleKey: 'games.tanggle.title',
       descKey: 'games.tanggle.desc',
       url: 'https://tng.gl/c/hd1920x1080',
@@ -251,7 +241,6 @@ const siteConfig: SiteConfig = {
       target: '_blank',
     },
     {
-      id: 'resourcepack',
       titleKey: 'games.resourcepack.title',
       descKey: 'games.resourcepack.desc',
       url: 'https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip',
@@ -261,7 +250,6 @@ const siteConfig: SiteConfig = {
       downloadName: 'HD1920x1080_V1.10.zip',
     },
     {
-      id: 'bartclicker',
       titleKey: 'games.bartclicker.title',
       descKey: 'games.bartclicker.desc',
       url: '/bartclicker',
@@ -273,7 +261,6 @@ const siteConfig: SiteConfig = {
   // ── Clips & Shorts ──
   clips: [
     {
-      id: 'yt-shorts',
       titleKey: 'clips.ytShorts.title',
       descKey: 'clips.ytShorts.desc',
       url: 'https://www.youtube.com/@lesommer2019',
@@ -281,7 +268,6 @@ const siteConfig: SiteConfig = {
       target: '_blank',
     },
     {
-      id: 'tiktok-clips',
       titleKey: 'clips.tiktokClips.title',
       descKey: 'clips.tiktokClips.desc',
       url: 'https://www.tiktok.com/@hawedereshorts',
@@ -289,7 +275,6 @@ const siteConfig: SiteConfig = {
       target: '_blank',
     },
     {
-      id: 'insta-clips',
       titleKey: 'clips.instaClips.title',
       descKey: 'clips.instaClips.desc',
       url: 'https://www.instagram.com/hawedereshorts/',
@@ -301,7 +286,6 @@ const siteConfig: SiteConfig = {
   // ── Partner ──
   partners: [
     {
-      id: 'yvolve',
       titleKey: 'partners.yvolve.title',
       descKey: 'partners.yvolve.desc',
       url: 'https://yvolve.shop/?bg_ref=cnbZIhbZxH',
@@ -310,14 +294,12 @@ const siteConfig: SiteConfig = {
       discountCode: 'FullHD',
     },
     {
-      id: 'nclip',
       titleKey: 'partners.nclip.title',
       url: 'https://nclip.io/page/hd1920x1080',
       icon: '/img/logos/NClip.webp',
       target: '_blank',
     },
     {
-      id: 'frugends',
       titleKey: 'partners.frugends.title',
       descKey: 'partners.frugends.desc',
       url: 'https://frugends.com/?srsltid=AfmBOoqjyBjbK5TWs0tAS4ELgV93XqTXzl84OChVKd93OVkjeWfH8wFT',

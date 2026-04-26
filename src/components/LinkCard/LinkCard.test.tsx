@@ -5,7 +5,7 @@ import LinkCard from './LinkCard'
 import type { LinkItem } from '../../config/siteConfig'
 
 const externalItem: LinkItem = {
-  id: 'ext',
+
   titleKey: 'links.youtube.title',
   descKey: 'links.youtube.desc',
   url: 'https://youtube.com',
@@ -14,7 +14,6 @@ const externalItem: LinkItem = {
 }
 
 const internalItem: LinkItem = {
-  id: 'int',
   titleKey: 'links.streamplan.title',
   descKey: 'links.streamplan.desc',
   url: '/streamplan',
@@ -23,7 +22,6 @@ const internalItem: LinkItem = {
 }
 
 const discountItem: LinkItem = {
-  id: 'disc',
   titleKey: 'links.discord.title',
   url: 'https://example.com',
   icon: '/img/logos/partner.svg',

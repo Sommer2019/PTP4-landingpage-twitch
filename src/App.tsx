@@ -37,16 +37,8 @@ const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
 }
 const {channel} = siteConfig.twitch
 const {impressum, redirects} = siteConfig
-const getLink = (platform: string) => siteConfig.links.find(l => l.id === platform)?.url || "/";
 const externalRedirects: Record<string, string> = {
     ...redirects,
-    "/insta": getLink("instagram"),
-    "/instagram": getLink("instagram"),
-    "/yt": getLink("youtube"),
-    "/youtube": getLink("youtube"),
-    "/dc": getLink("discord"),
-    "/discord": getLink("discord"),
-    "/tiktok": getLink("tiktok"),
     "/twitch": `https://www.twitch.tv/${channel}`,
 };
 

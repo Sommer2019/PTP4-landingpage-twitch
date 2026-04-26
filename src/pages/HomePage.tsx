@@ -31,7 +31,7 @@ export default function HomePage() {
         <div className="section-links">
           <SectionBox className="links-box">
             {siteConfig.links.map((item) => (
-              <LinkCard key={item.id} item={item} />
+              <LinkCard key={item.url} item={item} />
             ))}
           </SectionBox>
         </div>
@@ -41,7 +41,7 @@ export default function HomePage() {
           <SectionBox title={t('sections.games')}>
             {siteConfig.games.map((item) => (
               <LinkCard
-                key={item.id}
+                key={item.url}
                 item={item}
                 onDownload={item.downloadFile ? setDownloadItem : undefined}
               />
@@ -53,7 +53,7 @@ export default function HomePage() {
         <div className="section-clips">
           <SectionBox title={t('sections.clips')}>
             {siteConfig.clips.map((item) => (
-              <LinkCard key={item.id} item={item} />
+              <LinkCard key={item.url} item={item} />
             ))}
           </SectionBox>
         </div>
@@ -62,7 +62,7 @@ export default function HomePage() {
         <div className="section-partners">
           <SectionBox title={t('sections.partners')}>
             {siteConfig.partners.map((item) => (
-              <LinkCard key={item.id} item={item} />
+              <LinkCard key={item.url} item={item} />
             ))}
           </SectionBox>
         </div>
