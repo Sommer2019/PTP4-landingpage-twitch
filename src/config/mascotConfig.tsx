@@ -8,4 +8,5 @@
  *   export type { CookieProps as MascotProps } from '../components/Mascot/CookieSVG'
  */
 export { MascotSVG as Mascot } from '../components/Mascot/MascotSVG'
+export { MascotNotFoundSVG as Mascot404 } from '../components/Mascot/MascotNotFoundSVG'
 export type { MascotProps } from '../components/Mascot/MascotSVG'
