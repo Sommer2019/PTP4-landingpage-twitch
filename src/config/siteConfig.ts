@@ -29,6 +29,8 @@ export interface TwitchConfig {
   chatFallbackUrl: string
   /** ICS calendar URL used to show the next scheduled stream when offline */
   icsUrl: string
+  /** Basis-URL des Twitch-ID-Lookup-Dienstes (DecAPI) */
+  idLookupUrl: string
 }
 
 export interface Link {
@@ -103,6 +105,8 @@ const siteConfig: SiteConfig = {
       `https://www.twitch.tv/${(import.meta.env.VITE_CHANNEL_NAME as string)}/chat`,
 
     icsUrl: '/api/calendar.ics',
+
+    idLookupUrl: 'https://decapi.me/twitch/id/',
   },
 
   // ── Impressum ──

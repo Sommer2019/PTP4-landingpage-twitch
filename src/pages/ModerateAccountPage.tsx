@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { useIsModerator } from '../hooks/useIsModerator'
 import SubPage from '../components/SubPage/SubPage'
 import { getErrorMessage } from '../lib/utils'
+import siteConfig from '../config/siteConfig'
 
 // Type Guard zur sicheren Fehlercode-Prüfung bei Postgres-Fehlern.
 function isErrorWithCode(e: unknown): e is { code?: string | number } {
@@ -172,7 +173,7 @@ export default function ModerateAccountPage() {
       // Twitch-ID für Eingabe auflösen (ID oder Username)
       let twitch_user_id = banName.trim()
       if (!/^\d+$/.test(twitch_user_id)) {
-        const res = await fetch(`https://decapi.me/twitch/id/${encodeURIComponent(twitch_user_id)}`)
+        const res = await fetch(`${siteConfig.twitch.idLookupUrl}${encodeURIComponent(twitch_user_id)}`)
         if (!res.ok) {
           showToast(t('moderate.couldNotFetchTwitchId') || 'Konnte Twitch-ID nicht abrufen')
           return
@@ -296,7 +297,7 @@ export default function ModerateAccountPage() {
       let targetUser = pointsName.trim()
       // Twitch-ID holen, falls kein reiner Zahlenwert
       if (!/^\d+$/.test(targetUser)) {
-        const res = await fetch(`https://decapi.me/twitch/id/${encodeURIComponent(targetUser)}`)
+        const res = await fetch(`${siteConfig.twitch.idLookupUrl}${encodeURIComponent(targetUser)}`)
         if (!res.ok) {
           showToast(t('moderate.couldNotFetchTwitchId') || 'Konnte Twitch-ID nicht abrufen')
           return
