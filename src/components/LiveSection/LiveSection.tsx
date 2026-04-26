@@ -37,7 +37,7 @@ export default function LiveSection() {
     const playerContainerRef = useRef<HTMLDivElement>(null)
     const playerCreated = useRef(false)
 
-    /* ── Step 1: Determine live status via Supabase (no Twitch JS needed) ── */
+    /* ── Schritt 1: Live-Status per Supabase ermitteln (kein Twitch JS nötig) ── */
     useEffect(() => {
         let cancelled = false
         type TwitchGameResponse = { isLive: boolean }
@@ -60,7 +60,7 @@ export default function LiveSection() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    /* ── Step 2: Load Twitch SDK only when confirmed live ── */
+    /* ── Schritt 2: Twitch-SDK nur laden wenn live bestätigt ── */
     useEffect(() => {
         if (!isLive) return
 

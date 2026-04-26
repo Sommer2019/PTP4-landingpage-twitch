@@ -65,9 +65,8 @@ interface ExcludedRow { twitch_user_id: string; display_name: string | null; exc
 
 /* ── OnlyBart Broadcaster Sync (VIPs/Subs) ── */
 async function fetchOnlyBartRoles(providerToken: string, broadcasterId: string) {
-    // 1. Fetch VIPs
-    // Requires scope 'channel:read:vips' (or similar). If not available, might fail.
-    // Try https://dev.twitch.tv/docs/api/reference/#get-vips
+    // 1. VIPs abrufen
+    // Benötigt Scope 'channel:read:vips'. Schlägt fehl wenn nicht verfügbar.
     const vips: string[] = []
     try {
         let cursor = ''
@@ -86,8 +85,8 @@ async function fetchOnlyBartRoles(providerToken: string, broadcasterId: string) 
         console.warn('Failed to fetch VIPs', e)
     }
 
-    // 2. Fetch Subscribers
-    // Requires scope 'channel:read:subscriptions'
+    // 2. Abonnenten abrufen
+    // Benötigt Scope 'channel:read:subscriptions'
     const subs: string[] = []
     try {
         let cursor = ''
@@ -144,7 +143,7 @@ export default function ModerateSettingsPage() {
     if (!TWITCH_CLIENT_ID) { showToast('❌ VITE_TWITCH_CLIENT_ID nicht gesetzt'); return }
     setBusy(true)
     try {
-      // 1. Sync Moderators
+      // 1. Moderatoren synchronisieren
       const { mods: modsArr, broadcaster_id } = await fetchTwitchMods(providerToken, siteConfig.twitch.channel)
       const { data, error } = await supabase.rpc('sync_moderators', { 
         p_mods: modsArr,
@@ -161,9 +160,8 @@ export default function ModerateSettingsPage() {
         modMsg = `✅ ${result?.count ?? 0} Mods${isBroadcaster}`
       }
 
-      // 2. Sync OnlyBart (VIPs + Subs) - if broadcaster
-      // We only attempt this if the user is broadcaster, as scopes channel:read:vips/subs require it.
-      // But we can try anyway and catch errors.
+      // 2. OnlyBart synchronisieren (VIPs + Abonnenten)
+      // Wird versucht und bei Fehler (fehlende Scopes) übersprungen.
       let obMsg: string
       try {
           const { vips, subs } = await fetchOnlyBartRoles(providerToken, broadcaster_id)
@@ -212,7 +210,7 @@ export default function ModerateSettingsPage() {
       provider: 'twitch',
       options: {
         // Standard-Scopes von Supabase + moderation:read + channel:manage:moderators für Mod-Liste
-        // AND channel:read:vips + channel:read:subscriptions for OnlyBart
+        // + channel:read:vips + channel:read:subscriptions für OnlyBart
         scopes: 'user:read:email moderation:read channel:manage:moderators channel:read:vips channel:read:subscriptions',
         redirectTo: window.location.origin + '/moderate/settings',
         queryParams: { force_verify: 'true' },

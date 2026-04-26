@@ -1,16 +1,16 @@
-// Shop Items
+// Shop-Items
 export interface ShopItem {
   id: number;
   name: string;
   cost: number;
-  cps?: number; // Clicks per second (for passive items)
-  clickPower?: number; // Power per click
+  cps?: number; // Klicks pro Sekunde (für passive Items)
+  clickPower?: number; // Power pro Klick
   icon: string;
   type: 'passive' | 'click';
   count: number;
 }
 
-// Buffs - Temporary bonuses
+// Buffs – Temporäre Boni
 export interface Buff {
   id: number;
   name: string;
@@ -22,7 +22,7 @@ export interface Buff {
   duration: number;
   baseCost: number;
   description: string;
-  endTime?: number; // Unix timestamp
+  endTime?: number; // Unix-Timestamp
   negativeEffect?: {
     chance: number;
     type: 'energyLoss' | 'clickReduction' | 'both';
@@ -34,7 +34,7 @@ export interface Buff {
   };
 }
 
-// Debuffs - Temporary penalties
+// Debuffs – Temporäre Strafen
 export interface Debuff {
   type: 'energyLoss' | 'clickReduction' | 'both';
   value?: number;
@@ -44,7 +44,7 @@ export interface Debuff {
   description?: string;
 }
 
-// Relics - Permanent bonuses
+// Relikte – Permanente Boni
 export interface Relic {
   id: number;
   name: string;
@@ -57,7 +57,7 @@ export interface Relic {
   description: string;
 }
 
-// Game State from Database
+// Spielstand aus der Datenbank
 export interface BartclickerGameState {
   id?: string;
   user_id?: string;
@@ -79,7 +79,7 @@ export interface BartclickerGameState {
   created_at?: string;
 }
 
-// Leaderboard entry
+// Ranglisten-Eintrag
 export interface BartclickerLeaderboardEntry {
   rank: number;
   user_id: string;
@@ -89,7 +89,7 @@ export interface BartclickerLeaderboardEntry {
   display_name?: string;
 }
 
-// Offline progress calculation
+// Offline-Fortschrittsberechnung
 export interface OfflineProgress {
   progress: number;
   offlineSeconds: number;

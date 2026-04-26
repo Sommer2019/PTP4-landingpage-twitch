@@ -1,17 +1,17 @@
 /**
- * Architecture tests (ArchUnit-style).
+ * Architektur-Tests (ArchUnit-Stil).
  *
- * These tests enforce structural rules about the source tree so that
- * layer boundaries are not violated over time:
+ * Diese Tests erzwingen Schichtgrenzen im Quellbaum,
+ * damit Abhängigkeiten nicht im Laufe der Zeit verletzt werden:
  *
  *   pages  →  components  →  context / hooks  →  lib
  *
- * Rules checked:
- *   1. `lib/` must not import from `components/`, `pages/`, `context/`, or `hooks/`.
- *   2. `context/` must not import from `components/` or `pages/`.
- *   3. `hooks/` must not import from `components/` or `pages/`.
- *   4. `components/` must not import from `pages/`.
- *   5. No source file outside `test/` imports from the `test/` helper directory.
+ * Geprüfte Regeln:
+ *   1. `lib/` darf nicht aus `components/`, `pages/`, `context/` oder `hooks/` importieren.
+ *   2. `context/` darf nicht aus `components/` oder `pages/` importieren.
+ *   3. `hooks/` darf nicht aus `components/` oder `pages/` importieren.
+ *   4. `components/` darf nicht aus `pages/` importieren.
+ *   5. Kein Quell-Datei außerhalb von `test/` importiert aus dem `test/`-Verzeichnis.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -20,7 +20,7 @@ import path from 'node:path'
 
 const SRC = path.resolve(__dirname, '..')
 
-/** Recursively collect all .ts/.tsx files under `dir`. */
+/** Alle .ts/.tsx-Dateien unter `dir` rekursiv sammeln. */
 function filesIn(dir: string): string[] {
   const results: string[] = []
   const fullDir = path.join(SRC, dir)
@@ -41,7 +41,7 @@ function filesIn(dir: string): string[] {
   return results
 }
 
-/** Return every import path found in `file`. */
+/** Alle Import-Pfade einer Datei zurückgeben. */
 function importsOf(file: string): string[] {
   const content = fs.readFileSync(file, 'utf-8')
   const re = /from\s+['"]([^'"]+)['"]/g
@@ -53,7 +53,7 @@ function importsOf(file: string): string[] {
   return results
 }
 
-/** True when any import in `file` matches `pattern`. */
+/** Wahr, wenn mindestens ein Import in `file` auf `pattern` passt. */
 function importsMatch(file: string, pattern: RegExp): boolean {
   return importsOf(file).some((imp) => pattern.test(imp))
 }
@@ -102,13 +102,13 @@ describe('Architecture: layer boundary rules', () => {
   })
 
   it('non-test source files must not import from test/', () => {
-    // Collect all .ts/.tsx under src/ except src/test/ and *.test.{ts,tsx}
+    // Alle .ts/.tsx unter src/ sammeln, außer src/test/ und *.test.{ts,tsx}
     const allSrc: string[] = []
     const layers = ['lib', 'components', 'pages', 'context', 'hooks', 'config', 'i18n', 'types']
     for (const layer of layers) {
       allSrc.push(...filesIn(layer).filter((f) => !/\.test\.(ts|tsx)$/.test(f)))
     }
-    // Also include top-level src files (non-test)
+    // Auch Top-Level-src-Dateien einbeziehen (keine Test-Dateien)
     for (const entry of fs.readdirSync(SRC, { withFileTypes: true })) {
       if (
         !entry.isDirectory() &&

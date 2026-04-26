@@ -36,7 +36,7 @@ export interface Link {
   url: string
 }
 
-export interface OnlyBartConfig { // New interface for OnlyBart settings
+export interface OnlyBartConfig { // Konfiguration für OnlyBart-Bereich
     title: string;
     logoUrl: string;
 }
@@ -95,12 +95,10 @@ const siteConfig: SiteConfig = {
 
   // ── Twitch ──
   twitch: {
-    // Allow overriding the channel via Vite env var VITE_CHANNEL_NAME for different deployments.
-    // If not present, fall back to the hardcoded username.
+    // Kanal kann per VITE_CHANNEL_NAME überschrieben werden (für verschiedene Deployments).
     channel: (import.meta.env.VITE_CHANNEL_NAME as string),
 
-    // Allow overriding the chat fallback URL entirely via VITE_CHAT_FALLBACK_URL.
-    // If not set, derive a sensible default from the channel name.
+    // Chat-Fallback-URL kann per VITE_CHAT_FALLBACK_URL vollständig überschrieben werden.
     chatFallbackUrl:
       `https://www.twitch.tv/${(import.meta.env.VITE_CHANNEL_NAME as string)}/chat`,
 

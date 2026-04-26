@@ -19,7 +19,7 @@ app.use((req: Request, res: Response, next: express.NextFunction) => {
     }
 });
 
-// Discord Client Setup
+// Discord-Client einrichten
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
 });

@@ -5,18 +5,18 @@ import { supabase } from '../lib/supabase'
 const STORAGE_KEY = 'cookie-consent'
 const SESSION_KEY = 'pv-session-id'
 
-/** UUID v4 fallback for browsers without native crypto.randomUUID support */
+/** UUID-v4-Fallback für Browser ohne natives crypto.randomUUID */
 function generateUUID(): string {
   try {
-    // Try native crypto.randomUUID
+    // Natives crypto.randomUUID versuchen
     if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
       return globalThis.crypto.randomUUID()
     }
   } catch {
-    // Fallback on error
+    // Fehler ignorieren
   }
-  
-  // Fallback: manual UUID v4 generation
+
+  // Fallback: manuelle UUID-v4-Erzeugung
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
     const v = c === 'x' ? r : (r & 0x3) | 0x8
@@ -24,7 +24,7 @@ function generateUUID(): string {
   })
 }
 
-/** Generate or retrieve anonymous session ID for this browser tab */
+/** Anonyme Session-ID für diesen Browser-Tab erzeugen oder abrufen */
 function getSessionId(): string {
   let id = sessionStorage.getItem(SESSION_KEY)
   if (!id) {
@@ -47,25 +47,25 @@ export default function PageTracker() {
     if (consent !== 'accepted') return
 
     const path = location.pathname
-    /** Prevent duplicate tracking of same path in succession */
+    /** Doppeltes Tracking derselben Seite hintereinander verhindern */
     if (path === prevPath.current) return
     prevPath.current = path
 
     const sessionId = getSessionId()
     const redirectInfo: Record<string, string> = {}
 
-    /** Capture referrer only on initial page load */
+    /** Referrer nur beim ersten Seitenaufruf erfassen */
     if (document.referrer) {
       try {
         const ref = new URL(document.referrer)
-        /** Only store external referrers */
+        /** Nur externe Referrer speichern */
         if (ref.origin !== window.location.origin) {
           redirectInfo.referrer = document.referrer
         }
       } catch { /* invalid URL – ignore */ }
     }
 
-    /** Capture UTM parameters and query string */
+    /** UTM-Parameter und Query-String erfassen */
     if (location.search) {
       redirectInfo.query = location.search
     }

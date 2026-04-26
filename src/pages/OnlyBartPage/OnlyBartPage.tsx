@@ -10,7 +10,7 @@ import './OnlyBartPage.css'
 import siteConfig from '../../config/siteConfig'
 import Footer from "../../components/Footer/Footer.tsx";
 
-// Types based on DB schema
+// Typen basierend auf DB-Schema
 interface Post {
     id: string
     content: string
@@ -30,7 +30,7 @@ interface Comment {
     user_id: string
     content: string
     created_at: string
-    display_name?: string // Joined from profiles
+    display_name?: string // Per Join aus profiles geladen
 }
 
 interface Profile {
@@ -39,7 +39,7 @@ interface Profile {
 }
 
 // ------------------------------------------------------------------
-// Sub-Components
+// Unter-Komponenten
 // ------------------------------------------------------------------
 
 function CreatePost({onSuccess}: { onSuccess: () => void }) {
@@ -130,7 +130,7 @@ function CreatePost({onSuccess}: { onSuccess: () => void }) {
                             onChange={(e) => {
                                 if (e.target.files?.[0]) {
                                     setMediaFile(e.target.files[0])
-                                    setVideoUrl('') // Clear video if image selected
+                                    setVideoUrl('') // Video leeren wenn Bild gewählt
                                 }
                             }}
                             ref={fileInputRef}
@@ -148,7 +148,7 @@ function CreatePost({onSuccess}: { onSuccess: () => void }) {
                             })
                             if (url) {
                                 setVideoUrl(url)
-                                setMediaFile(null) // Clear image if video selected
+                                setMediaFile(null) // Bild leeren wenn Video gewählt
                             }
                         }}
                     >
@@ -239,7 +239,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
         }
     }, [showComments, loadComments])
 
-    // Realtime subscription for comments
+    // Echtzeit-Subscription für Kommentare
     useEffect(() => {
         const channel = supabase
             .channel(`comments-${post.id}`)
@@ -252,7 +252,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
                     filter: `post_id=eq.${post.id}`
                 },
                 () => {
-                    // Reload comments when any change happens
+                    // Kommentare bei jeder Änderung neu laden
                     loadComments()
                 }
             )
@@ -270,20 +270,20 @@ function PostCard({post, access, onDelete, onLikeChange}: {
         const currentlyLiked = hasLiked || hasSuperliked
 
         if (currentlyLiked) {
-            // Determine how much to subtract based on current like type
+            // Abzugsmenge anhand des aktuellen Like-Typs bestimmen
             const currentValue = hasSuperliked ? 10 : 1
 
-            // Check if we're switching type (like -> superlike or superlike -> like)
+            // Prüfen ob Like-Typ gewechselt wird (Like → Superlike oder umgekehrt)
             const isSwitching = (isSuper && hasLiked) || (!isSuper && hasSuperliked)
 
             if (isSwitching) {
-                // Switch: remove old, add new in one go
+                // Wechsel: alten entfernen, neuen in einem Zug einfügen
                 const newValue = isSuper ? 10 : 1
                 setHasLiked(!isSuper)
                 setHasSuperliked(isSuper)
                 setLikesCount(prev => Math.max(0, prev - currentValue + newValue))
 
-                // Delete old like, then insert new one
+                // Alten Like löschen, neuen einfügen
                 await supabase
                     .schema('onlybart')
                     .from('onlybart_likes')
@@ -298,7 +298,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
                         is_superlike: isSuper
                     })
             } else {
-                // Same button again -> remove like
+                // Gleicher Button nochmal → Like entfernen
                 setHasLiked(false)
                 setHasSuperliked(false)
                 setLikesCount(prev => Math.max(0, prev - currentValue))
@@ -311,7 +311,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
             }
             if (onLikeChange) onLikeChange()
         } else {
-            // No like yet -> add new like
+            // Noch kein Like → neuen Like hinzufügen
             const addValue = isSuper ? 10 : 1
             if (isSuper) setHasSuperliked(true)
             else setHasLiked(true)
@@ -368,7 +368,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
         loadComments()
     }
 
-    // Helper to extract YouTube ID
+    // YouTube-ID aus URL extrahieren
     const getYoutubeId = (url: string) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
         const match = url.match(regExp);
@@ -524,7 +524,7 @@ function PostCard({post, access, onDelete, onLikeChange}: {
 }
 
 // ------------------------------------------------------------------
-// Main Page
+// Haupt-Seite
 // ------------------------------------------------------------------
 
 export function OnlyBartPage() {
@@ -535,13 +535,13 @@ export function OnlyBartPage() {
     const [filter, setFilter] = useState<'all' | 'media' | 'photos' | 'videos'>('all')
     const [posts, setPosts] = useState<Post[]>([])
 
-    // Clean up intro
+    // Intro-Timer aufräumen
     useEffect(() => {
         const timer = setTimeout(() => setShowIntro(false), 2000)
         return () => clearTimeout(timer)
     }, [])
 
-    // Fetch posts
+    // Beiträge laden
     const fetchPosts = useCallback(async () => {
         if (!access.canView) return
 
@@ -613,7 +613,7 @@ export function OnlyBartPage() {
         return true
     })
 
-    // Render Access Denied
+    // Zugriff verweigert anzeigen
     if (!access.loading && !access.canView && !showIntro) {
         if (!user) {
             return (

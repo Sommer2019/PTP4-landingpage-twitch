@@ -9,21 +9,21 @@ import type {
   Relic,
 } from '../types/bartclicker';
 
-// Max number of offline earning upgrades
+// Maximale Anzahl Offline-Verdienst-Upgrades
 export const MAX_OFFLINE_UPGRADES = 8;
-// Maximum offline time cap (8 hours in seconds)
+// Maximale Offline-Dauer (8 Stunden in Sekunden)
 const MAX_OFFLINE_SECONDS = 8 * 3600;
-// Base cost for the first rebirth (doubles with each subsequent rebirth)
+// Basiskosten für das erste Rebirth (verdoppelt sich mit jedem Rebirth)
 export const BASE_REBIRTH_COST = 1_000_000;
 
-// Derive the rebirth multiplier from the current rebirth_count.
-// Every rebirth doubles the multiplier, but spending rebirths on shop items
-// (autobuyer, offline upgrades, …) lowers the count and thus the multiplier.
+// Rebirth-Multiplikator aus rebirth_count ableiten.
+// Jeder Rebirth verdoppelt den Multiplikator, aber Rebirths für Shop-Items
+// (Autobuyer, Offline-Upgrades, …) senken den Zähler und damit den Multiplikator.
 function deriveRebirthMultiplier(rebirthCount: number): number {
   return Math.pow(2, rebirthCount);
 }
 
-// Calculate CPS from raw data (used for offline earnings – no React state needed)
+// CPS aus Rohdaten berechnen (für Offline-Verdienst – kein React-State nötig)
 function calculateCpsFromData(
   shopItems: ShopItem[],
   rebirthCount: number,
@@ -81,7 +81,7 @@ const BASE_SHOP_ITEM_COSTS: { [id: number]: number } = {
   15: 100000000,
 };
 
-// Initial shop items definition
+// Initiale Shop-Items
 const INITIAL_SHOP_ITEMS: ShopItem[] = [
   { id: 0, name: 'Bart-Kamm', cost: 15, cps: 0.1, icon: '🪮', type: 'passive', count: 0 },
   { id: 1, name: 'WLAN-Bartöl', cost: 100, cps: 1, icon: '💧', type: 'passive', count: 0 },
@@ -167,7 +167,7 @@ const AVAILABLE_RELICS = [
 export function useBartclickerGame() {
   const { user } = useAuth();
   
-  // Game state
+  // Spielstand
   const [gameState, setGameState] = useState<BartclickerGameState>({
     energy: 0,
     total_ever: 0,
@@ -186,7 +186,7 @@ export function useBartclickerGame() {
   });
 
   const [cps, setCps] = useState(0);
-  // Hand-CPS Stats
+  // Hand-CPS-Statistiken
   const [handCps, setHandCps] = useState(0);
   const [handCpsAvg, setHandCpsAvg] = useState(0);
   const [handCpsTop, setHandCpsTop] = useState(0);
@@ -232,7 +232,7 @@ export function useBartclickerGame() {
   const AC_MIN_STD_DEV = 3;      // Min Standardabweichung (ms) der Intervalle – zu gleichmäßig = Bot
   const AC_PENALTY_MS = 3000;   // Sperre in ms bei Erkennung
 
-  // Calculate CPS based on shop items, relics, and multipliers
+  // CPS aus Shop-Items, Relikten und Multiplikatoren berechnen
   const calculateCps = useCallback((): number => {
     const rebirthMult = deriveRebirthMultiplier(gameState.rebirth_count);
     let totalCps = gameState.shop_items.reduce((sum, item) => {
@@ -242,7 +242,7 @@ export function useBartclickerGame() {
       return sum;
     }, 0);
 
-    // Apply relic bonuses
+    // Relik-Boni anwenden
     gameState.relics.forEach((relic) => {
       if (relic.effect === 'cpsBonus' || relic.effect === 'allBonus') {
         const bonus = relic.cpsValue || relic.value || 0;
@@ -250,14 +250,14 @@ export function useBartclickerGame() {
       }
     });
 
-    // Apply active buffs
+    // Aktive Buffs anwenden
     gameState.active_buffs.forEach((buff) => {
       if (buff.effect === 'cpsMultiplier' || buff.effect === 'both') {
         totalCps *= buff.value || buff.cpsValue || 1;
       }
     });
 
-    // Apply active debuffs
+    // Aktive Debuffs anwenden
     gameState.active_debuffs.forEach((debuff) => {
       if (debuff.type === 'both' || debuff.type === 'energyLoss') {
         totalCps *= 1 - (debuff.cpsValue || debuff.value || 0);
@@ -267,7 +267,7 @@ export function useBartclickerGame() {
     return Math.max(0, totalCps);
   }, [gameState]);
 
-  // Calculate click power
+  // Klick-Power berechnen
   const calculateClickPower = useCallback((): number => {
     const rebirthMult = deriveRebirthMultiplier(gameState.rebirth_count);
     let power = gameState.shop_items.reduce((sum, item) => {
@@ -277,7 +277,7 @@ export function useBartclickerGame() {
       return sum;
     }, 0);
 
-    // Apply relic bonuses
+    // Relik-Boni anwenden
     gameState.relics.forEach((relic) => {
       if (relic.effect === 'clickBonus' || relic.effect === 'allBonus') {
         const bonus = relic.clickValue || relic.value || 0;
@@ -285,14 +285,14 @@ export function useBartclickerGame() {
       }
     });
 
-    // Apply active buffs
+    // Aktive Buffs anwenden
     gameState.active_buffs.forEach((buff) => {
       if (buff.effect === 'clickMultiplier' || buff.effect === 'both') {
         power *= buff.value || buff.clickValue || 1;
       }
     });
 
-    // Apply active debuffs
+    // Aktive Debuffs anwenden
     gameState.active_debuffs.forEach((debuff) => {
       if (debuff.type === 'both' || debuff.type === 'clickReduction') {
         power *= 1 - (debuff.clickValue || debuff.value || 0);
@@ -302,7 +302,7 @@ export function useBartclickerGame() {
     return Math.max(1, power);
   }, [gameState]);
 
-  // Load game state from database
+  // Spielstand aus der Datenbank laden
   const loadGameState = useCallback(async () => {
     if (!user?.id) {
       setIsLoading(false);
@@ -418,11 +418,11 @@ export function useBartclickerGame() {
                 (data.relics || []) as Relic[],
               );
 
-              // Base offline rate: 10% of online CPS
+              // Basis-Offline-Rate: 10 % des Online-CPS
               let offlineMultiplier = 0.1;
-              // Each upgrade adds +10%
+              // Jedes Upgrade erhöht um +10 %
               offlineMultiplier += (data.offline_earning_upgrades || 0) * 0.1;
-              // Apply relic offlineBonus
+              // Relik-Offline-Bonus anwenden
               (data.relics as Relic[] || []).forEach((relic) => {
                 if (relic.effect === 'offlineBonus') {
                   offlineMultiplier += relic.value || 0;
@@ -476,7 +476,7 @@ export function useBartclickerGame() {
     }
   }, [user?.id]);
 
-  // Save game state to database
+  // Spielstand in der Datenbank speichern
   const saveGameState = useCallback(async () => {
     if (!user?.id) {
       console.log('No user ID, skipping save');
@@ -712,7 +712,7 @@ export function useBartclickerGame() {
     [gameState.energy, gameState.shop_items]
   );
 
-  // Activate buff
+  // Buff aktivieren
   const activateBuff = useCallback(
     (buffId: number) => {
       const buff = AVAILABLE_BUFFS.find((b) => b.id === buffId);
@@ -723,7 +723,7 @@ export function useBartclickerGame() {
 
       const endTime = Date.now() + buff.duration;
 
-      // Roll for negative side-effect
+      // Würfeln für negativen Nebeneffekt
       const newDebuffs: Debuff[] = [];
       if (buff.negativeEffect && Math.random() < buff.negativeEffect.chance) {
         const debuffEndTime = Date.now() + (buff.negativeEffect.duration ?? buff.duration);
@@ -783,18 +783,18 @@ export function useBartclickerGame() {
     });
   }, []);
 
-  // Game loop for CPS
+  // Spiel-Loop für CPS
   useEffect(() => {
     const newCps = calculateCps();
     setCps(newCps);
 
-    // Set up game loop
+    // Spiel-Loop einrichten
     if (gameLoopRef.current) clearInterval(gameLoopRef.current);
 
     gameLoopRef.current = setInterval(() => {
       setGameState((prev) => ({
         ...prev,
-        energy: prev.energy + newCps / 10, // Update every 100ms
+        energy: prev.energy + newCps / 10, // Alle 100 ms aktualisieren
         total_ever: prev.total_ever + newCps / 10,
       }));
     }, 100);
@@ -804,7 +804,7 @@ export function useBartclickerGame() {
     };
   }, [calculateCps]);
 
-  // Clean up expired buffs and debuffs every second
+  // Abgelaufene Buffs und Debuffs jede Sekunde bereinigen
   useEffect(() => {
     const cleanupInterval = setInterval(() => {
       const now = Date.now();
@@ -825,27 +825,27 @@ export function useBartclickerGame() {
     return () => clearInterval(cleanupInterval);
   }, []);
 
-  // Load initial state
+  // Anfangszustand laden
   useEffect(() => {
     loadGameState();
   }, [loadGameState]);
 
-  // Auto-save periodically (every 10 seconds)
+  // Regelmäßig automatisch speichern (alle 10 Sekunden)
   useEffect(() => {
     const saveInterval = setInterval(() => {
       saveGameState();
-    }, 10000); // Save every 10 seconds
+    }, 10000); // Alle 10 Sekunden speichern
 
     return () => clearInterval(saveInterval);
   }, [saveGameState]);
 
-  // Also save on important state changes (rebirth, shop item purchase, offline upgrade purchase)
-  // Use total shop item count instead of .length so we detect purchases (count changes, not length)
+  // Bei wichtigen Zustandsänderungen speichern (Rebirth, Shop-Kauf, Offline-Upgrade-Kauf)
+  // Gesamtanzahl der Shop-Items statt .length verwenden, um Käufe zu erkennen (count ändert sich)
   const totalShopCount = gameState.shop_items.reduce((sum, item) => sum + item.count, 0);
   useEffect(() => {
     const now = Date.now();
     if (now - lastSaveTime > 5000) {
-      // Don't save too frequently - at least 5 seconds between saves
+      // Nicht zu häufig speichern – mindestens 5 Sekunden zwischen Speichervorgängen
       saveGameState();
       setLastSaveTime(now);
     }
@@ -906,7 +906,7 @@ export function useBartclickerGame() {
     }
   }, [gameState.rebirth_count, gameState.click_upgrade_buyer_unlocked]);
 
-  // Unlock Relic
+  // Relik freischalten
   const unlockRelic = useCallback(
     (relicId: number) => {
       const relic = AVAILABLE_RELICS.find((r) => r.id === relicId);
@@ -924,7 +924,7 @@ export function useBartclickerGame() {
     [gameState.energy, gameState.relics]
   );
 
-  // Buy offline earning upgrade (costs 5 rebirths, each adds +10% to offline earnings rate)
+  // Offline-Verdienst-Upgrade kaufen (kostet 5 Rebirths, erhöht Offline-Rate um +10 % pro Stufe)
   const OFFLINE_UPGRADE_REBIRTH_COST = 5;
   const buyOfflineUpgrade = useCallback(() => {
     if (gameState.offline_earning_upgrades >= MAX_OFFLINE_UPGRADES) return false;
@@ -945,7 +945,7 @@ export function useBartclickerGame() {
     return true;
   }, [gameState.rebirth_count, gameState.offline_earning_upgrades]);
 
-  // Dismiss the offline earnings notification
+  // Offline-Verdienst-Benachrichtigung schließen
   const dismissOfflineEarnings = useCallback(() => {
     setOfflineEarnings(null);
   }, []);

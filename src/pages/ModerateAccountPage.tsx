@@ -8,7 +8,7 @@ import { useIsModerator } from '../hooks/useIsModerator'
 import SubPage from '../components/SubPage/SubPage'
 import { getErrorMessage } from '../lib/utils'
 
-// Type guard to safely inspect error objects for a Postgres error code.
+// Type Guard zur sicheren Fehlercode-Prüfung bei Postgres-Fehlern.
 function isErrorWithCode(e: unknown): e is { code?: string | number } {
   return typeof e === 'object' && e !== null && 'code' in e && (typeof (e as Record<string, unknown>).code === 'string' || typeof (e as Record<string, unknown>).code === 'number')
 }
@@ -53,10 +53,10 @@ export default function ModerateAccountPage() {
   const { isBroadcaster, isMod } = useIsModerator()
   const { showConfirm } = useConfirmModal()
 
-  /** Reward management state */
+  /** Reward-Verwaltungs-State */
   const [rewards, setRewards] = useState<Reward[]>([])
   const [rewardEdit, setRewardEdit] = useState<Reward | null>(null)
-  /** Default template for reward forms */
+  /** Standard-Vorlage für Reward-Formulare */
   const defaultReward: Reward = {
     name: '',
     cost: 0,
@@ -77,12 +77,12 @@ export default function ModerateAccountPage() {
   const [rewardBusy, setRewardBusy] = useState(false)
   const [isWide, setIsWide] = useState<boolean>(false)
 
-  /** Track recent redemption history */
+  /** Aktuelle Einlösungshistorie */
   const [recentRedemptions, setRecentRedemptions] = useState<RecentRedemption[]>([])
   const [redemptionsLoading, setRedemptionsLoading] = useState(false)
   const [redemptionsError, setRedemptionsError] = useState(false)
 
-  // Merge a reward from DB with defaults, but don't let null values override defaults
+  // Reward aus DB mit Standardwerten zusammenführen – null-Werte überschreiben keine Defaults
   function mergeRewardWithDefaults(r?: Reward) {
     if (!r) return { ...defaultReward }
     const merged: Reward = { ...defaultReward }
@@ -109,11 +109,11 @@ export default function ModerateAccountPage() {
           merged[key] = Boolean(val) as boolean
           break
         default:
-          // Unknown key — skip to keep typings strict
+          // Unbekannter Schlüssel – überspringen für strikte Typisierung
           break
       }
     }
-    // preserve id if present
+    // ID beibehalten, falls vorhanden
     if (r.id) merged.id = r.id
     return merged
   }
@@ -124,7 +124,7 @@ export default function ModerateAccountPage() {
     if (!error && data) setBanned((data as { twitch_user_id: string; display_name?: string }[]).map(b => ({ twitch_user_id: b.twitch_user_id, display_name: b.display_name ?? undefined })))
   }
 
-  /** Track recent redemption history */
+  /** Einlösungshistorie abrufen */
   const fetchRecentRedemptions = useCallback(async () => {
     setRedemptionsLoading(true)
     setRedemptionsError(false)
@@ -150,10 +150,10 @@ export default function ModerateAccountPage() {
   }, [showToast, t])
   useEffect(() => { fetchRewards() }, [fetchRewards])
 
-  // Initial fetch
+  // Initialer Abruf
   React.useEffect(() => { fetchBanned() }, [])
 
-  // Responsive: detect wide (desktop) screens to use 3-column layout
+  // Responsive: breite Bildschirme (Desktop) für 3-Spalten-Layout erkennen
   useEffect(() => {
     const onResize = () => setIsWide(typeof window !== 'undefined' && window.innerWidth >= 1024)
     onResize()
@@ -162,14 +162,14 @@ export default function ModerateAccountPage() {
   }, [])
 
   async function banAccount() {
-    // Only moderators or broadcaster can perform bans
+    // Nur Moderatoren oder Broadcaster können bannen
     if (!isBroadcaster && !isMod) {
       showToast(t('moderate.noPermission') || 'Keine Berechtigung!')
       return
     }
     setBusy(true)
     try {
-      // Resolve twitch id for given input (either ID or username)
+      // Twitch-ID für Eingabe auflösen (ID oder Username)
       let twitch_user_id = banName.trim()
       if (!/^\d+$/.test(twitch_user_id)) {
         const res = await fetch(`https://decapi.me/twitch/id/${encodeURIComponent(twitch_user_id)}`)
@@ -181,7 +181,7 @@ export default function ModerateAccountPage() {
       }
 
       const myTwitchId = user?.user_metadata?.provider_id || user?.user_metadata?.sub || ''
-      // Broadcaster may ban anyone except themselves
+      // Broadcaster kann jeden bannen außer sich selbst
       if (isBroadcaster) {
         if (twitch_user_id === myTwitchId) {
           showToast(t('moderate.cannotBanYourself') || 'Du kannst dich nicht selbst bannen')
@@ -189,9 +189,9 @@ export default function ModerateAccountPage() {
         }
       }
 
-      // Moderators (non-broadcaster) may only ban plain users (no mods, no broadcaster)
+      // Moderatoren (kein Broadcaster) dürfen nur normale User bannen
       if (isMod && !isBroadcaster) {
-        // Check if target is a moderator or broadcaster
+        // Prüfen ob Ziel ein Moderator oder Broadcaster ist
         const { data: modRow, error: modErr } = await supabase.from('moderators').select('twitch_user_id, is_broadcaster').eq('twitch_user_id', twitch_user_id).maybeSingle()
         if (modErr) {
           showToast((t('moderate.errorCheckingUser') || 'Fehler beim Prüfen des Benutzers: ') + getErrorMessage(modErr))
@@ -206,17 +206,17 @@ export default function ModerateAccountPage() {
       const display_name = banName.trim()
       const banned_by = myTwitchId
 
-      // Prefer a secure RPC that runs with elevated DB rights (handles RLS).
-      // If the RPC is not present, fall back to a direct insert (may fail due to RLS).
+      // RPC bevorzugen (erhöhte DB-Rechte, verwaltet RLS).
+      // Falls nicht vorhanden, direktes INSERT als Fallback (kann an RLS scheitern).
       const { error: rpcError } = await supabase.rpc('admin_ban_account', { p_twitch_user_id: twitch_user_id, p_display_name: display_name, p_banned_by: banned_by })
       if (rpcError) {
         const e = rpcError as { code?: string; message?: string } | null
         const msg = getErrorMessage(rpcError)
         if (e?.code === 'PGRST202' || (e?.message && e.message.includes('Could not find the function')) || msg.includes('Could not find the function')) {
-          // RPC missing — try direct insert (may still fail due to RLS)
+          // RPC fehlt — direktes INSERT versuchen (kann an RLS scheitern)
           const { error } = await supabase.from('banned_accounts').insert([{ twitch_user_id, display_name, banned_by }])
           if (error) {
-            // If the insert failed due to Row Level Security, give a helpful hint
+            // Falls INSERT an Row Level Security scheiterte, hilfreichen Hinweis geben
             if (isErrorWithCode(error) && String(error.code) === '42501') {
               showToast(t('moderate.rlsBanPolicy') || 'Fehler: Direkte Einfügung blockiert (RLS). Bitte die RPC-Funktion `admin_ban_account` in der DB anlegen oder entsprechende Policies anpassen.')
             } else {
@@ -240,7 +240,7 @@ export default function ModerateAccountPage() {
   }
 
   async function unbanAccount(twitch_user_id: string) {
-    // Allow broadcaster or moderators to unban, but moderators may not unban other mods/broadcaster
+    // Broadcaster und Mods können entbannen – Mods nicht andere Mods/Broadcaster
     if (!isBroadcaster && !isMod) {
       showToast(t('moderate.noPermission') || 'Keine Berechtigung!')
       return
@@ -248,7 +248,7 @@ export default function ModerateAccountPage() {
     setBusy(true)
     try {
       if (isMod && !isBroadcaster) {
-        // Check if target is a moderator or the broadcaster
+        // Prüfen ob Ziel ein Moderator oder der Broadcaster ist
         const { data: modRow, error: modErr } = await supabase.from('moderators').select('twitch_user_id, is_broadcaster').eq('twitch_user_id', twitch_user_id).maybeSingle()
         if (modErr) {
           showToast((t('moderate.errorCheckingUser') || 'Fehler beim Prüfen des Benutzers: ') + getErrorMessage(modErr))
@@ -260,7 +260,7 @@ export default function ModerateAccountPage() {
         }
       }
 
-      // Prefer RPC to perform the unban (handles RLS). Fall back to direct delete if RPC missing.
+      // RPC bevorzugen (verwaltet RLS). Direktes DELETE als Fallback wenn RPC fehlt.
       const { error: rpcErr } = await supabase.rpc('admin_unban_account', { p_twitch_user_id: twitch_user_id })
       if (rpcErr) {
         const e = rpcErr as { code?: string; message?: string } | null
@@ -309,7 +309,7 @@ export default function ModerateAccountPage() {
         targetUser = id
       }
       if (pointsAction === 'reset') {
-        // Try to update existing row; if none updated, insert a new row
+        // Bestehende Zeile aktualisieren; falls keine vorhanden, neue einfügen
         const { data: updated, error: updateError } = await supabase
           .from('points')
           .update({ points: 0, reason: 'reset by mod' })
@@ -351,7 +351,7 @@ export default function ModerateAccountPage() {
         if (data && typeof data.points === 'number') {
           newPoints += data.points
         }
-        // Try to update first
+        // Erst Update versuchen
         const { data: updatedRows, error: updateErr } = await supabase
           .from('points')
           .update({ points: newPoints, reason: 'added by mod' })
@@ -418,21 +418,21 @@ export default function ModerateAccountPage() {
     if (!confirmed) return
     setRewardBusy(true)
     try {
-      // Call RPC that enforces admin permissions server-side (handles RLS)
+      // RPC aufrufen – erzwingt Admin-Rechte serverseitig (verwaltet RLS)
       const { data, error } = await supabase.rpc('admin_delete_reward', { p_id: id })
       if (error) {
         const e = error as { code?: string; message?: string } | null
         const msg = getErrorMessage(error)
-        // PostgREST returns PGRST202 when the function signature is not found in the schema cache
+        // PostgREST liefert PGRST202 wenn die Funktionssignatur nicht im Schema-Cache gefunden wird
         if (e?.code === 'PGRST202' || (e?.message && e.message.includes('Could not find the function')) || msg.includes('Could not find the function')) {
-          // Try a direct DELETE as a fallback. This may fail due to Row Level Security (RLS).
+          // Direktes DELETE als Fallback – kann an Row Level Security scheitern
           try {
             const { error: delError } = await supabase.from('rewards').delete().eq('id', id)
             if (!delError) {
               showToast(t('moderate.rewardDeletedFallback') || 'Reward gelöscht (Direktlöschung). Hinweis: Falls es sich um RLS handelt, die zuständige DB-Funktion sollte in der DB angelegt werden.')
               fetchRewards()
             } else {
-              // Could not delete directly — likely RLS or permission issue. Show actionable instruction.
+              // Direkte Löschung fehlgeschlagen – wahrscheinlich RLS- oder Rechteproblem.
               showToast(t('moderate.rpcMissingAndDeleteFailed') || 'Fehler: Die RPC-Funktion `admin_delete_reward` ist nicht in der Datenbank vorhanden und Direktlöschung fehlgeschlagen. Bitte die SQL-Funktion aus `supabase/db_anleitung_allgemein.sql` in deiner Supabase-DB ausführen (SQL Editor) oder den DB-Administrator kontaktieren.')
             }
           } catch {
@@ -518,10 +518,8 @@ export default function ModerateAccountPage() {
       <div style={{
         display: 'flex',
         flexDirection: isWide ? 'row' : 'column',
-        // On wide screens align children vertically centered so the action button
-        // sits visually aligned with the input fields (not too deep)
-        // On wide screens align children to the bottom so the action button
-        // sits on the same vertical level as the input fields (not the labels)
+        // Auf breiten Bildschirmen Kinder vertikal zentrieren, damit der Button
+        // visuell auf Höhe der Eingabefelder sitzt (nicht zu tief)
         alignItems: isWide ? 'center' : 'stretch',
         gap: 12,
         marginBottom: 8

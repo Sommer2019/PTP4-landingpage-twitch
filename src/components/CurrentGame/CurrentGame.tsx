@@ -102,11 +102,11 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
       setLoading(true)
       try {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY // Ensure this is in your .env
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY // Muss in .env vorhanden sein
 
         const headers = new Headers()
         headers.set('Content-Type', 'application/json')
-        // Supabase requires the anon key for edge functions unless explicitly configured otherwise
+        // Supabase benötigt den Anon-Key für Edge Functions
         headers.set('apikey', supabaseAnonKey)
         headers.set('Authorization', `Bearer ${supabaseAnonKey}`)
 
@@ -143,7 +143,7 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
 
     void fetchGame()
 
-    // Refresh game info every 5 minutes in case the streamer switches games
+    // Spielinfo alle 5 Minuten aktualisieren (falls Streamer das Spiel wechselt)
     const interval = setInterval(() => void fetchGame(), 5 * 60 * 1000)
 
     return () => {
@@ -165,7 +165,7 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
           const hasResult = await checkStoreResult(store)
           return hasResult ? store : null
         } catch {
-          // On network/CORS errors we cannot determine availability – show by default
+          // Bei Netzwerk-/CORS-Fehlern Verfügbarkeit nicht bestimmbar – standardmäßig anzeigen
           return store
         }
       })

@@ -17,11 +17,11 @@ export interface OnlyBartAccess {
   role: OnlyBartRole
 }
 
-// Global cache to avoid re-fetching on component re-mounts
+// Globaler Cache – verhindert erneute Anfragen bei Re-Mounts
 const roleCache: Record<string, { role: OnlyBartRole, timestamp: number }> = {}
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000 // 5 Minuten
 
-// Hardcoded Broadcaster Buffer
+// Gecachte Broadcaster-ID
 let cachedBroadcasterId: string | null = null
 
 export function useOnlyBartAccess(): OnlyBartAccess {
@@ -47,7 +47,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
             return
         }
 
-        // Check cache
+        // Cache prüfen
         const cached = roleCache[user.id]
         if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
             if (!cancelled) {
@@ -72,7 +72,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                 detectedIsModerator = true
             }
             else {
-                // 2a. Check twitch_permissions (Synced Table) - Most reliable for VIP/Sub
+                // 2a. twitch_permissions prüfen (synchronisierte Tabelle) – zuverlässigste Quelle für VIP/Sub
                 const twitchId = user.user_metadata.provider_id || user.user_metadata.sub
                 if (twitchId) {
                     const { data: permData } = await supabase
@@ -91,11 +91,11 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                     }
                 }
 
-                // If found via synced table, we are good.
+                // Falls über synchronisierte Tabelle gefunden, fertig.
                 if (detectedRole !== 'none') {
-                    // Skip next steps
+                    // Nächste Schritte überspringen
                 } else {
-                    // 3. Database Check (user_roles - UUID based)
+                    // 3. Datenbankabfrage (user_roles – UUID-basiert)
                     const { data: roleData } = await supabase
                         .from('user_roles')
                         .select('is_vip, is_subscriber, is_moderator, is_broadcaster')
@@ -115,10 +115,10 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                         else if (roleData.is_subscriber) detectedRole = 'subscriber'
                     }
 
-                    // 4. Client-side Fallback
+                    // 4. Client-seitiger Fallback
                     if (detectedRole === 'none' && session.provider_token) {
                         try {
-                            // Fetch Broadcaster ID if needed (broadcaster)
+                            // Broadcaster-ID laden, falls noch nicht gecacht
                             if (!cachedBroadcasterId) {
                                 const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${siteConfig.twitch.channel}`, {
                                     headers: {
@@ -133,7 +133,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                             }
 
                             if (cachedBroadcasterId) {
-                                const subRes = await fetch(`https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=${cachedBroadcasterId}&user_id=${user.user_metadata.provider_id}`, { // Using provider_id (Twitch ID)
+                                const subRes = await fetch(`https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=${cachedBroadcasterId}&user_id=${user.user_metadata.provider_id}`, { // provider_id (Twitch-ID) verwenden
                                     headers: {
                                         'Client-ID': import.meta.env.VITE_TWITCH_CLIENT_ID || 'gp762nuuoqcoxypju8c569th9wz7q5',
                                         'Authorization': `Bearer ${session.provider_token}`
@@ -143,7 +143,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                                 if (subRes.ok) {
                                     detectedRole = 'subscriber'
                                 } else {
-                                    // ToDo: VIP check not possible via twitch api from user at the moment. Implement if feature gets added from twitch
+                                    // TODO: VIP-Prüfung derzeit nicht per Twitch-API möglich – implementieren, sobald Twitch dieses Feature hinzufügt
                                 }
                             }
                         } catch (e) {
@@ -179,7 +179,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
     canView: isAllowed,
     canPost: isBroadcaster,
     canLike: isAllowed && !isBroadcaster,
-     canSuperlike: isVip || isModerator, // VIPs and moderators can superlike
+     canSuperlike: isVip || isModerator, // VIPs und Moderatoren können superliken
     canComment: isAllowed,
     canDeleteComment: isBroadcaster || role === 'moderator',
     loading,

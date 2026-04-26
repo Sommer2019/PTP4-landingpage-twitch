@@ -40,7 +40,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
     const [clickCount, setClickCount] = useState(0);
     const [now, setNow] = useState(() => Date.now());
 
-    // Tick every second so buff/debuff timers update without calling Date.now() during render
+    // Jede Sekunde aktualisieren, damit Buff-/Debuff-Timer ohne Date.now() im Render funktionieren
     useEffect(() => {
         const id = setInterval(() => setNow(Date.now()), 1000);
         return () => clearInterval(id);
@@ -54,8 +54,8 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
         );
     }
     /**
-     * Custom language-aware formatter that displays numbers with appropriate unit suffixes.
-     * Supports EN and DE locales with extended scale (up to 10^99).
+     * Sprachbewusster Zahlenformatierer mit Einheitensuffixen.
+     * Unterstützt EN und DE mit erweiterter Skala (bis 10^99).
      */
     const formatWithUnits = (num: number, maximumFractionDigits = 2): string => {
         const locale = i18n?.language || undefined;
@@ -92,7 +92,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
             'Nona', 'Unon', 'Dnon', 'Tnon', 'Qtno', 'Qnno', 'Sxno', 'Spno', 'Okno', 'Nono',
             '∞'
         ];
-        // If mobile, prefer shorter enUnits even in German to prevent text overflow on buttons
+        // Auf Mobilgeräten kurze enUnits bevorzugen (auch auf Deutsch), um Textüberlauf zu vermeiden
         const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
         const units = ((i18n?.language || '').startsWith('de') && !isMobile) ? deUnits : enUnits;
 
@@ -124,7 +124,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
     const formatNumber = (num: number) => formatWithUnits(num, 2);
 
     const formatCPS = (num: number) => {
-        // For small CPS, show with 2 decimals
+        // Kleine CPS-Werte mit 2 Dezimalstellen anzeigen
         if (Math.abs(num) < 1000) return num.toFixed(2);
         return formatWithUnits(num, 2);
     };
@@ -142,7 +142,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
         return t('bartclicker.offline.timeMinutes', {minutes: Math.max(1, m)});
     };
 
-    // Calculate current offline earnings rate for display
+    // Aktuelle Offline-Verdienst-Rate für die Anzeige berechnen
     const offlineRate = Math.round(
         (0.1 + gameState.offline_earning_upgrades * 0.1 +
             gameState.relics.reduce((sum, r) => (r.effect === 'offlineBonus' ? sum + (r.value || 0) : sum), 0)) * 100
@@ -165,7 +165,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
     const passiveItems = gameState.shop_items.filter((item) => item.type === 'passive');
     const clickItems = gameState.shop_items.filter((item) => item.type === 'click');
 
-    // Boosters (Temporary buffs)
+    // Booster (Temporäre Buffs)
     const BOOSTERS = [
         {
             id: 0,
@@ -190,7 +190,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
         },
     ];
 
-    // Relics (Permanent bonuses)
+    // Relikte (Permanente Boni)
     const RELICS = [
         {
             id: 0,
