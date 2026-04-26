@@ -22,7 +22,7 @@ function formatRoundLabel(month: number | null, year: number): string {
 }
 
 function formatBarLabel(day: string, count: number): string {
-  // day = "2026-03-18" → show only DD.MM (or DD for 7-day range)
+  // day = "2026-03-18" → nur DD.MM anzeigen (oder DD bei 7-Tage-Bereich)
   const parts = day.split('-')
   if (parts.length === 3) {
     return count <= 7 ? `${parts[2]}.${parts[1]}` : parts[2]

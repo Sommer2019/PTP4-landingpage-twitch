@@ -340,9 +340,9 @@ export function useBartclickerGame() {
       }
 
       if (error) {
-        // PGRST116 = no rows found (expected for new users)
+        // PGRST116 = keine Zeilen gefunden (erwartet für neue Nutzer)
         if (error.code === 'PGRST116') {
-          console.log('New user detected, initializing game state');
+          console.log('Neuer Nutzer erkannt, Spielstand wird initialisiert');
           
           const initialState: BartclickerGameState = {
             user_id: user.id,
@@ -401,9 +401,9 @@ export function useBartclickerGame() {
           }
         }
       } else if (data) {
-        // Existing data found - NIEMALS State mit leerem Data überschreiben
+        // Vorhandene Daten gefunden – NIEMALS State mit leerem Data überschreiben
         if (!signal.aborted && data && Object.keys(data).length > 0) {
-          // Calculate offline earnings
+          // Offline-Verdienst berechnen
           let offlineEarningsAmount = 0;
           let offlineEarningsSeconds = 0;
           if (data.last_updated) {

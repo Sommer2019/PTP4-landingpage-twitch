@@ -42,16 +42,16 @@ export default function StreamplanPage() {
       setLoading(true)
       const allEvents: CalendarEvent[] = []
 
-      // Fetch all category ICS files in parallel
+      // Alle Kategorie-ICS-Dateien parallel laden
       const promises = categories.map(async (cat) => {
         try {
-          // Use local proxy/asset path defined in vite.config.ts (to avoid CORS)
-          // The vite plugin maps these to external URLs or serves built assets.
+          // Lokalen Proxy-Pfad aus vite.config.ts verwenden (CORS vermeiden)
+          // Das Vite-Plugin leitet diese auf externe URLs um oder liefert kompilierte Assets.
           const localUrl = `/api/calendar-${cat.id}.ics`
           
           const response = await fetch(localUrl)
           if (!response.ok) {
-            console.error(`Error fetching ICS for category ${cat.id}: Network response was not ok`)
+            console.error(`Fehler beim Laden der ICS-Datei für Kategorie ${cat.id}: Netzwerkantwort nicht ok`)
             return
           }
           const icsData = await response.text()
@@ -64,7 +64,7 @@ export default function StreamplanPage() {
           vevents.forEach((vevent: any) => {
             const event = new ICAL.Event(vevent)
             
-            // Handle dates. event.startDate is an ICAL.Time object
+            // Datumsverarbeitung: event.startDate ist ein ICAL.Time-Objekt
             const startDate = event.startDate.toJSDate()
             const endDate = event.endDate.toJSDate()
 
@@ -80,16 +80,16 @@ export default function StreamplanPage() {
             })
           })
         } catch (error) {
-          console.error(`Error fetching/parsing ICS for category ${cat.id}:`, error)
+          console.error(`Fehler beim Laden/Parsen der ICS-Datei für Kategorie ${cat.id}:`, error)
         }
       })
 
       await Promise.all(promises)
 
-      // Sort by start date
+      // Nach Startdatum sortieren
       allEvents.sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
       
-      // Filter out old events (older than yesterday maybe?)
+      // Vergangene Events herausfiltern (älter als heute)
       const todayStart = startOfDay(new Date())
       const upcomingEvents = allEvents.filter(e => e.endDate >= todayStart)
 
@@ -98,7 +98,7 @@ export default function StreamplanPage() {
     }
 
     fetchCalendars()
-  }, [categories]) // Empty dependency array is fine as categories from config are constant
+  }, [categories]) // Kategorien aus der Config sind konstant
 
   const toggleFilter = (catId: number, event: React.MouseEvent<HTMLButtonElement>) => {
     // Wenn Shift gedrückt ist und aktuell "Alle" (leeres Array) aktiv sind:
@@ -126,12 +126,12 @@ export default function StreamplanPage() {
     })
   }
 
-  // Filter events based on active filters
+  // Events anhand aktiver Filter einschränken
   const filteredEvents = activeFilters.length === 0
     ? events
     : events.filter(e => activeFilters.includes(e.categoryId))
 
-  // Limit to 14 days if not expanded
+  // Auf 14 Tage begrenzen, wenn nicht ausgeklappt
   const today = new Date()
   const limitDate = addDays(today, 14)
   
@@ -140,7 +140,7 @@ export default function StreamplanPage() {
 
   const displayedEvents = expanded ? filteredEvents : eventsIn14Days
 
-  // Group events by day
+  // Events nach Tag gruppieren
   const groupedEvents: { date: Date; events: CalendarEvent[] }[] = []
   
   displayedEvents.forEach(event => {

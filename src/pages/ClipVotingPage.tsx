@@ -57,7 +57,7 @@ export default function ClipVotingPage() {
       <h1>{t('clipVotingPage.title')}</h1>
       <p>{t('clipVotingPage.intro')}</p>
 
-      {/* ── Yearly winner banner (only when result is final) ── */}
+      {/* ── Jahressieger-Banner (nur wenn Ergebnis final) ── */}
       {yearlyWinner && phase === 'yearly-results' && (
         <WinnerDisplay type="yearly" winner={yearlyWinner} />
       )}
@@ -112,14 +112,14 @@ export default function ClipVotingPage() {
         )
       )}
 
-      {/* ── Previous yearly winner (always shown when available) ── */}
+      {/* ── Vorjahressieger (immer anzeigen wenn vorhanden) ── */}
       {previousYearlyWinner && (
         <div className="previous-winner">
           <WinnerDisplay type="yearly" winner={previousYearlyWinner} />
         </div>
       )}
 
-      {/* ── Yearly winner as "letztes Jahr" when no yearly phase active ── */}
+      {/* ── Jahressieger als „letztes Jahr" wenn keine Jahresphase aktiv ── */}
       {yearlyWinner && !isYearlyPhase && (
         <div className="previous-winner">
           <WinnerDisplay type="yearly" winner={yearlyWinner} />

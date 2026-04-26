@@ -682,7 +682,7 @@ export function OnlyBartPage() {
                     ))}
                 </div>
 
-                {/* Create Post (Broadcaster only) */}
+                {/* Beitrag erstellen (nur Broadcaster) */}
                 {access.canPost && (
                     <CreatePost onSuccess={fetchPosts}/>
                 )}

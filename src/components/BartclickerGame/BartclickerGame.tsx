@@ -273,7 +273,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                 </div>
             </div>
 
-            {/* Main Click Area with Animated Bart */}
+            {/* Haupt-Klickbereich mit animiertem Bart */}
             <div className="click-area">
                 {clickBlocked && (
                     <div className="click-blocked-warning">
@@ -314,7 +314,7 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                 </button>
             </div>
 
-            {/* Shop Tab with Sub-Tabs */}
+            {/* Shop-Tab mit Unter-Tabs */}
             {activeTab === 'shop' && (
                 <div className="shop-content">
                     <div className="shop-subtabs">

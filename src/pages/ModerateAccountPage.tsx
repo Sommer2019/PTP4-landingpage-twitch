@@ -90,7 +90,7 @@ export default function ModerateAccountPage() {
     for (const key of Object.keys(defaultReward) as (keyof Reward)[]) {
       const val = r[key]
       if (val === undefined || val === null) continue
-      // assign with explicit typing per known field to avoid `any`
+      // Explizites Typing pro Feld, um `any` zu vermeiden
       switch (key) {
         case 'name':
         case 'mediaurl':
@@ -627,12 +627,12 @@ export default function ModerateAccountPage() {
             <div className="modal-card" style={{zIndex:10051, maxHeight: '80vh', overflow: 'auto', width: isWide ? 980 : 680}}>
               <b style={{fontSize:'1.2em'}}>{rewardEdit ? t('moderate.editRewardTitle') : t('moderate.newRewardTitle')}</b>
               <form style={{display:'grid',gridTemplateColumns: isWide ? 'repeat(3,1fr)' : 'repeat(2,1fr)',gap:18,marginTop:16}} onSubmit={e => {e.preventDefault();saveReward();setRewardModalOpen(false);}}>
-                {/* name / i18n key */}
+                {/* Name / i18n-Schlüssel */}
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
                   <label htmlFor="rewardName" style={{fontWeight:'bold'}}>{t('moderate.rewardNameLabel') || 'Name'}</label>
                   <input id="rewardName" type="text" className="modal-input" placeholder={t('moderate.rewardNamePlaceholder') || ''} value={rewardForm.name} onChange={e => setRewardForm((f: Reward) => ({...f, name: e.target.value}))} />
                 </div>
-                {/* removed i18n name key field */}
+                {/* i18n-Namensfeld entfernt */}
 
                 {/* description / i18n descKey */}
                 <div style={{display:'flex',flexDirection:'column',gap:6,gridColumn: isWide ? 'span 3' : 'span 2'}}>
@@ -640,7 +640,7 @@ export default function ModerateAccountPage() {
                   <textarea id="rewardDescription" className="modal-input" placeholder={t('moderate.rewardDescriptionPlaceholder') || ''} value={rewardForm.description} onChange={e => setRewardForm((f: Reward) => ({...f, description: e.target.value}))} style={{minHeight:80}} />
                 </div>
 
-                {/* cost / type */}
+                {/* Kosten / Typ */}
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
                   <label htmlFor="rewardCost" style={{fontWeight:'bold'}}>{t('moderate.rewardCostLabel')}</label>
                   <input id="rewardCost" type="number" className="modal-input" placeholder={t('moderate.rewardCostPlaceholder')} title={t('moderate.rewardCostHint')} value={rewardForm.cost} min={0} onChange={e => setRewardForm((f: Reward) => ({...f, cost: Number(e.target.value)}))} />

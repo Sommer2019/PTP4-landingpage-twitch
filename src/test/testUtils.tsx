@@ -8,7 +8,7 @@ import { ConfirmModalProvider } from '../context/ConfirmModalContext'
 
 import en from '../i18n/locales/en.json'
 
-// Initialise a lightweight i18n instance for tests
+// Leichtgewichtige i18n-Instanz für Tests initialisieren
 if (!i18n.isInitialized) {
   i18n.use(initReactI18next).init({
     resources: { en: { translation: en } },
