@@ -122,7 +122,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                             if (!cachedBroadcasterId) {
                                 const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${siteConfig.twitch.channel}`, {
                                     headers: {
-                                        'Client-ID': import.meta.env.VITE_TWITCH_CLIENT_ID || 'gp762nuuoqcoxypju8c569th9wz7q5',
+                                        'Client-ID': import.meta.env.VITE_TWITCH_CLIENT_ID,
                                         'Authorization': `Bearer ${session.provider_token}`
                                     }
                                 })
@@ -135,7 +135,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                             if (cachedBroadcasterId) {
                                 const subRes = await fetch(`https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=${cachedBroadcasterId}&user_id=${user.user_metadata.provider_id}`, { // provider_id (Twitch-ID) verwenden
                                     headers: {
-                                        'Client-ID': import.meta.env.VITE_TWITCH_CLIENT_ID || 'gp762nuuoqcoxypju8c569th9wz7q5',
+                                        'Client-ID': import.meta.env.VITE_TWITCH_CLIENT_ID,
                                         'Authorization': `Bearer ${session.provider_token}`
                                     }
                                 })
