@@ -31,7 +31,7 @@ function parseIcs(text: string): NextStreamEvent[] {
 
   for (let i = 1; i < blocks.length; i++) {
     const block = blocks[i].split('END:VEVENT')[0]
-    // Unfold long lines (RFC 5545 §3.1): continuation lines start with a space/tab
+    // Lange Zeilen entfalten (RFC 5545 §3.1): Fortsetzungszeilen beginnen mit Leerzeichen/Tab
     const unfolded = block.replace(/\r?\n[ \t]/g, '')
     const lines = unfolded.split(/\r?\n/)
 

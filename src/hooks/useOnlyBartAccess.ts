@@ -151,7 +151,7 @@ export function useOnlyBartAccess(): OnlyBartAccess {
                         }
                     }
                 }
-            } // Close the outer else block
+            } // Ende des äußeren else-Blocks
         } catch (err) {
             console.error(err)
         }
