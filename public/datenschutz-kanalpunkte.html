@@ -34,6 +34,13 @@
       margin-bottom: 32px;
     }
 
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     header a {
       font-size: 0.85rem;
       color: var(--purple);
@@ -96,59 +103,78 @@
 
     footer a { color: var(--text-muted); }
     footer a:hover { color: var(--text); }
+
+    #lang-btn {
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    #lang-btn:hover {
+      border-color: var(--purple);
+    }
   </style>
 </head>
 <body>
 <div class="container">
 
   <header>
-    <a href="https://www.hd1920x1080.de/datenschutz">← Vollständige Datenschutzerklärung</a>
-    <h1>🔒 Datenschutz – Kanalpunkte Extension</h1>
-    <p class="subtitle">Informationen zur Datenverarbeitung in der Twitch Extension</p>
+    <div class="header-top">
+      <a id="link-back" href="https://www.hd1920x1080.de/datenschutz">← Vollständige Datenschutzerklärung</a>
+      <button id="lang-btn" onclick="toggleLang()" title="Switch language">🇬🇧 English</button>
+    </div>
+    <h1 id="title">🔒 Datenschutz – Kanalpunkte Extension</h1>
+    <p id="subtitle" class="subtitle">Informationen zur Datenverarbeitung in der Twitch Extension</p>
   </header>
 
   <section>
-    <h2>Verantwortlicher</h2>
+    <h2 id="s1-h2">Verantwortlicher</h2>
     <p>
       <strong>Stefan Slapnik</strong><br>
       FullHD Media<br>
       Kolpingstraße 9<br>
       95615 Marktredwitz
     </p>
-    <p>
+    <p id="s1-contact">
       Kontakt: <a href="mailto:Admin@HD1920x1080.de?subject=Anfrage%20Datenschutz">Admin@HD1920x1080.de</a>
     </p>
   </section>
 
   <section>
-    <h2>Twitch Extension – Kanalpunkte</h2>
-    <p>
+    <h2 id="s2-h2">Twitch Extension – Kanalpunkte</h2>
+    <p id="s2-intro">
       Die Twitch Extension zeigt deinen aktuellen Kanalpunktestand und ermöglicht das Einlösen
       von Belohnungen. Hierfür wird deine Twitch-Benutzer-ID über die Twitch Identity Linking API
       übermittelt und mit deinem Kanalpunktekonto verknüpft.
     </p>
 
-    <h3>Zweck</h3>
-    <p>
+    <h3 id="s2-h3-purpose">Zweck</h3>
+    <p id="s2-purpose">
       Anzeige des persönlichen Punktestands, Verarbeitung von Reward-Einlösungen und Darstellung
       der Top-10-Rangliste.
     </p>
 
-    <h3>Rechtsgrundlage</h3>
-    <p>
+    <h3 id="s2-h3-legal">Rechtsgrundlage</h3>
+    <p id="s2-legal">
       Art. 6 Abs. 1 lit. f DSGVO (Berechtigtes Interesse an der Bereitstellung der Kanalfunktionen).
     </p>
 
-    <h3>Speicherdauer</h3>
-    <p>
+    <h3 id="s2-h3-retention">Speicherdauer</h3>
+    <p id="s2-retention">
       Der Kanalpunktestand und die Reward-Historie werden gespeichert, solange der Kanal aktiv ist
       oder bis eine Löschung beantragt wird.
     </p>
   </section>
 
   <section>
-    <h2>Deine Rechte</h2>
-    <p>
+    <h2 id="s3-h2">Deine Rechte</h2>
+    <p id="s3-rights">
       Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
       Datenübertragbarkeit und Widerspruch. Wende dich dazu bitte an die oben angegebene
       Kontaktadresse.
@@ -157,12 +183,76 @@
 
   <footer>
     <p>
-      <a href="https://www.hd1920x1080.de/datenschutz">Datenschutz</a> ·
-      <a href="https://www.hd1920x1080.de/impressum">Impressum</a> ·
+      <a href="https://www.hd1920x1080.de/datenschutz" id="footer-privacy">Datenschutz</a> ·
+      <a href="https://www.hd1920x1080.de/impressum" id="footer-imprint">Impressum</a> ·
       <a href="https://www.hd1920x1080.de">HD1920x1080.de</a>
     </p>
   </footer>
 
 </div>
+<script>
+  var currentLang = 'de';
+
+  var translations = {
+    de: {
+      pageTitle: 'Datenschutz – Kanalpunkte Extension | HD1920x1080',
+      'link-back': '← Vollständige Datenschutzerklärung',
+      'lang-btn': '🇬🇧 English',
+      title: '🔒 Datenschutz – Kanalpunkte Extension',
+      subtitle: 'Informationen zur Datenverarbeitung in der Twitch Extension',
+      's1-h2': 'Verantwortlicher',
+      's1-contact': 'Kontakt: <a href="mailto:Admin@HD1920x1080.de?subject=Anfrage%20Datenschutz">Admin@HD1920x1080.de</a>',
+      's2-h2': 'Twitch Extension – Kanalpunkte',
+      's2-intro': 'Die Twitch Extension zeigt deinen aktuellen Kanalpunktestand und ermöglicht das Einlösen von Belohnungen. Hierfür wird deine Twitch-Benutzer-ID über die Twitch Identity Linking API übermittelt und mit deinem Kanalpunktekonto verknüpft.',
+      's2-h3-purpose': 'Zweck',
+      's2-purpose': 'Anzeige des persönlichen Punktestands, Verarbeitung von Reward-Einlösungen und Darstellung der Top-10-Rangliste.',
+      's2-h3-legal': 'Rechtsgrundlage',
+      's2-legal': 'Art. 6 Abs. 1 lit. f DSGVO (Berechtigtes Interesse an der Bereitstellung der Kanalfunktionen).',
+      's2-h3-retention': 'Speicherdauer',
+      's2-retention': 'Der Kanalpunktestand und die Reward-Historie werden gespeichert, solange der Kanal aktiv ist oder bis eine Löschung beantragt wird.',
+      's3-h2': 'Deine Rechte',
+      's3-rights': 'Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch. Wende dich dazu bitte an die oben angegebene Kontaktadresse.',
+      'footer-privacy': 'Datenschutz',
+      'footer-imprint': 'Impressum',
+    },
+    en: {
+      pageTitle: 'Privacy Policy – Channel Points Extension | HD1920x1080',
+      'link-back': '← Full Privacy Policy',
+      'lang-btn': '🇩🇪 Deutsch',
+      title: '🔒 Privacy Policy – Channel Points Extension',
+      subtitle: 'Information on data processing in the Twitch Extension',
+      's1-h2': 'Controller',
+      's1-contact': 'Contact: <a href="mailto:Admin@HD1920x1080.de?subject=Anfrage%20Datenschutz">Admin@HD1920x1080.de</a>',
+      's2-h2': 'Twitch Extension – Channel Points',
+      's2-intro': 'The Twitch Extension shows your current channel points balance and allows you to redeem rewards. For this purpose, your Twitch user ID is transmitted via the Twitch Identity Linking API and linked to your channel points account.',
+      's2-h3-purpose': 'Purpose',
+      's2-purpose': 'Display of the personal points balance, processing of reward redemptions and display of the top 10 leaderboard.',
+      's2-h3-legal': 'Legal Basis',
+      's2-legal': 'Art. 6(1)(f) GDPR (Legitimate interest in providing the channel functions).',
+      's2-h3-retention': 'Retention Period',
+      's2-retention': 'The channel points balance and reward history are stored as long as the channel is active or until deletion is requested.',
+      's3-h2': 'Your Rights',
+      's3-rights': 'You have the right to access, rectification, deletion, restriction of processing, data portability, and objection. Please contact the address provided above.',
+      'footer-privacy': 'Privacy Policy',
+      'footer-imprint': 'Imprint',
+    }
+  };
+
+  function applyLang(lang) {
+    var t = translations[lang];
+    document.documentElement.lang = lang;
+    document.title = t.pageTitle;
+    var ids = Object.keys(t).filter(function(k) { return k !== 'pageTitle'; });
+    ids.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = t[id];
+    });
+  }
+
+  function toggleLang() {
+    currentLang = currentLang === 'de' ? 'en' : 'de';
+    applyLang(currentLang);
+  }
+</script>
 </body>
 </html>
