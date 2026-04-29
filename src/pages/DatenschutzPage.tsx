@@ -53,6 +53,15 @@ export default function DatenschutzPage() {
       <h3>{t('datenschutzPage.bartclickerRetentionTitle')}</h3>
       <p>{t('datenschutzPage.bartclickerRetentionText')}</p>
 
+      <h2>{t('datenschutzPage.channelPointsTitle')}</h2>
+      <p>{t('datenschutzPage.channelPointsIntro')}</p>
+      <h3>{t('datenschutzPage.channelPointsPurposeTitle')}</h3>
+      <p>{t('datenschutzPage.channelPointsPurposeText')}</p>
+      <h3>{t('datenschutzPage.channelPointsLegalBasisTitle')}</h3>
+      <p>{t('datenschutzPage.channelPointsLegalBasisText')}</p>
+      <h3>{t('datenschutzPage.channelPointsRetentionTitle')}</h3>
+      <p>{t('datenschutzPage.channelPointsRetentionText')}</p>
+
       <h2>{t('datenschutzPage.analyticsTitle')}</h2>
       <p>{t('datenschutzPage.analyticsIntro')}</p>
 
