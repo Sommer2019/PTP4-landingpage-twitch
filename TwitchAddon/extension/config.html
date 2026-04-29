@@ -72,6 +72,10 @@
 
     a { color: var(--purple); }
 
+    .privacy-notice { font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 4px 0 8px; line-height: 1.6; }
+    .privacy-notice a { color: var(--text-muted); text-decoration: underline; }
+    .privacy-notice a:hover { color: var(--text); }
+
     .status-ok {
       display: inline-flex;
       align-items: center;
@@ -153,5 +157,12 @@
         '<span class="status-ok">Twitch-Verbindung hergestellt</span>';
     });
   </script>
+
+  <p class="privacy-notice">
+    🔒 Diese Extension verarbeitet deine Twitch-ID und Kanalpunkte. ·
+    This extension processes your Twitch ID and channel points. ·
+    Cette extension traite votre ID Twitch et vos points de chaîne.<br>
+    <a href="https://www.hd1920x1080.de/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz / Privacy Policy / Confidentialité</a>
+  </p>
 </body>
 </html>

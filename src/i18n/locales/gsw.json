@@ -183,7 +183,15 @@
     "bartclickerPurposeTitle": "Zweck",
     "bartclickerPurposeText": "Speicherig vom Spiilfortschritt, Aazeig vo Rangliste und Spiilstatistike.",
     "bartclickerRetentionTitle": "Speicherdauer",
-    "bartclickerRetentionText": "D'Spiildate bliibe gspeichert, solang din Account besteht oder bis du e Löschig beantragisch."
+    "bartclickerRetentionText": "D'Spiildate bliibe gspeichert, solang din Account besteht oder bis du e Löschig beantragisch.",
+    "channelPointsTitle": "Twitch Extension – Kanalpunkte",
+    "channelPointsIntro": "D'Twitch Extension zeigt dine aktuelli Kanalpunktstand und ermöglicht s'Ilöse vo Belohnige. Dafür wird dini Twitch-User-ID über d'Twitch Identity Linking API übermittlet und mit dim Kanalpunktekonto verknüpft.",
+    "channelPointsPurposeTitle": "Zweck",
+    "channelPointsPurposeText": "Aazeig vom persönliche Punktestand, Verarbeitig vo Reward-Ilösige und Aazeig vo de Top-10-Ranglischte.",
+    "channelPointsLegalBasisTitle": "Rechtsgrundlag",
+    "channelPointsLegalBasisText": "Art. 6 Abs. 1 lit. f DSGVO (Berechtigts Interesse a de Bereitstellig vo de Kanalfunktione).",
+    "channelPointsRetentionTitle": "Speicherdauer",
+    "channelPointsRetentionText": "De Kanalpunktestand und d'Reward-Histori werde gspeichert, solang de Kanal aktiv isch oder bis e Löschig beantrogt wird."
   },
   "streamplanPage": {
     "title": "Streamplan",
