@@ -1,21 +1,21 @@
-// Service Worker für SPA-Routing fallback
-// Cache nicht-erfolgreiche Responses nicht
+// Service Worker für SPA-Routing Fallback
+// Fehlerhafte Responses werden nicht gecacht
 const CACHE_NAME = 'v1-spa-cache'
 const NO_CACHE_URLS = ['/404.html', '/?', '/']
 
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Install event')
+  console.log('[ServiceWorker] Installation')
   self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activate event')
+  console.log('[ServiceWorker] Aktivierung')
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[ServiceWorker] Deleting old cache:', cacheName)
+            console.log('[ServiceWorker] Alte Cache gelöscht:', cacheName)
             return caches.delete(cacheName)
           }
         })
@@ -29,12 +29,12 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const { method, url } = request
 
-  // Nur GET-Requests handhaben
+  // Nur GET-Anfragen verarbeiten
   if (method !== 'GET') {
     return
   }
 
-  // Navigation Requests (document) - immer von Netzwerk laden
+  // Navigations-Anfragen (HTML-Dokumente) - zuerst vom Netzwerk laden
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -47,23 +47,23 @@ self.addEventListener('fetch', (event) => {
             })
             return response
           }
-          // 404 oder andere Fehler nicht cachen - zurück zu index.html
+          // 404 oder andere Fehler nicht cachen - Fallback zu index.html
           return caches.match('/index.html').then((cachedResponse) => {
             if (cachedResponse) {
               return cachedResponse
             }
-            // Fallback wenn cache leer
+            // Fallback falls Cache leer
             return fetch('/')
               .then((response) => {
                 if (response && response.status === 200) {
                   return response
                 }
-                throw new Error('Failed to fetch fallback')
+                throw new Error('Fallback konnte nicht geladen werden')
               })
               .catch(() => {
                 return new Response(
                   'Service Unavailable\n\n' +
-                  'The webpage might be offline. Please try again later.',
+                  'Die Webseite könnte offline sein. Bitte versuchen Sie es später erneut.',
                   {
                     status: 503,
                     statusText: 'Service Unavailable',
@@ -77,13 +77,13 @@ self.addEventListener('fetch', (event) => {
           })
         })
         .catch(() => {
-          // Netzwerkfehler - aus Cache oder Fallback
+          // Netzwerkfehler - Aus Cache oder Fallback
           return caches.match('/index.html').then((cachedResponse) => {
             return (
               cachedResponse ||
               new Response(
                 'Service Unavailable\n\n' +
-                'The webpage might be offline. Please try again later.',
+                'Die Webseite könnte offline sein. Bitte versuchen Sie es später erneut.',
                 {
                   status: 503,
                   statusText: 'Service Unavailable',
@@ -100,7 +100,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Sub-Resource Requests (CSS, JS, Images...) - Cache-First
+  // Sub-Resource-Anfragen (CSS, JS, Bilder...) - Cache-First Strategie
   event.respondWith(
     caches.match(request).then((response) => {
       if (response) {
@@ -108,7 +108,7 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(request).then((response) => {
-        // Nur 2xx Responses cachen
+        // Nur erfolgreiche (2xx) Responses cachen
         if (response && response.status === 200) {
           const responseToCache = response.clone()
           caches.open(CACHE_NAME).then((cache) => {
@@ -121,4 +121,5 @@ self.addEventListener('fetch', (event) => {
     })
   )
 })
+
 

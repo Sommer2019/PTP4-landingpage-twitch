@@ -31,15 +31,15 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Register Service Worker for SPA routing fallback
+      // Service Worker für SPA-Routing Fallback registrieren
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/service-worker.js')
             .then((registration) => {
-              console.log('[SPA] Service Worker registered:', registration.scope)
+              console.log('[SPA] Service Worker registriert:', registration.scope)
             })
             .catch((error) => {
-              console.warn('[SPA] Service Worker registration failed:', error)
+              console.warn('[SPA] Service Worker Registrierung fehlgeschlagen:', error)
             })
         })
       }
