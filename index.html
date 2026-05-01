@@ -2,6 +2,9 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
     <script type="text/javascript">
       (function(l) {
         if (l.search[1] === '/' ) {
@@ -27,5 +30,19 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Register Service Worker for SPA routing fallback
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('[SPA] Service Worker registered:', registration.scope)
+            })
+            .catch((error) => {
+              console.warn('[SPA] Service Worker registration failed:', error)
+            })
+        })
+      }
+    </script>
   </body>
 </html>
