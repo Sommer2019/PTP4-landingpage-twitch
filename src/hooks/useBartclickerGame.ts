@@ -230,7 +230,7 @@ export function useBartclickerGame() {
   const AC_WINDOW = 20;          // Anzahl Klicks im Analyse-Fenster
   const AC_MAX_CPS = 25;         // Max erlaubte Klicks pro Sekunde
   const AC_MIN_STD_DEV = 3;      // Min Standardabweichung (ms) der Intervalle – zu gleichmäßig = Bot
-  const AC_PENALTY_MS = 3000;   // Sperre in ms bei Erkennung
+  const AC_PENALTY_MS = 15000;  // Sperre in ms bei Erkennung
 
   // CPS aus Shop-Items, Relikten und Multiplikatoren berechnen
   const calculateCps = useCallback((): number => {
