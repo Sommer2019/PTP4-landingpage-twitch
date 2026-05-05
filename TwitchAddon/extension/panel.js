@@ -1,14 +1,14 @@
 // Werte werden beim GitHub-Build per sed ersetzt (siehe build.yml)
 // Können vom Broadcaster über config.html (Twitch Configuration Service) überschrieben werden
-var EBS_BASE_URL = '__EBS_BASE_URL__';
-var SUPABASE_URL = '__SUPABASE_URL__';
-var SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
+let EBS_BASE_URL = '__EBS_BASE_URL__';
+let SUPABASE_URL = '__SUPABASE_URL__';
+let SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
 
 function applyExtConfig() {
   try {
-    var content = window.Twitch && window.Twitch.ext &&
-      window.Twitch.ext.configuration && window.Twitch.ext.configuration.broadcaster &&
-      window.Twitch.ext.configuration.broadcaster.content;
+    var broadcasterConfig = window.Twitch && window.Twitch.ext &&
+      window.Twitch.ext.configuration && window.Twitch.ext.configuration.broadcaster;
+    var content = broadcasterConfig && broadcasterConfig.content;
     if (!content) return;
     var cfg = JSON.parse(content);
     if (cfg.ebsUrl)      EBS_BASE_URL = cfg.ebsUrl;

@@ -789,12 +789,15 @@
 
     // ── Tab-Switching ────────────────────────────────────────────────────────
 
+    var tabPanels = { rewards: 'tabRewards', settings: 'tabSettings' };
+
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
         document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
         btn.classList.add('active');
-        document.getElementById('tab' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1)).classList.add('active');
+        var panelId = tabPanels[btn.dataset.tab];
+        if (panelId) document.getElementById(panelId).classList.add('active');
       });
     });
 
@@ -804,8 +807,9 @@
 
     function loadSettings() {
       try {
-        var content = window.Twitch.ext.configuration.broadcaster &&
-          window.Twitch.ext.configuration.broadcaster.content;
+        var extConfig = window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration;
+        var broadcasterConfig = extConfig && extConfig.broadcaster;
+        var content = broadcasterConfig && broadcasterConfig.content;
         if (!content) return;
         var cfg = JSON.parse(content);
         if (cfg.ebsUrl)      { document.getElementById('sEbsUrl').value      = cfg.ebsUrl;      EBS_BASE_URL = cfg.ebsUrl; }
