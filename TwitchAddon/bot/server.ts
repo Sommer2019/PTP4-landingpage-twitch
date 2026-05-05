@@ -48,7 +48,7 @@ function corsHeaders(req: Request): Record<string, string> {
     : 'https://supervisor.ext-twitch.tv'
   return {
     'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-extension-jwt',
     Vary: 'Origin',
   }
@@ -96,9 +96,41 @@ async function handleRedeemedRewards(req: Request, supabase: SupabaseClient): Pr
   return json({ error: 'method_not_allowed' }, 405, req)
 }
 
-async function handleRewards(req: Request, supabase: SupabaseClient): Promise<Response> {
-  if (req.method !== 'GET') return json({ error: 'method_not_allowed' }, 405, req)
-  return json(await supabase.getRewards(), 200, req)
+async function handleRewards(req: Request, supabase: SupabaseClient, extensionSecret: string): Promise<Response> {
+  if (req.method === 'GET') return json(await supabase.getRewards(), 200, req)
+
+  // Schreiboperationen erfordern Broadcaster-JWT
+  const rawJwt = req.headers.get('x-extension-jwt')
+  if (!rawJwt) return json({ error: 'invalid_jwt' }, 401, req)
+  const payload = await verifyExtensionJwt(rawJwt, extensionSecret)
+  if (!payload || payload['role'] !== 'broadcaster') return json({ error: 'forbidden' }, 403, req)
+
+  if (req.method === 'POST') {
+    let body: Record<string, unknown>
+    try { body = await req.json() as Record<string, unknown> }
+    catch { return json({ error: 'invalid_body' }, 400, req) }
+    const reward = await supabase.createReward(body)
+    return json(reward ?? { error: 'create_failed' }, reward ? 201 : 500, req)
+  }
+
+  if (req.method === 'PATCH') {
+    const id = queryParam(new URL(req.url), 'id')
+    if (!id) return json({ error: 'missing_id' }, 400, req)
+    let body: Record<string, unknown>
+    try { body = await req.json() as Record<string, unknown> }
+    catch { return json({ error: 'invalid_body' }, 400, req) }
+    const reward = await supabase.updateReward(id, body)
+    return json(reward ?? { error: 'update_failed' }, reward ? 200 : 500, req)
+  }
+
+  if (req.method === 'DELETE') {
+    const id = queryParam(new URL(req.url), 'id')
+    if (!id) return json({ error: 'missing_id' }, 400, req)
+    const success = await supabase.deleteReward(id)
+    return json({ success }, success ? 200 : 500, req)
+  }
+
+  return json({ error: 'method_not_allowed' }, 405, req)
 }
 
 async function handleRedeemCheck(req: Request, supabase: SupabaseClient): Promise<Response> {
@@ -301,7 +333,7 @@ export function startServer(supabase: SupabaseClient, bot: TwitchBot, extensionS
 
       // API-Routen
       if (path === '/api/redeemed_rewards') return handleRedeemedRewards(req, supabase)
-      if (path === '/api/rewards')           return handleRewards(req, supabase)
+      if (path === '/api/rewards')           return handleRewards(req, supabase, extensionSecret)
       if (path === '/api/redeem_check')      return handleRedeemCheck(req, supabase)
       if (path === '/api/redeem')            return handleRedeem(req, supabase, bot, extensionSecret)
       if (path === '/api/points')            return handlePoints(req, supabase, extensionSecret)
