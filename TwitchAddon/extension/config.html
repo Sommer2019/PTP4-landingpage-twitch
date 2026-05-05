@@ -211,6 +211,56 @@
     /* hide sections while not authed */
     .auth-required { display: none; }
     .auth-required.visible { display: block; }
+
+    /* ── Tabs ────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 14px;
+      border-bottom: 2px solid var(--surface2);
+      padding-bottom: 0;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      transition: color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Settings form ───────────────────────────────────── */
+    .settings-card {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .settings-card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .settings-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -221,11 +271,59 @@
   <div class="status-bar wait" id="authStatus">⏳ Warte auf Twitch-Autorisierung…</div>
 
   <div class="auth-required" id="mainPanel">
-    <div class="toolbar">
-      <h2>🎁 Rewards</h2>
-      <button class="btn btn-primary" id="addBtn">+ Neu</button>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="rewards">🎁 Rewards</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Einstellungen</button>
     </div>
-    <div id="rewardList"><div class="state-msg">Lade…</div></div>
+
+    <!-- Rewards tab -->
+    <div class="tab-panel active" id="tabRewards">
+      <div class="toolbar">
+        <h2>🎁 Rewards</h2>
+        <button class="btn btn-primary" id="addBtn">+ Neu</button>
+      </div>
+      <div id="rewardList"><div class="state-msg">Lade…</div></div>
+    </div>
+
+    <!-- Settings tab -->
+    <div class="tab-panel" id="tabSettings">
+
+      <div class="settings-card">
+        <div class="settings-card-title">🔗 Backend (EBS)</div>
+        <div class="form-row">
+          <label for="sEbsUrl">Backend-URL</label>
+          <input class="form-input" id="sEbsUrl" type="url" placeholder="https://dein-server.example.com">
+          <div class="settings-hint">Öffentliche HTTPS-URL deines TwitchAddon-Servers (Port 8081 via Reverse-Proxy).</div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-card-title">🗄️ Supabase (optional)</div>
+        <div class="form-row">
+          <label for="sSupabaseUrl">Supabase URL</label>
+          <input class="form-input" id="sSupabaseUrl" type="url" placeholder="https://xyz.supabase.co">
+        </div>
+        <div class="form-row" style="margin-top:8px;">
+          <label for="sSupabaseKey">Supabase Anon Key</label>
+          <input class="form-input" id="sSupabaseKey" type="text" placeholder="eyJhbGci…">
+          <div class="settings-hint">Wird für Cooldown-Checks im Panel verwendet. Nur öffentlichen Anon-Key eintragen.</div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-card-title">🔒 Datenschutz / Privacy</div>
+        <div class="form-row">
+          <label for="sPrivacyUrl">Datenschutz-URL</label>
+          <input class="form-input" id="sPrivacyUrl" type="url" placeholder="https://www.hd1920x1080.de/datenschutz-kanalpunkte.html">
+          <div class="settings-hint">Link zur Datenschutzerklärung im Panel und auf der Mobile-Ansicht.</div>
+        </div>
+      </div>
+
+      <div id="settingsError" style="font-size:0.78rem;color:var(--red);min-height:18px;margin-bottom:6px;"></div>
+
+      <button class="btn btn-primary" id="saveSettingsBtn" style="width:100%;">💾 Einstellungen speichern</button>
+    </div>
   </div>
 
   <!-- Modal: Add / Edit -->
@@ -689,6 +787,70 @@
       if (e.target === this) closeModal();
     });
 
+    // ── Tab-Switching ────────────────────────────────────────────────────────
+
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('tab' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1)).classList.add('active');
+      });
+    });
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', handleSaveSettings);
+
+    // ── Einstellungen laden (Twitch Configuration Service) ──────────────────
+
+    function loadSettings() {
+      try {
+        var content = window.Twitch.ext.configuration.broadcaster &&
+          window.Twitch.ext.configuration.broadcaster.content;
+        if (!content) return;
+        var cfg = JSON.parse(content);
+        if (cfg.ebsUrl)      { document.getElementById('sEbsUrl').value      = cfg.ebsUrl;      EBS_BASE_URL = cfg.ebsUrl; }
+        if (cfg.supabaseUrl) { document.getElementById('sSupabaseUrl').value = cfg.supabaseUrl; }
+        if (cfg.supabaseKey) { document.getElementById('sSupabaseKey').value = cfg.supabaseKey; }
+        if (cfg.privacyUrl)  { document.getElementById('sPrivacyUrl').value  = cfg.privacyUrl;  }
+      } catch(e) { /* ignorieren */ }
+    }
+
+    // ── Einstellungen speichern ──────────────────────────────────────────────
+
+    function handleSaveSettings() {
+      var ebsUrl     = document.getElementById('sEbsUrl').value.trim();
+      var supabaseUrl = document.getElementById('sSupabaseUrl').value.trim();
+      var supabaseKey = document.getElementById('sSupabaseKey').value.trim();
+      var privacyUrl  = document.getElementById('sPrivacyUrl').value.trim();
+      var errEl = document.getElementById('settingsError');
+
+      if (!ebsUrl) { errEl.textContent = '⚠️ Backend-URL darf nicht leer sein.'; return; }
+      errEl.textContent = '';
+
+      var cfg = {};
+      if (ebsUrl)      cfg.ebsUrl      = ebsUrl;
+      if (supabaseUrl) cfg.supabaseUrl = supabaseUrl;
+      if (supabaseKey) cfg.supabaseKey = supabaseKey;
+      if (privacyUrl)  cfg.privacyUrl  = privacyUrl;
+
+      var saveBtn = document.getElementById('saveSettingsBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Speichern…';
+
+      try {
+        window.Twitch.ext.configuration.set('broadcaster', '1.0', JSON.stringify(cfg));
+        // Lokale Variable sofort aktualisieren, damit Reward-CRUD die neue URL nutzt
+        EBS_BASE_URL = ebsUrl;
+        showToast('✅ Einstellungen gespeichert!', 'ok');
+        // Rewards mit neuer URL neu laden
+        loadRewards();
+      } catch(e) {
+        errEl.textContent = '❌ Fehler beim Speichern: ' + (e.message || e);
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = '💾 Einstellungen speichern';
+    }
+
     // ── Twitch-Autorisierung ─────────────────────────────────────────────────
 
     window.Twitch.ext.onAuthorized(function(auth) {
@@ -707,6 +869,10 @@
       statusEl.textContent = '✔ Twitch-Verbindung hergestellt (Broadcaster)';
 
       document.getElementById('mainPanel').classList.add('visible');
+
+      // Gespeicherte Einstellungen laden und anwenden
+      loadSettings();
+
       loadRewards();
     });
 

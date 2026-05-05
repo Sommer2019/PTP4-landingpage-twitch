@@ -1,7 +1,37 @@
 // Werte werden beim GitHub-Build per sed ersetzt (siehe build.yml)
-const EBS_BASE_URL = '__EBS_BASE_URL__';
-const SUPABASE_URL = '__SUPABASE_URL__';
-const SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
+// Können vom Broadcaster über config.html (Twitch Configuration Service) überschrieben werden
+var EBS_BASE_URL = '__EBS_BASE_URL__';
+var SUPABASE_URL = '__SUPABASE_URL__';
+var SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
+
+function applyExtConfig() {
+  try {
+    var content = window.Twitch && window.Twitch.ext &&
+      window.Twitch.ext.configuration && window.Twitch.ext.configuration.broadcaster &&
+      window.Twitch.ext.configuration.broadcaster.content;
+    if (!content) return;
+    var cfg = JSON.parse(content);
+    if (cfg.ebsUrl)      EBS_BASE_URL = cfg.ebsUrl;
+    if (cfg.supabaseUrl) SUPABASE_URL = cfg.supabaseUrl;
+    if (cfg.supabaseKey) SUPABASE_ANON = cfg.supabaseKey;
+    if (cfg.privacyUrl) {
+      var link = document.getElementById('privacyLink');
+      if (link) link.href = cfg.privacyUrl;
+    }
+  } catch(e) { /* Ungültige Config ignorieren */ }
+}
+
+if (window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration) {
+  window.Twitch.ext.configuration.onChanged(function() {
+    applyExtConfig();
+    // Bei Änderung: Daten neu laden falls bereits autorisiert
+    if (viewerJwt) {
+      loadLeaderboard();
+      if (!selectedId) loadRewards();
+      loadMyPoints(viewerUserId || '', viewerJwt);
+    }
+  });
+}
 
 let viewerUserId = null;
 let viewerJwt = null;
@@ -259,6 +289,9 @@ window.Twitch.ext.onAuthorized(function(auth) {
   // auth.userId ist die opake ID (U<hash>); die echte numerische Twitch-User-ID steckt im JWT-Payload
   const payload = decodeJwtPayload(auth.token);
   viewerUserId = (payload && payload.user_id) ? payload.user_id : null;
+
+  // Broadcaster-Config anwenden (EBS-URL, Supabase, Datenschutz-URL)
+  applyExtConfig();
 
   if (!viewerUserId) {
     window.Twitch.ext.actions.requestIdShare();
