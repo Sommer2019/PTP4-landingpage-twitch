@@ -155,7 +155,7 @@ export class SupabaseClient {
   async deleteReward(id: string): Promise<boolean> {
     try {
       const r = await this.supaFetch(`/rest/v1/rewards?id=eq.${id}`, { method: 'DELETE' })
-      if (!r.ok) console.error('[Supabase] deleteReward fehlgeschlagen:', r.status)
+      if (!r.ok) console.error('[Supabase] deleteReward fehlgeschlagen:', r.status, await r.text())
       return r.ok
     } catch (e) {
       console.error('[Supabase] deleteReward Fehler:', e)

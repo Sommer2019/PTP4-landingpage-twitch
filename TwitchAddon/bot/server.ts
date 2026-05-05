@@ -101,7 +101,7 @@ async function handleRewards(req: Request, supabase: SupabaseClient, extensionSe
 
   // Schreiboperationen erfordern Broadcaster-JWT
   const rawJwt = req.headers.get('x-extension-jwt')
-  if (!rawJwt) return json({ error: 'invalid_jwt' }, 401, req)
+  if (!rawJwt) return json({ error: 'missing_jwt' }, 401, req)
   const payload = await verifyExtensionJwt(rawJwt, extensionSecret)
   if (!payload || payload['role'] !== 'broadcaster') return json({ error: 'forbidden' }, 403, req)
 
