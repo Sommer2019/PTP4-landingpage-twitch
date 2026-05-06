@@ -19,6 +19,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ─── 0. Compute next SemVer from conventional commits ────────────────
+  compute-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
+    steps:
+      - name: Checkout code (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: semver
+        run: |
+          git fetch --tags
+          # Latest stable semver tag (no pre-release suffix)
+          LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | grep -vE '\-' | sort -V | tail -1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+            COMMITS=$(git log --format="%s%n%b%n")
+          else
+            COMMITS=$(git log "${LATEST_TAG}..HEAD" --format="%s%n%b%n")
+          fi
+          echo "Latest stable tag: $LATEST_TAG"
+          VERSION="${LATEST_TAG#v}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          BUMP="patch"
+          if echo "$COMMITS" | grep -qE '^[a-zA-Z]+(\([^)]*\))?!:|BREAKING CHANGE|BREAKING[[:space:]]|\bBREAK[A-Z]'; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qE '^feat(\([^)]*\))?:'; then
+            BUMP="minor"
+          fi
+          echo "Bump type: $BUMP"
+          if [ "$BUMP" = "major" ]; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "New version: $NEW_VERSION"
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
   # ─── 1. React-App: Lint, Type-Check, Tests ───────────────────────────
   test-landingpage:
     runs-on: ubuntu-latest
@@ -48,7 +94,7 @@ jobs:
 
   # ─── 2. TwitchAddon EXE Build + stabiler GitHub Release ──────────────
   build-twitchaddon:
-    needs: test-landingpage
+    needs: [test-landingpage, compute-version]
     runs-on: windows-latest
 
     steps:
@@ -126,8 +172,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v-${{ github.sha }}
-          name: TwitchAddon Build ${{ github.run_number }}
+          tag_name: v${{ needs.compute-version.outputs.version }}
+          name: "TwitchAddon ${{ needs.compute-version.outputs.version }}"
           files: |
             TwitchAddon/dist/TwitchAddon-Release.zip
             TwitchAddon/dist/extension.zip
@@ -137,7 +183,7 @@ jobs:
 
   # ─── 3. Docker Image: Landingpage (React) ────────────────────────────
   docker-landingpage:
-    needs: test-landingpage
+    needs: [test-landingpage, compute-version]
     runs-on: ubuntu-latest
 
     steps:
@@ -159,6 +205,7 @@ jobs:
           tags: |
             type=sha,prefix=sha-
             type=raw,value=latest
+            type=raw,value=v${{ needs.compute-version.outputs.version }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -174,7 +221,7 @@ jobs:
 
   # ─── 4. Docker Image: TwitchAddon (Bun-Backend) ──────────────────────
   docker-twitchaddon:
-    needs: test-landingpage
+    needs: [test-landingpage, compute-version]
     runs-on: ubuntu-latest
 
     steps:
@@ -232,6 +279,7 @@ jobs:
           tags: |
             type=sha,prefix=sha-
             type=raw,value=latest
+            type=raw,value=v${{ needs.compute-version.outputs.version }}
 
       - name: Build and push TwitchAddon Docker image
         uses: docker/build-push-action@v6
