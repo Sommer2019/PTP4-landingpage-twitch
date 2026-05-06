@@ -5,163 +5,205 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kanalpunkte – Broadcaster Konfiguration</title>
   <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
-  <style>
-    :root {
-      --purple: #9147ff;
-      --bg: #18181b;
-      --surface: #1f1f23;
-      --surface2: #26262c;
-      --text: #efeff1;
-      --text-muted: #adadb8;
-      --green: #00c853;
-      --radius: 8px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 16px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      font-size: 1.2rem;
-      color: var(--purple);
-      margin-bottom: 6px;
-    }
-
-    .subtitle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid var(--surface2);
-    }
-
-    .card h2 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-
-    ol, ul {
-      padding-left: 18px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.7;
-    }
-
-    code {
-      background: var(--surface2);
-      padding: 1px 5px;
-      border-radius: 4px;
-      font-size: 0.82rem;
-      color: #e8c0ff;
-    }
-
-    a { color: var(--purple); }
-
-    .privacy-notice { font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 4px 0 8px; line-height: 1.6; }
-    .privacy-notice a { color: var(--text-muted); text-decoration: underline; }
-    .privacy-notice a:hover { color: var(--text); }
-
-    .status-ok {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.82rem;
-      color: var(--green);
-      font-weight: 600;
-    }
-
-    .status-ok::before { content: '✔'; }
-
-    .tip {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 8px;
-      padding: 8px 10px;
-      background: var(--surface2);
-      border-radius: 6px;
-    }
-  </style>
+  <link rel="stylesheet" href="common.css">
+  <link rel="stylesheet" href="config.css">
 </head>
 <body>
 
-  <h1>🪙 Kanalpunkte Extension – Setup</h1>
-  <p class="subtitle">Konfiguriere die Verbindung zu deinem Backend (EBS).</p>
+  <h1>🪙 Kanalpunkte Extension</h1>
+  <p class="subtitle">Broadcaster-Konfiguration · Rewards verwalten</p>
 
-  <div class="card">
-    <h2>Voraussetzungen</h2>
-    <ol>
-      <li>Der <strong>TwitchAddon Java-Bot</strong> muss laufen (Port <code>8081</code>).</li>
-      <li>Der Bot muss über <strong>HTTPS</strong> öffentlich erreichbar sein (z.B. via
-        <a href="https://ngrok.com" target="_blank">ngrok</a> oder eigenem Server).</li>
-      <li>Die Twitch Extension muss im
-        <a href="https://dev.twitch.tv/console/extensions" target="_blank">Twitch Developer Dashboard</a>
-        registriert und aktiviert sein.</li>
-    </ol>
-  </div>
+  <div class="status-bar wait" id="authStatus">⏳ Warte auf Twitch-Autorisierung…</div>
 
-  <div class="card">
-    <h2>Einrichtungsschritte</h2>
-    <ol>
-      <li>Öffne das <a href="https://dev.twitch.tv/console/extensions" target="_blank">Twitch Developer Dashboard</a>
-          und erstelle eine neue Extension.</li>
-      <li>Wähle als <strong>Typ</strong>: <em>Panel</em> (und optional Mobile).</li>
-      <li>Trage unter <em>Panel Viewer Path</em> folgendes ein:<br>
-          <code>/extension/panel.html</code></li>
-      <li>Trage unter <em>Config Path</em>:<br>
-          <code>/extension/config.html</code></li>
-      <li>Trage unter <em>Mobile Path</em>:<br>
-          <code>/extension/mobile.html</code></li>
-      <li>Als <strong>Testing Base URI</strong> trägst du die öffentliche HTTPS-URL deines
-          Java-Backends ein (z.B. <code>https://dein-server.example.com</code>).</li>
-      <li>Starte die Extension auf deinem Kanal über
-          <em>Manage Overlays & Extensions</em> im Creator Dashboard.</li>
-    </ol>
+  <div class="auth-required" id="mainPanel">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="rewards">🎁 Rewards</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Einstellungen</button>
+    </div>
 
-    <div class="tip">
-      💡 Tipp: Mit <code>ngrok http 8081</code> kannst du deinen lokalen Bot schnell über HTTPS
-      erreichbar machen – ideal zum Testen.
+    <!-- Rewards tab -->
+    <div class="tab-panel active" id="tabRewards">
+      <div class="toolbar">
+        <h2>🎁 Rewards</h2>
+        <button class="btn btn-primary" id="addBtn">+ Neu</button>
+      </div>
+      <div id="rewardList"><div class="state-msg">Lade…</div></div>
+    </div>
+
+    <!-- Settings tab -->
+    <div class="tab-panel" id="tabSettings">
+
+      <div class="settings-card">
+        <div class="settings-card-title">🔗 Backend (EBS)</div>
+        <div class="form-row">
+          <label for="sEbsUrl">Backend-URL</label>
+          <input class="form-input" id="sEbsUrl" type="url" placeholder="https://dein-server.example.com">
+          <div class="settings-hint">Öffentliche HTTPS-URL deines TwitchAddon-Servers (Port 8081 via Reverse-Proxy).</div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-card-title">🗄️ Supabase (optional)</div>
+        <div class="form-row">
+          <label for="sSupabaseUrl">Supabase URL</label>
+          <input class="form-input" id="sSupabaseUrl" type="url" placeholder="https://xyz.supabase.co">
+        </div>
+        <div class="form-row" style="margin-top:8px;">
+          <label for="sSupabaseKey">Supabase Anon Key</label>
+          <input class="form-input" id="sSupabaseKey" type="text" placeholder="eyJhbGci…">
+          <div class="settings-hint">Wird für Cooldown-Checks im Panel verwendet. Nur öffentlichen Anon-Key eintragen.</div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-card-title">🔒 Datenschutz / Privacy</div>
+        <div class="form-row">
+          <label for="sPrivacyUrl">Datenschutz-URL</label>
+          <input class="form-input" id="sPrivacyUrl" type="url" placeholder="https://www.hd1920x1080.de/datenschutz-kanalpunkte.html">
+          <div class="settings-hint">Link zur Datenschutzerklärung im Panel und auf der Mobile-Ansicht.</div>
+        </div>
+      </div>
+
+      <div id="settingsError" style="font-size:0.78rem;color:var(--red);min-height:18px;margin-bottom:6px;"></div>
+
+      <button class="btn btn-primary" id="saveSettingsBtn" style="width:100%;">💾 Einstellungen speichern</button>
     </div>
   </div>
 
-  <div class="card">
-    <h2>API-Endpunkte (EBS)</h2>
-    <ul>
-      <li><code>GET /api/points?user_id=&lt;twitch_user_id&gt;</code> – Punkte eines Zuschauers</li>
-      <li><code>GET /api/leaderboard?limit=10</code> – Top-10 Rangliste</li>
-      <li><code>GET /api/rewards</code> – Alle verfügbaren Rewards</li>
-    </ul>
+  <!-- Modal: Add / Edit -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-title" id="modalTitle">Reward bearbeiten</div>
+
+      <div class="form-row">
+        <label for="fName">Name *</label>
+        <input class="form-input" id="fName" type="text" maxlength="80" placeholder="z.B. Rickroll" required>
+      </div>
+
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label for="fCost">Kosten (Punkte) *</label>
+          <input class="form-input" id="fCost" type="number" min="1" max="9999999" placeholder="500" required>
+        </div>
+        <div class="form-row">
+          <label for="fDuration">Dauer (Sekunden)</label>
+          <input class="form-input" id="fDuration" type="number" min="1" max="600" placeholder="15">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="fType">Typ *</label>
+        <select class="form-select" id="fType">
+          <option value="video">🎬 Video (YouTube)</option>
+          <option value="video_hidden">🔊 YouTube-Audio (kein Video)</option>
+          <option value="tts">🗣️ Text to Speech (TTS)</option>
+          <option value="image_text">🖼️ Bild + Text</option>
+          <option value="text_only">💬 Nur Text</option>
+        </select>
+      </div>
+
+      <!-- Video fields -->
+      <div class="form-section" id="secVideo">
+        <div class="form-section-title">YouTube</div>
+        <div class="form-row">
+          <label for="fMediaUrl">YouTube-URL *</label>
+          <input class="form-input" id="fMediaUrl" type="url" placeholder="https://www.youtube.com/watch?v=…">
+        </div>
+        <div class="form-row">
+          <label for="fText">Optionaler Text-Overlay</label>
+          <input class="form-input" id="fText" type="text" maxlength="200" placeholder="Wird über dem Video angezeigt">
+        </div>
+      </div>
+
+      <!-- Video-hidden extra: custom image -->
+      <div class="form-section" id="secVideoHidden">
+        <div class="form-section-title">Bild (statt Video)</div>
+        <div class="form-row">
+          <label for="fImageUrl">Bild-URL (optional)</label>
+          <input class="form-input" id="fImageUrl" type="url" placeholder="https://…/bild.png">
+        </div>
+        <div class="form-row">
+          <label for="fTextHidden">Text-Overlay (optional)</label>
+          <input class="form-input" id="fTextHidden" type="text" maxlength="200" placeholder="Angezeigter Text">
+        </div>
+      </div>
+
+      <!-- TTS fields -->
+      <div class="form-section" id="secTts">
+        <div class="form-section-title">Text to Speech</div>
+        <div class="form-row">
+          <label for="fTtsFixed">Fester Text (leer = Zuschauer gibt Text ein)</label>
+          <input class="form-input" id="fTtsFixed" type="text" maxlength="400" placeholder="Leer lassen für freien Zuschauer-Text">
+        </div>
+      </div>
+
+      <!-- Image+text fields -->
+      <div class="form-section" id="secImage">
+        <div class="form-section-title">Bild + Text</div>
+        <div class="form-row">
+          <label for="fImgUrl">Bild-URL *</label>
+          <input class="form-input" id="fImgUrl" type="url" placeholder="https://…/bild.png">
+        </div>
+        <div class="form-row">
+          <label for="fImgText">Anzeigetext (optional)</label>
+          <input class="form-input" id="fImgText" type="text" maxlength="200" placeholder="Snäck!">
+        </div>
+      </div>
+
+      <!-- Text-only field -->
+      <div class="form-section" id="secTextOnly">
+        <div class="form-section-title">Text</div>
+        <div class="form-row">
+          <label for="fOnlyText">Anzeigetext *</label>
+          <input class="form-input" id="fOnlyText" type="text" maxlength="400" placeholder="Dein Text…">
+        </div>
+      </div>
+
+      <!-- Description (all types) -->
+      <div class="form-row">
+        <label for="fDesc">Beschreibung (intern)</label>
+        <input class="form-input" id="fDesc" type="text" maxlength="300" placeholder="Kurze Beschreibung des Rewards">
+      </div>
+
+      <!-- Options -->
+      <div class="form-section">
+        <div class="form-section-title">Optionen</div>
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="fCooldown">Cooldown (Sek., 0=kein)</label>
+            <input class="form-input" id="fCooldown" type="number" min="0" max="86400" placeholder="0">
+          </div>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="fEnabled" checked>
+          <label for="fEnabled">Reward aktiviert</label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="fOncePerStream">
+          <label for="fOncePerStream">Einmal pro Stream einlösbar</label>
+        </div>
+      </div>
+
+      <div id="formError" style="font-size:0.78rem;color:var(--red);min-height:18px;margin-bottom:4px;"></div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancelBtn">Abbrechen</button>
+        <button class="btn btn-danger btn-sm" id="deleteBtn" style="margin-right:auto;">Löschen</button>
+        <button class="btn btn-primary" id="saveBtn">Speichern</button>
+      </div>
+    </div>
   </div>
 
-  <div id="authStatus" style="margin-top: 12px; font-size: 0.82rem; color: var(--text-muted);">
-    Warte auf Twitch-Autorisierung…
-  </div>
-
-  <script>
-    window.Twitch.ext.onAuthorized(function (auth) {
-      document.getElementById('authStatus').innerHTML =
-        '<span class="status-ok">Twitch-Verbindung hergestellt</span>';
-    });
-  </script>
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
   <p class="privacy-notice">
     🔒 Diese Extension verarbeitet deine Twitch-ID und Kanalpunkte. ·
     This extension processes your Twitch ID and channel points.<br>
     <a href="https://www.hd1920x1080.de/datenschutz-kanalpunkte.html" target="_blank" rel="noopener noreferrer">Datenschutz / Privacy Policy</a>
   </p>
+
+  <script src="config.js"></script>
 </body>
 </html>
