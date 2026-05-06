@@ -3,23 +3,462 @@
 <head>
   <meta charset="UTF-8">
   <title>Overlay</title>
-    <link rel="stylesheet" href="./overlay.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap');
+
+    body { background: #222; margin: 0; width: 100vw; height: 100vh; overflow: hidden; }
+    #media { display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+    video, audio, iframe { max-width: 80vw; max-height: 80vh; }
+    .reward-text {
+      font-family: 'Poppins', 'Segoe UI', 'Arial', sans-serif;
+      font-size: 2.2em;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 0.3em 0.8em;
+      border-radius: 18px;
+      background: linear-gradient(90deg, #ffb347 0%, #ffcc33 40%, #fff6b7 100%);
+      color: #222;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+      display: inline-block;
+      margin: 0.5em auto;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    .reward-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+      width: 100%;
+      height: 100%;
+    }
+    .reward-username {
+      font-family: 'Poppins', 'Segoe UI', 'Arial', sans-serif;
+      font-size: 1.8em;
+      text-align: center;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      margin: 0;
+    }
+  </style>
 </head>
 <body>
   <div id="media"></div>
 
   <!-- Debug-Panel -->
-  <div id="debugPanel" class="debug-panel">
-    <div class="debug-actions">
-      <button onclick="document.getElementById('debugPanel').style.display='none'" class="debug-button debug-button-close">X Schliessen</button>
-      <button onclick="clearDebugLogs()" class="debug-button debug-button-clear">Clear</button>
-      <button onclick="testTTSManual()" class="debug-button debug-button-test">Test TTS</button>
+  <div id="debugPanel" style="position: fixed; top: 10px; right: 10px; width: 400px; max-height: 400px; background: rgba(0,0,0,0.9); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #0f0; border-radius: 5px; overflow-y: auto; z-index: 10000; display: none;">
+    <div style="margin-bottom: 10px;">
+      <button onclick="document.getElementById('debugPanel').style.display='none'" style="background: #f00; color: white; border: none; padding: 5px 10px; cursor: pointer;">✕ Schließen</button>
+      <button onclick="clearDebugLogs()" style="background: #ff0; color: black; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px;">Clear</button>
+      <button onclick="testTTSManual()" style="background: #0f0; color: black; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px;">🔊 Test TTS</button>
     </div>
-    <pre id="debugLog" class="debug-log"></pre>
+    <pre id="debugLog" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;"></pre>
   </div>
 
-  <script src="./overlay-debug.js"></script>
-  <script src="./overlay-main.js"></script>
+  <script>
+    // Debug-System
+    const debugLogs = [];
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    function addDebugLog(message) {
+      debugLogs.push(message);
+      if (debugLogs.length > 100) debugLogs.shift();
+      updateDebugPanel();
+    }
+
+    function updateDebugPanel() {
+      const panel = document.getElementById('debugLog');
+      if (panel) {
+        panel.textContent = debugLogs.join('\n');
+        panel.parentElement.scrollTop = panel.parentElement.scrollHeight;
+      }
+    }
+
+    function clearDebugLogs() {
+      debugLogs.length = 0;
+      updateDebugPanel();
+    }
+
+    // Intercept console logs
+    console.log = function(...args) {
+      const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+      addDebugLog('[LOG] ' + msg);
+      originalLog.apply(console, args);
+    };
+
+    console.error = function(...args) {
+      const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+      addDebugLog('[ERR] ' + msg);
+      originalError.apply(console, args);
+    };
+
+    console.warn = function(...args) {
+      const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+      addDebugLog('[WARN] ' + msg);
+      originalWarn.apply(console, args);
+    };
+
+    // Zeige Debug-Panel auf Druck von 'd'
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'd' || e.key === 'D') {
+        const panel = document.getElementById('debugPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      }
+    });
+
+    function testTTSManual() {
+      console.log('[DEBUG] Starte TTS über Java-Backend-Proxy...');
+      const testText = "Dies ist ein Test über den neuen Proxy.";
+
+      // Wir rufen jetzt DEINEN Server auf (Port 8081)
+      const url = `/api/tts?text=${encodeURIComponent(testText)}`;
+
+      const audio = new Audio(url);
+      audio.play()
+              .then(() => console.log("✅ TTS Sound wird abgespielt!"))
+              .catch(e => console.error("❌ Fehler beim Abspielen:", e));
+    }
+  </script>
+
+  <script>
+
+    async function fetchRewards() {
+      console.log('[Overlay] Lade Rewards aus DB ...');
+      const response = await fetch('/api/rewards');
+      const data = await response.json();
+      console.log('[Overlay] Rewards geladen:', data);
+      return data;
+    }
+    async function fetchRedeemedRewards() {
+      console.log('[Overlay] Lade eingelöste Rewards ...');
+      const response = await fetch('/api/redeemed_rewards');
+      const data = await response.json();
+      console.log('[Overlay] Eingelöste Rewards:', data);
+      return data;
+    }
+    let pollTimeoutId = null;
+    let isPlaying = false;
+    // IDs der zuletzt abgespielten Rewards merken (max 20)
+    function getPlayedRewardIds() {
+      try {
+        return JSON.parse(localStorage.getItem('playedRewardIds') || '[]');
+      } catch { return []; }
+    }
+    function addPlayedRewardId(id) {
+      let arr = getPlayedRewardIds();
+      arr.push(id);
+      if (arr.length > 20) arr = arr.slice(arr.length - 20);
+      localStorage.setItem('playedRewardIds', JSON.stringify(arr));
+    }
+    async function pollRedeemedRewards() {
+      if (isPlaying) return; // Blockiere doppeltes Polling während Wiedergabe
+      const now = Date.now();
+      const redeemed = await fetchRedeemedRewards();
+      const playedIds = getPlayedRewardIds();
+      // Finde ersten Reward, der noch nicht gespielt wurde
+      const next = redeemed.find(r => !playedIds.includes(r.id));
+      console.log(`[Overlay] Polling: ${redeemed.length} Rewards gefunden, Zeit seit letztem: ${now - lastRedeemTime}ms`);
+      if (next && (now - lastRedeemTime >= MIN_REDEEM_INTERVAL)) {
+        console.log('[Overlay] Spiele nächsten Reward ab ...');
+        isPlaying = true;
+        await playAndDeleteReward(next);
+        lastRedeemTime = Date.now();
+        addPlayedRewardId(next.id);
+        // Das weitere Polling wird erst nach erfolgreichem Löschen im clearAndDelete() wieder gestartet!
+      } else {
+        document.getElementById('media').innerHTML = '';
+        pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
+      }
+    }
+
+    async function playAndDeleteReward(redeemed) {
+      try {
+        console.log('[Overlay] Starte playAndDeleteReward für:', redeemed);
+        const rewards = await fetchRewards();
+        const reward = rewards.find(r => String(r.id) === String(redeemed.reward_id));
+        console.log('[Overlay] Gefundener Reward:', reward);
+        if (!reward) {
+          console.error('[Overlay] ❌ Reward NICHT gefunden! reward_id:', redeemed.reward_id);
+          console.log('[Overlay] Verfügbare Reward-IDs:', rewards.map(r => r.id));
+          return;
+        }
+        console.log('[Overlay] reward.istts:', reward?.istts, 'typeof:', typeof reward?.istts);
+        const mediaDiv = document.getElementById('media');
+        mediaDiv.innerHTML = '';
+        let duration = reward.duration ? parseInt(reward.duration, 10) : 10; // Standard 10 Sekunden
+        console.log(`[Overlay] Zeige Reward: ${reward.id}, Dauer: ${duration}s`);
+        const mediaUrl = reward.mediaurl || '';
+        const imageUrl = reward.imageurl || '';
+        const textContent = reward.text || reward.description || '';
+
+        // Hole Display-User vom Backend
+        let username = redeemed.display_user || redeemed.username || redeemed.user || redeemed.twitch_user_name;
+        if (!username) {
+          username = 'Unbekannt';
+        }
+        console.log('[Overlay] Verwendeter Username:', username, 'von redeemed:', redeemed.display_user || redeemed.username || redeemed.user || redeemed.twitch_user_name || redeemed.twitch_user_id);
+        const lower = (mediaUrl || '').toLowerCase();
+        const isYouTube = /youtube\.com|youtu\.be/.test(lower);
+        const isAudio = /\.(mp3|wav|ogg|m4a)(\?|$)/.test(lower);
+        const isImage = /\.(png|jpe?g|gif|webp)(\?|$)/.test(lower) || imageUrl;
+      function withUsernamePrefix(text) {
+        const base = (text || '').trim();
+        if (!username) return base;
+        if (!base) return username;
+        const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (new RegExp(`^${escapedUsername}\\s*[:\-]`, 'i').test(base)) {
+          return base;
+        }
+        return `${username}: ${base}`;
+      }
+      function getRewardContainerHtml(usernameText, mainContent) {
+        // Wenn kein mainContent, returne einfach nur username
+        if (!mainContent || mainContent.trim() === '') {
+          if (usernameText) {
+            return `<div class="reward-username">${usernameText}</div>`;
+          }
+          return '';
+        }
+        // Wrapper mit Username oben
+        let html = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5em;">';
+        if (usernameText) {
+          html += `<div class="reward-username">${usernameText}</div>`;
+        }
+        html += mainContent;
+        html += '</div>';
+        return html;
+      }
+      function getRewardTextHtml(textContent) {
+        if (textContent && String(textContent).trim().length > 0) {
+          return `<div class=\"reward-text\">${textContent}</div>`;
+        }
+        return '';
+      }
+      function afterPlayback() {
+        // Nach der Wiedergabe: Lösche Reward aus DB
+        fetch(`/api/redeemed_rewards?id=${redeemed.id}`, { method: 'DELETE' })
+          .then(async response => {
+            const text = await response.text();
+            if (response.ok) {
+              console.log('[Overlay] Reward nach Wiedergabe gelöscht:', redeemed.id, '| Status:', response.status, '| Antwort:', text);
+            } else {
+              console.error('[Overlay] Fehler beim Löschen nach Wiedergabe:', response.status, response.statusText, '| Antwort:', text);
+            }
+          })
+          .catch(e => {
+            console.error('[Overlay] Fehler beim Löschen nach Wiedergabe (Netzwerk/JS):', e);
+          });
+        mediaDiv.innerHTML = '';
+        isPlaying = false;
+        pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
+      }
+      if (reward.istts === true || reward.istts === 'true' || reward.istts === 1) {
+        let text;
+        console.log('[Overlay] TTS Reward erkannt. redeemed.ttstext:', redeemed.ttstext);
+
+        // Text-Logik beibehalten
+        if (reward.name && reward.name.toLowerCase().includes('raid')) {
+          const target = redeemed.ttstext || redeemed.tts_text || redeemed.ttsText || redeemed.description || '';
+          text = `RAID-Anführer ${username} zu ${target}`;
+        } else {
+          text = redeemed.ttstext || redeemed.tts_text || redeemed.ttsText || redeemed.description || reward.description || 'Text to Speech';
+        }
+
+        // 1. Text anzeigen
+        mediaDiv.innerHTML = getRewardTextHtml(withUsernamePrefix(text));
+
+        // 2. Audio über deinen neuen Proxy abspielen
+        console.log('[Overlay] Starte Proxy-TTS: ' + text);
+        const ttsUrl = `/api/tts?text=${encodeURIComponent(text)}`;
+        const audio = new Audio(ttsUrl);
+        audio.volume = 1.0;
+
+        // Sicherheits-Fallback: Falls das Audio gar nicht lädt/spielt
+        const safetyTimeout = setTimeout(() => {
+          console.warn('[Overlay] TTS Proxy-Fallback ausgelöst (Timeout)');
+          afterPlayback();
+        }, (duration * 1000) + 1000);
+
+        audio.onplay = () => {
+          console.log('[Overlay] Proxy-TTS spielt ab...');
+        };
+
+        audio.onended = () => {
+          clearTimeout(safetyTimeout);
+          console.log('[Overlay] Proxy-TTS erfolgreich beendet');
+          afterPlayback();
+        };
+
+        audio.onerror = (e) => {
+          clearTimeout(safetyTimeout);
+          console.error('[Overlay] Proxy-TTS Fehler:', e);
+          afterPlayback(); // Trotz Fehler weitermachen, damit die Queue nicht hakt
+        };
+
+        audio.play().catch(err => {
+          console.error("[Overlay] Autoplay-Error beim Proxy-TTS:", err);
+          // Wenn Autoplay blockiert wird, nach der eingestellten Dauer weitermachen
+          setTimeout(afterPlayback, duration * 1000);
+        });
+
+      } else if (mediaUrl) {
+          if (isYouTube) {
+          const ytIdMatch = mediaUrl.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+          const ytId = ytIdMatch ? ytIdMatch[1] : '';
+          if (reward.showmedia === false) {
+            let imgHtml = '';
+            if (imageUrl) imgHtml = `<img src=\"${imageUrl}\" alt=\"Reward-Bild\" style=\"max-width:50vw;max-height:50vh;\" />`;
+            const contentHtml = imgHtml + getRewardTextHtml(textContent);
+            mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
+            // Stille YouTube im Hintergrund
+            mediaDiv.innerHTML += `<iframe width="1" height="1" style="opacity:0;position:absolute;left:-9999px;pointer-events:none;" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="autoplay; encrypted-media"></iframe>`;
+            console.log('[Overlay] YouTube-Video ausgeblendet, Ton läuft, zeige stattdessen Bild/Text:', imageUrl, textContent);
+            setTimeout(afterPlayback, duration * 1000);
+          } else {
+            if (!window.YT) {
+              let tag = document.createElement('script');
+              tag.src = "https://www.youtube.com/iframe_api";
+              document.body.appendChild(tag);
+            }
+            function onYouTubeIframeAPIReadyWrapper() {
+              const ytHtml = `<div id=\"ytplayer\"></div>`;
+              const textHtml = getRewardTextHtml(textContent);
+              mediaDiv.innerHTML = getRewardContainerHtml(username, ytHtml + textHtml);
+              let player = new window.YT.Player('ytplayer', {
+                height: '315',
+                width: '560',
+                videoId: ytId,
+                playerVars: { 'autoplay': 1 },
+                events: {
+                  'onStateChange': function(event) {
+                    if (event.data === window.YT.PlayerState.PLAYING) {
+                      console.log('[Overlay] YouTube-Video PLAYING:', mediaUrl, '| getCurrentTime:', player.getCurrentTime());
+                    }
+                    if (event.data === window.YT.PlayerState.ENDED) {
+                      console.log('[Overlay] YouTube-Video ENDED:', mediaUrl);
+                      afterPlayback();
+                    }
+                  }
+                }
+              });
+              setTimeout(() => {
+                console.warn('[Overlay] YouTube-Timeout als Fallback ausgelöst!');
+                afterPlayback();
+              }, duration * 1000);
+              console.log('[Overlay] YouTube-Video eingebettet (API):', mediaUrl);
+            }
+            if (window.YT && window.YT.Player) {
+              onYouTubeIframeAPIReadyWrapper();
+            } else {
+              window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReadyWrapper;
+            }
+          }
+         } else if (isAudio) {
+           const contentHtml = `<audio id=\"rewardAudio\" src=\"${mediaUrl}\" controls autoplay></audio>` + getRewardTextHtml(textContent);
+           mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
+           console.log('[Overlay] Audio-Element erzeugt:', mediaUrl);
+           const audio = document.getElementById('rewardAudio');
+           if (audio) {
+             audio.onloadedmetadata = () => {
+               if (!reward.duration) duration = Math.ceil(audio.duration);
+               setTimeout(afterPlayback, duration * 1000);
+               console.log('[Overlay] Sound geladen, Dauer:', audio.duration);
+             };
+             audio.onended = afterPlayback;
+           } else {
+             setTimeout(afterPlayback, duration * 1000);
+           }
+         } else if (isImage) {
+           const imgSrc = imageUrl || mediaUrl;
+           const contentHtml = `<img src=\"${imgSrc}\" alt=\"Reward-Bild\" style=\"max-width:50vw;max-height:50vh;\" />` + getRewardTextHtml(textContent);
+           mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
+           console.log('[Overlay] Image+Text Reward:', imgSrc, textContent);
+           setTimeout(afterPlayback, duration * 1000);
+         } else {
+           const contentHtml = getRewardTextHtml(textContent || reward.description || '');
+           mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
+           console.log('[Overlay] Unbekannter Media-Typ, zeige Text:', textContent || reward.description || '');
+           setTimeout(afterPlayback, duration * 1000);
+         }
+       } else {
+         const contentHtml = getRewardTextHtml(textContent || reward.description || '');
+         mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
+         console.log('[Overlay] Fallback Reward:', reward.description);
+         setTimeout(afterPlayback, duration * 1000);
+       }
+      } catch (error) {
+        console.error('[Overlay] FEHLER in playAndDeleteReward:', error);
+        isPlaying = false;
+        pollTimeoutId = setTimeout(pollRedeemedRewards, 5000);
+      }
+    }
+    let lastRedeemTime = 0;
+    const MIN_REDEEM_INTERVAL = 5000;
+
+    // OBS Browser Workaround: Initialisiere Web Audio Context
+    function initAudioContext() {
+      console.log('[Overlay] 🔊 Versuche Audio-Kontext zu initialisieren (OBS-Fix)');
+      try {
+        // Methode 1: Web Audio API Context starten
+        if (window.AudioContext || window.webkitAudioContext) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          const audioContext = new AudioContext();
+          if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+              console.log('[Overlay] ✅ Audio-Kontext aktiviert (resume erfolgreich)');
+            }).catch(e => {
+              console.log('[Overlay] ⚠️ Audio-Kontext resume fehlgeschlagen:', e);
+            });
+          } else {
+            console.log('[Overlay] ✅ Audio-Kontext bereits aktiv');
+          }
+        }
+
+        // Methode 2: speechSynthesis auch resumieren (für OBS)
+        if (window.speechSynthesis && window.speechSynthesis.resume) {
+          try {
+            window.speechSynthesis.resume();
+            console.log('[Overlay] ✅ speechSynthesis.resume() aufgerufen');
+          } catch (e) {
+            console.log('[Overlay] ⚠️ speechSynthesis.resume() nicht unterstützt');
+          }
+        }
+
+        // Methode 3: Erstelle einen sehr kurzen Audio-Chunk mit Web Audio API
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0, ctx.currentTime); // Stille!
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.001); // 1ms später stoppen
+          console.log('[Overlay] ✅ Web Audio Trick aufgerufen');
+        } catch (e) {
+          console.log('[Overlay] ⚠️ Web Audio Trick fehlgeschlagen:', e);
+        }
+      } catch (e) {
+        console.log('[Overlay] ⚠️ Audio-Kontext Initialization fehlgeschlagen:', e);
+      }
+    }
+
+    // Initialisiere auf Seitenload
+    window.addEventListener('load', initAudioContext);
+    window.addEventListener('DOMContentLoaded', initAudioContext);
+
+    // Auch über Click-Event (Fallback)
+    document.addEventListener('click', initAudioContext, { once: true });
+
+    // Zusätzlich nach Kurzverzögerung
+    setTimeout(initAudioContext, 100);
+    setTimeout(initAudioContext, 500);
+
+    pollRedeemedRewards();
+  </script>
 </body>
 </html>
-
