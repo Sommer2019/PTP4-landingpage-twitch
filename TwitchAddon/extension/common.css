@@ -1,0 +1,42 @@
+:root {
+  --purple: #9147ff;
+  --purple-dark: #6a0dad;
+  --bg: #18181b;
+  --surface: #1f1f23;
+  --surface2: #26262c;
+  --text: #efeff1;
+  --text-muted: #adadb8;
+  --gold: #ffd700;
+  --green: #4caf50;
+  --red: #ff6b6b;
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.privacy-notice {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 4px 10px 8px;
+  line-height: 1.5;
+}
+
+.privacy-notice a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.privacy-notice a:hover {
+  color: var(--text);
+}
