@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap');
+
+    body { background: #222; margin: 0; width: 100vw; height: 100vh; overflow: hidden; }
+    #media { display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+    video, audio, iframe { max-width: 80vw; max-height: 80vh; }
+    .reward-text {
+      font-family: 'Poppins', 'Segoe UI', 'Arial', sans-serif;
+      font-size: 2.2em;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 0.3em 0.8em;
+      border-radius: 18px;
+      background: linear-gradient(90deg, #ffb347 0%, #ffcc33 40%, #fff6b7 100%);
+      color: #222;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+      display: inline-block;
+      margin: 0.5em auto;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    .reward-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+      width: 100%;
+      height: 100%;
+    }
+    .reward-username {
+      font-family: 'Poppins', 'Segoe UI', 'Arial', sans-serif;
+      font-size: 1.8em;
+      text-align: center;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      margin: 0;
+    }
+
+        .debug-panel {
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          width: 400px;
+          max-height: 400px;
+          background: rgba(0, 0, 0, 0.9);
+          color: #0f0;
+          font-family: monospace;
+          font-size: 11px;
+          padding: 10px;
+          border: 1px solid #0f0;
+          border-radius: 5px;
+          overflow-y: auto;
+          z-index: 10000;
+          display: none;
+        }
+
+        .debug-actions {
+          margin-bottom: 10px;
+        }
+
+        .debug-button {
+          border: none;
+          padding: 5px 10px;
+          cursor: pointer;
+        }
+
+        .debug-button + .debug-button {
+          margin-left: 5px;
+        }
+
+        .debug-button-close {
+          background: #f00;
+          color: #fff;
+        }
+
+        .debug-button-clear {
+          background: #ff0;
+          color: #000;
+        }
+
+        .debug-button-test {
+          background: #0f0;
+          color: #000;
+        }
+
+        .debug-log {
+          margin: 0;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        }
+

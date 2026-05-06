@@ -61,6 +61,9 @@ jobs:
           sed -i \
             -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
             "$EXT/mobile.js"
+          sed -i \
+            -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
+            "$EXT/config.html"
 
       # 4. Standalone-EXEs bauen (kein Bun auf dem Zielrechner nötig)
       - name: Build TwitchAddon EXE
