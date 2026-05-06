@@ -165,7 +165,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.compute-version.outputs.version }}-dev.${{ github.run_number }}
-          name: "TwitchAddon Dev Build ${{ github.run_number }} v${{ needs.compute-version.outputs.version }}-dev (Pre-Release)"
+          name: "TwitchAddon ${{ needs.compute-version.outputs.version }}-dev"
           prerelease: true
           body: |
             ⚠️ **Pre-Release** – gebaut vom `dev`-Branch, Commit `${{ github.sha }}`.

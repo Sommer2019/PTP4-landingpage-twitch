@@ -173,7 +173,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.compute-version.outputs.version }}
-          name: "TwitchAddon v${{ needs.compute-version.outputs.version }}"
+          name: "TwitchAddon ${{ needs.compute-version.outputs.version }}"
           files: |
             TwitchAddon/dist/TwitchAddon-Release.zip
             TwitchAddon/dist/extension.zip
