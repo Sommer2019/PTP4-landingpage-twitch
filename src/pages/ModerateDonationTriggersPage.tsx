@@ -53,7 +53,11 @@ export default function ModerateDonationTriggersPage() {
   }, [showToast])
 
   useEffect(() => {
-    void loadTriggers()
+    const timeout = setTimeout(() => {
+      void loadTriggers()
+    }, 0)
+
+    return () => clearTimeout(timeout)
   }, [loadTriggers])
 
   function openAdd() {
