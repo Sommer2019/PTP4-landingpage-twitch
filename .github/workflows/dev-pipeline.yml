@@ -58,7 +58,7 @@ jobs:
           echo "New version: $NEW_VERSION"
           echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
           # Count existing dev tags for this specific version so the counter resets per main version
-          DEV_COUNT=$(git tag --list "v${NEW_VERSION}-dev.*" | grep -c . || true)
+          DEV_COUNT=$(git tag --list "v${NEW_VERSION}-dev.*" | awk 'NF {count++} END {print count+0}')
           DEV_NUM=$((DEV_COUNT + 1))
           echo "Dev build number: $DEV_NUM"
           echo "dev_num=${DEV_NUM}" >> "$GITHUB_OUTPUT"
