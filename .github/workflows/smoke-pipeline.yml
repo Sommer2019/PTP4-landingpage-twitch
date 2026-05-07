@@ -64,7 +64,7 @@ jobs:
           echo "DUMMY=true" > TwitchAddon/.env
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Smoke Build Landingpage
         uses: docker/build-push-action@v6
