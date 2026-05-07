@@ -84,9 +84,43 @@ jobs:
       - name: Tests
         run: npm run test
 
+  test-twitchaddon:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build check TwitchAddon
+        working-directory: TwitchAddon
+        run: bun build index.ts --target=bun --outfile /tmp/twitchaddon-smoke.js
+
+  test-discordbot:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        working-directory: DiscordBot
+        run: npm install
+
+      - name: Type-check
+        working-directory: DiscordBot
+        run: npx tsc --noEmit
+
   # ─── 2. TwitchAddon EXE Build + Pre-Release ──────────────────────────
   build-twitchaddon:
-    needs: [test-landingpage, compute-version]
+    needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
     runs-on: windows-latest
 
     steps:
@@ -167,7 +201,7 @@ jobs:
 
   # ─── 3. Docker Images mit `dev`-Tag ──────────────────────────────────
   docker-landingpage-dev:
-    needs: [test-landingpage, compute-version]
+    needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
     runs-on: ubuntu-latest
 
     steps:
@@ -191,11 +225,12 @@ jobs:
             type=raw,value=dev
             type=raw,value=v${{ needs.compute-version.outputs.version }}-dev
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: false
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
@@ -203,8 +238,15 @@ jobs:
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
 
+      - name: Push Docker image
+        run: |
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            docker push "$tag"
+          done <<< "${{ steps.meta.outputs.tags }}"
+
   docker-twitchaddon-dev:
-    needs: [test-landingpage, compute-version]
+    needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
     runs-on: ubuntu-latest
 
     steps:
@@ -252,11 +294,19 @@ jobs:
             type=raw,value=dev
             type=raw,value=v${{ needs.compute-version.outputs.version }}-dev
 
-      - name: Build and push TwitchAddon Docker image
+      - name: Build TwitchAddon Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: TwitchAddon/Dockerfile
-          push: true
+          push: false
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Push TwitchAddon Docker image
+        run: |
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            docker push "$tag"
+          done <<< "${{ steps.meta.outputs.tags }}"
