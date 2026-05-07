@@ -188,6 +188,25 @@ jobs:
           Compress-Archive -Path "TwitchAddon\extension\*" `
             -DestinationPath "TwitchAddon\dist\extension.zip" -Force
 
+      - name: Upload pre-release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: twitchaddon-prerelease-assets
+          path: |
+            TwitchAddon/dist/TwitchAddon-PreRelease.zip
+            TwitchAddon/dist/extension.zip
+            setup.exe
+
+  publish-twitchaddon-prerelease:
+    needs: [build-twitchaddon, compute-version]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download pre-release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: twitchaddon-prerelease-assets
+          path: release-assets
+
       - name: Create Pre-Release
         uses: softprops/action-gh-release@v2
         with:
@@ -199,27 +218,22 @@ jobs:
 
             Dieses Build ist eine Entwicklerversion und nicht für den produktiven Einsatz gedacht.
           files: |
-            TwitchAddon/dist/TwitchAddon-PreRelease.zip
-            TwitchAddon/dist/extension.zip
-            setup.exe
+            release-assets/TwitchAddon-PreRelease.zip
+            release-assets/extension.zip
+            release-assets/setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ─── 3. Docker Images mit `dev`-Tag ──────────────────────────────────
-  docker-landingpage-dev:
+  docker-landingpage-dev-build:
     needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
     runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata
         id: meta
@@ -231,29 +245,56 @@ jobs:
             type=raw,value=dev
             type=raw,value=v${{ needs.compute-version.outputs.version }}-dev
 
-      - name: Build Docker image
+      - name: Build Docker image tar
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: false
-          load: true
-          tags: ${{ steps.meta.outputs.tags }}
+          outputs: type=docker,dest=/tmp/landingpage-dev-image.tar
+          tags: ghcr.io/${{ github.repository }}:build-${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
 
-      - name: Push Docker image
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: landingpage-dev-image
+          path: /tmp/landingpage-dev-image.tar
+
+  docker-landingpage-dev-deploy:
+    needs: [docker-landingpage-dev-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: landingpage-dev-image
+          path: /tmp
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load and push Docker image
         run: |
+          docker load -i /tmp/landingpage-dev-image.tar
+          SOURCE_TAG="ghcr.io/${{ github.repository }}:build-${{ github.sha }}"
           while IFS= read -r tag; do
             [ -n "$tag" ] || continue
+            docker tag "$SOURCE_TAG" "$tag"
             docker push "$tag"
-          done <<< "${{ steps.meta.outputs.tags }}"
+          done <<< "${{ needs.docker-landingpage-dev-build.outputs.tags }}"
 
-  docker-twitchaddon-dev:
+  docker-twitchaddon-dev-build:
     needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
     runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
 
     steps:
       - name: Checkout code
@@ -283,13 +324,6 @@ jobs:
           printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
           printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -300,19 +334,44 @@ jobs:
             type=raw,value=dev
             type=raw,value=v${{ needs.compute-version.outputs.version }}-dev
 
-      - name: Build TwitchAddon Docker image
+      - name: Build TwitchAddon Docker image tar
         uses: docker/build-push-action@v6
         with:
           context: .
           file: TwitchAddon/Dockerfile
-          push: false
-          load: true
-          tags: ${{ steps.meta.outputs.tags }}
+          outputs: type=docker,dest=/tmp/twitchaddon-dev-image.tar
+          tags: ghcr.io/${{ github.repository }}/twitchaddon:build-${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Push TwitchAddon Docker image
+      - name: Upload TwitchAddon image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: twitchaddon-dev-image
+          path: /tmp/twitchaddon-dev-image.tar
+
+  docker-twitchaddon-dev-deploy:
+    needs: [docker-twitchaddon-dev-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download TwitchAddon image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: twitchaddon-dev-image
+          path: /tmp
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load and push TwitchAddon Docker image
         run: |
+          docker load -i /tmp/twitchaddon-dev-image.tar
+          SOURCE_TAG="ghcr.io/${{ github.repository }}/twitchaddon:build-${{ github.sha }}"
           while IFS= read -r tag; do
             [ -n "$tag" ] || continue
+            docker tag "$SOURCE_TAG" "$tag"
             docker push "$tag"
-          done <<< "${{ steps.meta.outputs.tags }}"
+          done <<< "${{ needs.docker-twitchaddon-dev-build.outputs.tags }}"
