@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # 1. NPM (React-App, DiscordBot, etc.)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # 2. GitHub Actions (Die Versionen der Actions in deinen .yml Files)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # 3. Docker (Die Basis-Images in deinen Dockerfiles)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # 4. TwitchAddon (Falls dort eine separate package.json liegt)
+  - package-ecosystem: "npm"
+    directory: "/TwitchAddon"
+    schedule:
+      interval: "weekly"
+
+  # 5. DiscordBot (Falls dort eine separate package.json liegt)
+  - package-ecosystem: "npm"
+    directory: "/DiscordBot"
+    schedule:
+      interval: "weekly"
