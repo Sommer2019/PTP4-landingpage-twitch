@@ -221,8 +221,8 @@ jobs:
 
             Dieses Build ist eine Entwicklerversion und nicht für den produktiven Einsatz gedacht.
           files: |
-            release-assets/TwitchAddon-PreRelease.zip
-            release-assets/extension.zip
+            release-assets/TwitchAddon/dist/TwitchAddon-PreRelease.zip
+            release-assets/TwitchAddon/dist/extension.zip
             release-assets/setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
