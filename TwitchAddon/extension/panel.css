@@ -61,12 +61,12 @@ body {
 .leaderboard-row:nth-child(odd) { background: var(--surface); }
 .leaderboard-row:nth-child(even) { background: var(--surface2); }
 
-.leaderboard-rank { width: 22px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-align: center; flex-shrink: 0; }
-.leaderboard-rank.top1 { color: #ffd700; }
-.leaderboard-rank.top2 { color: #c0c0c0; }
-.leaderboard-rank.top3 { color: #cd7f32; }
-.leaderboard-name { flex: 1; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.leaderboard-pts { font-size: 0.85rem; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.leaderboard-rank, .rank { width: 22px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-align: center; flex-shrink: 0; }
+.leaderboard-rank.top1, .rank.top1 { color: #ffd700; }
+.leaderboard-rank.top2, .rank.top2 { color: #c0c0c0; }
+.leaderboard-rank.top3, .rank.top3 { color: #cd7f32; }
+.leaderboard-name, .name { flex: 1; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leaderboard-pts, .pts { font-size: 0.85rem; font-weight: 700; color: var(--gold); flex-shrink: 0; }
 
 .reward-list { margin-bottom: 8px; }
 
