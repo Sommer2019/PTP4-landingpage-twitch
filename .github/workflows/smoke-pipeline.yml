@@ -8,6 +8,9 @@ on:
       - dev
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # ─── 1. Tests & Validation für alle Komponenten ─────────────────────
   test-all:
