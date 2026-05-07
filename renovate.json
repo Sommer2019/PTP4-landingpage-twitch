@@ -4,7 +4,7 @@
     "config:recommended"
   ],
   "timezone": "Europe/Berlin",
-  "schedule": ["0 0 * * *"],
+  "schedule": ["at any time"],
   "dependencyDashboard": true,
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
