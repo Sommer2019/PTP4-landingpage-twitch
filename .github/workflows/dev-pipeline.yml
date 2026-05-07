@@ -251,6 +251,11 @@ jobs:
             type=sha,prefix=dev-sha-
             type=raw,value=dev
             type=raw,value=v${{ needs.compute-version.outputs.version }}-dev
+            
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
 
       - name: Build and push TwitchAddon Docker image
         uses: docker/build-push-action@v6
