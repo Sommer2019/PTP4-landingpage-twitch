@@ -157,7 +157,7 @@ jobs:
             -DestinationPath "TwitchAddon\dist\extension.zip" -Force
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.compute-version.outputs.version }}
           name: "TwitchAddon ${{ needs.compute-version.outputs.version }}"
