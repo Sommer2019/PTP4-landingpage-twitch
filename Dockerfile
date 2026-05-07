@@ -18,7 +18,7 @@ ARG VITE_TWITCH_CLIENT_ID
 RUN npm run build
 
 # ── Stage 2: Serve ────────────────────────────────────────────────────────────
-FROM nginx:1.29-alpine AS runner
+FROM nginx:1.30-alpine AS runner
 
 # SPA-aware nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
