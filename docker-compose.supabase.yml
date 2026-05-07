@@ -28,7 +28,7 @@ services:
 
   # ── GoTrue (Auth) ─────────────────────────────────────────────────────────
   auth:
-    image: supabase/gotrue:v2.168.0
+    image: supabase/gotrue:v2.189.0
     restart: unless-stopped
     depends_on:
       db:
@@ -88,7 +88,7 @@ services:
 
   # ── Storage ───────────────────────────────────────────────────────────────
   storage:
-    image: supabase/storage-api:v1.14.9
+    image: supabase/storage-api:v1.58.10
     restart: unless-stopped
     depends_on:
       db:
@@ -159,7 +159,7 @@ services:
 
   # ── Meta (pg-meta) ────────────────────────────────────────────────────────
   meta:
-    image: supabase/postgres-meta:v0.86.2
+    image: supabase/postgres-meta:v0.96.5
     restart: unless-stopped
     depends_on:
       db:
