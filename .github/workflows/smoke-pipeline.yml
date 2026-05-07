@@ -1,0 +1,86 @@
+name: Feature Validation Pipeline
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ─── 1. Tests & Validation für alle Komponenten ─────────────────────
+  test-all:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: oven-sh/setup-bun@v2
+
+      # 1. Landingpage (Root)
+      - name: Install & Test Landingpage
+        run: |
+          # Prüfen ob lock vorhanden, sonst normales install
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npm run lint
+          npx tsc -b
+          npm run test
+
+      # 2. DiscordBot
+      - name: Install & Typecheck DiscordBot
+        working-directory: DiscordBot
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          # Falls keine tsconfig im Unterordner ist, tsc vom Root nutzen
+          npx tsc --noEmit
+
+      # 3. TwitchAddon
+      - name: Build Check TwitchAddon (Bun)
+        working-directory: TwitchAddon
+        run: |
+          bun install
+          bun build index.ts --target=bun --outfile /tmp/twitch-smoke.js
+  # ─── 2. Docker Smoke Build (Build Check ohne Push) ───────────────────
+  docker-smoke-test:
+    needs: test-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # NEU: Dummy .env erstellen, damit Docker nicht crashed
+      - name: Create dummy .env for smoke test
+        run: |
+          touch TwitchAddon/.env
+          echo "DUMMY=true" > TwitchAddon/.env
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Smoke Build Landingpage
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: smoke-test:latest
+          build-args: |
+            VITE_SUPABASE_URL=fake_value
+            VITE_SUPABASE_ANON_KEY=fake_value
+            VITE_TWITCH_CLIENT_ID=fake_value
+
+      - name: Smoke Build TwitchAddon
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: TwitchAddon/Dockerfile
+          push: false
+          tags: twitch-smoke:latest
