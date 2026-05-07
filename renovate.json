@@ -5,21 +5,21 @@
   ],
   "timezone": "Europe/Berlin",
   "schedule": ["at any time"],
+  "dependencyDashboard": true,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "postUpdateOptions": ["npmDedupe"],
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
       "automergeType": "branch",
-      "platformAutomerge": true,
-      "autodiscover": true,
-      "deleteConfusedBranches": true,
-      "postUpdateOptions": ["npmDedupe"]
+      "platformAutomerge": true
     },
     {
       "matchUpdateTypes": ["major"],
       "automerge": false
     }
   ],
-  "separateMinorPatch": true,
-  "dependencyDashboard": true
+  "separateMinorPatch": true
 }
