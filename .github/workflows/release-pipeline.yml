@@ -92,9 +92,43 @@ jobs:
       - name: Tests
         run: npm run test
 
+  test-twitchaddon:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build check TwitchAddon
+        working-directory: TwitchAddon
+        run: bun build index.ts --target=bun --outfile /tmp/twitchaddon-smoke.js
+
+  test-discordbot:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        working-directory: DiscordBot
+        run: npm ci
+
+      - name: Type-check
+        working-directory: DiscordBot
+        run: npx tsc --noEmit
+
   # ─── 2. TwitchAddon EXE Build + stabiler GitHub Release ──────────────
   build-twitchaddon:
-    needs: [test-landingpage, compute-version]
+    needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
     runs-on: windows-latest
 
     steps:
@@ -156,33 +190,47 @@ jobs:
           Compress-Archive -Path "TwitchAddon\extension\*" `
             -DestinationPath "TwitchAddon\dist\extension.zip" -Force
 
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: twitchaddon-release-assets
+          path: |
+            TwitchAddon/dist/TwitchAddon-Release.zip
+            TwitchAddon/dist/extension.zip
+            setup.exe
+
+  publish-twitchaddon-release:
+    needs: [build-twitchaddon, compute-version]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: twitchaddon-release-assets
+          path: release-assets
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.compute-version.outputs.version }}
           name: "TwitchAddon ${{ needs.compute-version.outputs.version }}"
           files: |
-            TwitchAddon/dist/TwitchAddon-Release.zip
-            TwitchAddon/dist/extension.zip
-            setup.exe
+            release-assets/TwitchAddon/dist/TwitchAddon-Release.zip
+            release-assets/TwitchAddon/dist/extension.zip
+            release-assets/setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ─── 3. Docker Image: Landingpage (React) ────────────────────────────
-  docker-landingpage:
-    needs: [test-landingpage, compute-version]
+  docker-landingpage-build:
+    needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
     runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata
         id: meta
@@ -194,22 +242,57 @@ jobs:
             type=raw,value=latest
             type=raw,value=v${{ needs.compute-version.outputs.version }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image tar
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          outputs: type=docker,dest=/tmp/landingpage-image.tar
+          tags: ghcr.io/${{ github.repository }}:build-${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
 
-  # ─── 4. Docker Image: TwitchAddon (Bun-Backend) ──────────────────────
-  docker-twitchaddon:
-    needs: [test-landingpage, compute-version]
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: landingpage-image
+          path: /tmp/landingpage-image.tar
+
+  docker-landingpage-deploy:
+    needs: [docker-landingpage-build]
     runs-on: ubuntu-latest
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: landingpage-image
+          path: /tmp
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load and push Docker image
+        run: |
+          docker load -i /tmp/landingpage-image.tar
+          SOURCE_TAG="ghcr.io/${{ github.repository }}:build-${{ github.sha }}"
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            docker tag "$SOURCE_TAG" "$tag"
+            docker push "$tag"
+          done <<< "${{ needs.docker-landingpage-build.outputs.tags }}"
+
+  # ─── 4. Docker Image: TwitchAddon (Bun-Backend) ──────────────────────
+  docker-twitchaddon-build:
+    needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
 
     steps:
       - name: Checkout code
@@ -239,13 +322,6 @@ jobs:
           printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
           printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -256,14 +332,47 @@ jobs:
             type=raw,value=latest
             type=raw,value=v${{ needs.compute-version.outputs.version }}
 
-      - name: Build and push TwitchAddon Docker image
+      - name: Build TwitchAddon Docker image tar
         uses: docker/build-push-action@v6
         with:
           context: .
           file: TwitchAddon/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          outputs: type=docker,dest=/tmp/twitchaddon-image.tar
+          tags: ghcr.io/${{ github.repository }}/twitchaddon:build-${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Upload TwitchAddon image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: twitchaddon-image
+          path: /tmp/twitchaddon-image.tar
+
+  docker-twitchaddon-deploy:
+    needs: [docker-twitchaddon-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download TwitchAddon image artifact
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: twitchaddon-image
+          path: /tmp
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load and push TwitchAddon Docker image
+        run: |
+          docker load -i /tmp/twitchaddon-image.tar
+          SOURCE_TAG="ghcr.io/${{ github.repository }}/twitchaddon:build-${{ github.sha }}"
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            docker tag "$SOURCE_TAG" "$tag"
+            docker push "$tag"
+          done <<< "${{ needs.docker-twitchaddon-build.outputs.tags }}"
 
   # ─── 5. Deploy React-App auf GitHub Pages ────────────────────────────
   build-pages:
