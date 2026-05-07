@@ -215,8 +215,8 @@ jobs:
           tag_name: v${{ needs.compute-version.outputs.version }}
           name: "TwitchAddon ${{ needs.compute-version.outputs.version }}"
           files: |
-            release-assets/TwitchAddon-Release.zip
-            release-assets/extension.zip
+            release-assets/TwitchAddon/dist/TwitchAddon-Release.zip
+            release-assets/TwitchAddon/dist/extension.zip
             release-assets/setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
