@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabase';
 import type {
@@ -166,7 +166,8 @@ const AVAILABLE_RELICS = [
 
 export function useBartclickerGame() {
   const { user } = useAuth();
-  
+  const userId = user?.id;
+
   // Spielstand
   const [gameState, setGameState] = useState<BartclickerGameState>({
     energy: 0,
@@ -185,15 +186,14 @@ export function useBartclickerGame() {
     click_upgrade_buyer_unlocked: false,
   });
 
-  const [cps, setCps] = useState(0);
   // Hand-CPS-Statistiken
   const [handCps, setHandCps] = useState(0);
   const [handCpsAvg, setHandCpsAvg] = useState(0);
   const [handCpsTop, setHandCpsTop] = useState(0);
   const handClickCountRef = useRef(0);
   const handClickStartRef = useRef<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastSaveTime, setLastSaveTime] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const lastSaveTimeRef = useRef(0);
   const [offlineEarnings, setOfflineEarnings] = useState<{ amount: number; seconds: number } | null>(null);
   const [clickBlocked, setClickBlocked] = useState(false);
   const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -267,6 +267,8 @@ export function useBartclickerGame() {
     return Math.max(0, totalCps);
   }, [gameState]);
 
+  const cps = useMemo(() => calculateCps(), [calculateCps]);
+
   // Klick-Power berechnen
   const calculateClickPower = useCallback((): number => {
     const rebirthMult = deriveRebirthMultiplier(gameState.rebirth_count);
@@ -304,8 +306,7 @@ export function useBartclickerGame() {
 
   // Spielstand aus der Datenbank laden
   const loadGameState = useCallback(async () => {
-    if (!user?.id) {
-      setIsLoading(false);
+    if (!userId) {
       return;
     }
 
@@ -329,7 +330,7 @@ export function useBartclickerGame() {
       const { data, error } = await supabase
         .from('bartclicker_scores')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
       // Prüfe ob dieser Request abgebrochen wurde
@@ -345,7 +346,7 @@ export function useBartclickerGame() {
           console.log('Neuer Nutzer erkannt, Spielstand wird initialisiert');
           
           const initialState: BartclickerGameState = {
-            user_id: user.id,
+            user_id: userId,
             energy: 0,
             total_ever: 0,
             rebirth_count: 0,
@@ -365,7 +366,7 @@ export function useBartclickerGame() {
           // Versuche zu speichern, aber setze State IMMER
           try {
             await supabase.from('bartclicker_scores').upsert({
-              user_id: user.id,
+              user_id: userId,
               energy: 0,
               total_ever: 0,
               rebirth_count: 0,
@@ -474,11 +475,11 @@ export function useBartclickerGame() {
       }
       isLoadingRef.current = false;
     }
-  }, [user?.id]);
+  }, [userId]);
 
   // Spielstand in der Datenbank speichern
   const saveGameState = useCallback(async () => {
-    if (!user?.id) {
+    if (!userId) {
       console.log('No user ID, skipping save');
       return;
     }
@@ -499,7 +500,7 @@ export function useBartclickerGame() {
       const { error } = await supabase
         .from('bartclicker_scores')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           energy: gameState.energy,
           total_ever: gameState.total_ever,
           rebirth_count: gameState.rebirth_count,
@@ -525,7 +526,7 @@ export function useBartclickerGame() {
     } catch (err) {
       console.error('Failed to save game state:', err);
     }
-  }, [user?.id, gameState]);
+  }, [userId, gameState]);
 
   // Klick verarbeiten – mit optionalem Auto-Klick-Bypass für Anti-Autoclicker
   const handleClick = useCallback((isAutoClick = false) => {
@@ -785,24 +786,21 @@ export function useBartclickerGame() {
 
   // Spiel-Loop für CPS
   useEffect(() => {
-    const newCps = calculateCps();
-    setCps(newCps);
-
     // Spiel-Loop einrichten
     if (gameLoopRef.current) clearInterval(gameLoopRef.current);
 
     gameLoopRef.current = setInterval(() => {
       setGameState((prev) => ({
         ...prev,
-        energy: prev.energy + newCps / 10, // Alle 100 ms aktualisieren
-        total_ever: prev.total_ever + newCps / 10,
+        energy: prev.energy + cps / 10, // Alle 100 ms aktualisieren
+        total_ever: prev.total_ever + cps / 10,
       }));
     }, 100);
 
     return () => {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
     };
-  }, [calculateCps]);
+  }, [cps]);
 
   // Abgelaufene Buffs und Debuffs jede Sekunde bereinigen
   useEffect(() => {
@@ -827,8 +825,12 @@ export function useBartclickerGame() {
 
   // Anfangszustand laden
   useEffect(() => {
-    loadGameState();
-  }, [loadGameState]);
+    if (!userId) return;
+    const timeout = setTimeout(() => {
+      void loadGameState();
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [loadGameState, userId]);
 
   // Regelmäßig automatisch speichern (alle 10 Sekunden)
   useEffect(() => {
@@ -844,12 +846,12 @@ export function useBartclickerGame() {
   const totalShopCount = gameState.shop_items.reduce((sum, item) => sum + item.count, 0);
   useEffect(() => {
     const now = Date.now();
-    if (now - lastSaveTime > 5000) {
+    if (now - lastSaveTimeRef.current > 5000) {
       // Nicht zu häufig speichern – mindestens 5 Sekunden zwischen Speichervorgängen
       saveGameState();
-      setLastSaveTime(now);
+      lastSaveTimeRef.current = now;
     }
-  }, [gameState.rebirth_count, totalShopCount, gameState.offline_earning_upgrades, saveGameState, lastSaveTime]);
+  }, [gameState.rebirth_count, totalShopCount, gameState.offline_earning_upgrades, saveGameState]);
 
   // Buy Autobuyer (kostet 10 Rebirths für Auto-Klicker)
   // Autobuyer kann nur einmal gekauft werden (10 Rebirths). Danach Toggle ohne weitere Kosten.
