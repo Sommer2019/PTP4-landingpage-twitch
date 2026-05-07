@@ -27,16 +27,25 @@ function updateFooterPoints(pts) {
 }
 
 function loadRuntimeConfig() {
+    EBS_BASE_URL = '';
+    SUPABASE_URL = '';
+    SUPABASE_ANON = '';
+    PRIVACY_URL = '';
+
     try {
         const extConfig = window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration;
         const broadcasterConfig = extConfig && extConfig.broadcaster;
         const content = broadcasterConfig && broadcasterConfig.content;
         if (!content) return;
         const cfg = JSON.parse(content);
-        EBS_BASE_URL = (cfg.ebsUrl || '').trim();
-        SUPABASE_URL = (cfg.supabaseUrl || '').trim();
-        SUPABASE_ANON = (cfg.supabaseKey || '').trim();
-        PRIVACY_URL = (cfg.privacyUrl || '').trim();
+        const ebsBaseUrl = (cfg.ebsUrl || '').trim();
+        const supabaseUrl = (cfg.supabaseUrl || '').trim();
+        const supabaseAnon = (cfg.supabaseKey || '').trim();
+        const privacyUrl = (cfg.privacyUrl || '').trim();
+        EBS_BASE_URL = ebsBaseUrl;
+        SUPABASE_URL = supabaseUrl;
+        SUPABASE_ANON = supabaseAnon;
+        PRIVACY_URL = privacyUrl;
     } catch (e) {}
 }
 
