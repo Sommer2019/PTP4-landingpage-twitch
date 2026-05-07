@@ -328,6 +328,8 @@ window.Twitch.ext.onAuthorized(function(auth) {
 
     loadRuntimeConfig();
     applyPrivacyLink();
+    loadLeaderboard();
+    if (!selectedId) loadRewards();
     loadMyPoints(auth.userId, auth.token);
 
     if (allRewards.length && !selectedId) renderList();
@@ -343,9 +345,6 @@ if (window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration && win
         }
     });
 }
-
-loadLeaderboard();
-loadRewards();
 
 setInterval(function() {
     loadLeaderboard();
