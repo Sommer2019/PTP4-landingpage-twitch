@@ -18,10 +18,10 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.36.0",
     "i18next": "^26.0.0",
     "i18next-browser-languagedetector": "^8.2.1",
     "ical.js": "^2.2.1",
+    "motion": "^12.38.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.6",
     "react-i18next": "^17.0.0",
