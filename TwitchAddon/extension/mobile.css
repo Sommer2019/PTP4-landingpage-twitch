@@ -31,12 +31,12 @@ body {
 .leaderboard-row { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 5px; margin-bottom: 3px; font-size: 0.8rem; }
 .leaderboard-row:nth-child(odd) { background: var(--surface); }
 .leaderboard-row:nth-child(even) { background: var(--surface2); }
-.rank { width: 20px; text-align: center; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
-.rank.top1 { color: #ffd700; }
-.rank.top2 { color: #c0c0c0; }
-.rank.top3 { color: #cd7f32; }
-.name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pts { font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.rank, .leaderboard-rank { width: 20px; text-align: center; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+.rank.top1, .leaderboard-rank.top1 { color: #ffd700; }
+.rank.top2, .leaderboard-rank.top2 { color: #c0c0c0; }
+.rank.top3, .leaderboard-rank.top3 { color: #cd7f32; }
+.name, .leaderboard-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pts, .leaderboard-pts { font-weight: 700; color: var(--gold); flex-shrink: 0; }
 
 .reward-item {
   display: flex;
