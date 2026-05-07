@@ -23,28 +23,29 @@ jobs:
           cache: npm
       - uses: oven-sh/setup-bun@v2
 
-      # Landingpage (React)
+      # 1. Landingpage (Root)
       - name: Install & Test Landingpage
         run: |
-          npm ci
+          # Prüfen ob lock vorhanden, sonst normales install
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
           npm run lint
           npx tsc -b
           npm run test
 
-      # DiscordBot
+      # 2. DiscordBot
       - name: Install & Typecheck DiscordBot
         working-directory: DiscordBot
         run: |
-          npm ci
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          # Falls keine tsconfig im Unterordner ist, tsc vom Root nutzen
           npx tsc --noEmit
 
-      # TwitchAddon (Smoke Build für EXE Check)
+      # 3. TwitchAddon
       - name: Build Check TwitchAddon (Bun)
         working-directory: TwitchAddon
         run: |
           bun install
           bun build index.ts --target=bun --outfile /tmp/twitch-smoke.js
-
   # ─── 2. Docker Smoke Build (Build Check ohne Push) ───────────────────
   docker-smoke-test:
     needs: test-all
