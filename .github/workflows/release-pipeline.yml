@@ -30,11 +30,33 @@ jobs:
         run: |
           git fetch --tags
           LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | grep -vE '\-' | sort -V | tail -1)
-          [ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
-          # ... (Logik wie oben gekürzt für Übersicht)
-          echo "version=1.0.0" >> "$GITHUB_OUTPUT" # Hier deine echte Logik einsetzen
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+            COMMITS=$(git log --format="%s%n%b%n")
+          else
+            COMMITS=$(git log "${LATEST_TAG}..HEAD" --format="%s%n%b%n")
+          fi
+          VERSION="${LATEST_TAG#v}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          BUMP="patch"
+          if echo "$COMMITS" | grep -qE '^[a-zA-Z]+(\([^)]*\))?!:|BREAKING CHANGE|BREAKING[[:space:]]|\bBREAK[A-Z]'; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qE '^feat(\([^)]*\))?:'; then
+            BUMP="minor"
+          fi
+          if [ "$BUMP" = "major" ]; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
-  # ─── 3. Docker Landingpage Release ───────────────────────────────────
+  # ─── 1. Docker Landingpage Release ───────────────────────────────────
   docker-landingpage-build:
     needs: [compute-version]
     runs-on: ubuntu-latest
@@ -42,12 +64,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Lowercase repo name
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
       - name: Build & Export
         uses: docker/build-push-action@v6
         with:
           context: .
           outputs: type=docker,dest=/tmp/landingpage-image.tar
           tags: ghcr.io/${{ env.REPO_LC }}:build-${{ github.sha }}
+      
       - uses: actions/upload-artifact@v4
         with:
           name: landingpage-image
@@ -74,15 +103,16 @@ jobs:
           docker push ghcr.io/${{ env.REPO_LC }}:latest
           docker push ghcr.io/${{ env.REPO_LC }}:v${{ needs.compute-version.outputs.version }}
 
-  # ─── 4. Docker TwitchAddon Release ───────────────────────────────────
+  # ─── 2. Docker TwitchAddon Release ───────────────────────────────────
   docker-twitchaddon-build:
     needs: [compute-version]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get Twitch OAuth Access Token
+      - uses: actions/checkout@v4
+      - name: Lowercase repo name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+      
+      - name: Get Twitch OAuth
         id: get_oauth
         run: |
           RESPONSE=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
@@ -91,7 +121,6 @@ jobs:
             -d "grant_type=refresh_token" \
             -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
           ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
-          echo "::add-mask::$ACCESS_TOKEN"
           echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
 
       - name: Create .env
@@ -106,35 +135,19 @@ jobs:
           printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
           printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}/twitchaddon
-          tags: |
-            type=sha,prefix=sha-
-            type=raw,value=latest
-            type=raw,value=v${{ needs.compute-version.outputs.version }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
 
-      - name: Build and push TwitchAddon Docker image
+      - name: Build and Export
         uses: docker/build-push-action@v6
         with:
           context: .
           file: TwitchAddon/Dockerfile
           outputs: type=docker,dest=/tmp/twitchaddon-image.tar
           tags: ghcr.io/${{ env.REPO_LC }}/twitchaddon:build-${{ github.sha }}
+      
       - uses: actions/upload-artifact@v4
         with:
           name: twitchaddon-image
@@ -160,5 +173,3 @@ jobs:
           docker tag ghcr.io/${{ env.REPO_LC }}/twitchaddon:build-${{ github.sha }} ghcr.io/${{ env.REPO_LC }}/twitchaddon:v${{ needs.compute-version.outputs.version }}
           docker push ghcr.io/${{ env.REPO_LC }}/twitchaddon:latest
           docker push ghcr.io/${{ env.REPO_LC }}/twitchaddon:v${{ needs.compute-version.outputs.version }}
-
-  # ... (Jobs für Pages bleiben gleich, da diese kein Docker nutzen)

@@ -111,23 +111,28 @@ jobs:
             -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
           ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
           echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+      
       - name: Build EXEs
+        shell: bash
         run: |
           cd TwitchAddon
           bun build --compile --target=bun-windows-x64 index.ts --outfile dist/TwitchAddon.exe
           cd ..
           bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
-      - name: Package & Upload
+      
+      - name: Package ZIP
         shell: pwsh
         run: |
           $dist = "TwitchAddon\dist\TwitchAddon-PreRelease.zip"
           Compress-Archive -Path "TwitchAddon\dist\TwitchAddon.exe","TwitchAddon\.env","TwitchAddon\overlay.html" -DestinationPath $dist -Force
-          uses: actions/upload-artifact@v4
-          with:
-            name: twitchaddon-prerelease-assets
-            path: |
-              TwitchAddon/dist/TwitchAddon-PreRelease.zip
-              setup.exe
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: twitchaddon-prerelease-assets
+          path: |
+            TwitchAddon/dist/TwitchAddon-PreRelease.zip
+            setup.exe
 
   publish-twitchaddon-prerelease:
     needs: [build-twitchaddon, compute-version]
@@ -143,7 +148,7 @@ jobs:
           prerelease: true
           files: release-assets/**
 
-  # ─── 3. Docker Images (Dev) ──────────────────────────────────────────
+  # ─── 3. Docker Landingpage ──────────────────────────────────────────
   docker-landingpage-dev-build:
     needs: [compute-version]
     runs-on: ubuntu-latest
@@ -151,20 +156,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Lowercase repo name
         run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
         with:
-          images: ghcr.io/${{ env.REPO_LC }}
-          tags: |
-            type=sha,prefix=dev-sha-
-            type=raw,value=dev
+          driver: docker-container
+
       - name: Build & Export
         uses: docker/build-push-action@v6
         with:
           context: .
           outputs: type=docker,dest=/tmp/landingpage-dev-image.tar
           tags: ghcr.io/${{ env.REPO_LC }}:build-${{ github.sha }}
+      
       - uses: actions/upload-artifact@v4
         with:
           name: landingpage-dev-image
@@ -189,28 +193,28 @@ jobs:
           docker tag ghcr.io/${{ env.REPO_LC }}:build-${{ github.sha }} ghcr.io/${{ env.REPO_LC }}:dev
           docker push ghcr.io/${{ env.REPO_LC }}:dev
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}/twitchaddon
-          tags: |
-            type=sha,prefix=dev-sha-
-            type=raw,value=dev
-            type=raw,value=v${{ needs.compute-version.outputs.version }}-dev
-            
+  # ─── 4. Docker TwitchAddon ──────────────────────────────────────────
+  docker-twitchaddon-dev-build:
+    needs: [compute-version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lowercase repo name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
 
-      - name: Build and push TwitchAddon Docker image
+      - name: Build and Export
         uses: docker/build-push-action@v6
         with:
           context: .
           file: TwitchAddon/Dockerfile
           outputs: type=docker,dest=/tmp/twitchaddon-dev-image.tar
           tags: ghcr.io/${{ env.REPO_LC }}/twitchaddon:build-${{ github.sha }}
+      
       - uses: actions/upload-artifact@v4
         with:
           name: twitchaddon-dev-image
