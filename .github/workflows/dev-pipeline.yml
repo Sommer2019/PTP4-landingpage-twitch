@@ -11,11 +11,12 @@ permissions:
   packages: write
 
 jobs:
-  # ─── 0. Compute next SemVer from conventional commits ────────────────
+  # ─── 0. Compute next SemVer ──────────────────────────────────────────
   compute-version:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.semver.outputs.version }}
+      dev_num: ${{ steps.semver.outputs.dev_num }}
     steps:
       - name: Checkout code (full history)
         uses: actions/checkout@v4
@@ -26,7 +27,6 @@ jobs:
         id: semver
         run: |
           git fetch --tags
-          # Latest stable semver tag (no pre-release suffix)
           LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | grep -vE '\-' | sort -V | tail -1)
           if [ -z "$LATEST_TAG" ]; then
             LATEST_TAG="v0.0.0"
@@ -34,7 +34,6 @@ jobs:
           else
             COMMITS=$(git log "${LATEST_TAG}..HEAD" --format="%s%n%b%n")
           fi
-          echo "Latest stable tag: $LATEST_TAG"
           VERSION="${LATEST_TAG#v}"
           MAJOR=$(echo "$VERSION" | cut -d. -f1)
           MINOR=$(echo "$VERSION" | cut -d. -f2)
@@ -45,7 +44,6 @@ jobs:
           elif echo "$COMMITS" | grep -qE '^feat(\([^)]*\))?:'; then
             BUMP="minor"
           fi
-          echo "Bump type: $BUMP"
           if [ "$BUMP" = "major" ]; then
             MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
           elif [ "$BUMP" = "minor" ]; then
@@ -54,49 +52,55 @@ jobs:
             PATCH=$((PATCH + 1))
           fi
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-          echo "New version: $NEW_VERSION"
           echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+          
+          MAX_DEV_NUM=$(git tag --list "v${NEW_VERSION}-dev.*" | awk -F'-dev\\.' -v version="v${NEW_VERSION}" '
+            $1 == version && $2 ~ /^[0-9]+$/ && $2 > max { max = $2 }
+            END { print max + 0 }
+          ')
+          DEV_NUM=$((MAX_DEV_NUM + 1))
+          echo "dev_num=${DEV_NUM}" >> "$GITHUB_OUTPUT"
 
-  # ─── 1. React-App: Lint, Type-Check, Tests ───────────────────────────
+  # ─── 1. Tests ────────────────────────────────────────────────────────
   test-landingpage:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc -b
+      - run: npm run test
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type-check
-        run: npx tsc -b
-
-      - name: Tests
-        run: npm run test
-
-  # ─── 2. TwitchAddon EXE Build + Pre-Release ──────────────────────────
-  build-twitchaddon:
-    needs: [test-landingpage, compute-version]
-    runs-on: windows-latest
-
+  test-twitchaddon:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - working-directory: TwitchAddon
+        run: bun build index.ts --target=bun --outfile /tmp/twitchaddon-smoke.js
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+  test-discordbot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - working-directory: DiscordBot
+        run: npm ci && npx tsc --noEmit
 
-      - name: Get Twitch OAuth Access Token
+  # ─── 2. TwitchAddon EXE Build ────────────────────────────────────────
+  build-twitchaddon:
+    needs: [test-landingpage, test-twitchaddon, test-discordbot, compute-version]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Get Twitch OAuth
         id: get_oauth
         shell: bash
         run: |
@@ -106,141 +110,84 @@ jobs:
             -d "grant_type=refresh_token" \
             -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
           ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
-          echo "::add-mask::$ACCESS_TOKEN"
           echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-
-      - name: Create .env
-        shell: bash
+      - name: Build EXEs
         run: |
-          printf 'SUPABASE_URL=%s\n'          "${{ secrets.VITE_SUPABASE_URL }}"      > TwitchAddon/.env
-          printf 'SUPABASE_API_KEY=%s\n'      "${{ secrets.SUPABASE_API_KEY }}"       >> TwitchAddon/.env
-          printf 'TWITCH_OAUTH_TOKEN=%s\n'    "${{ env.TWITCH_OAUTH_TOKEN }}"         >> TwitchAddon/.env
-          printf 'TWITCH_CLIENT_ID=%s\n'      "${{ secrets.VITE_TWITCH_CLIENT_ID }}"  >> TwitchAddon/.env
-          printf 'TWITCH_CLIENT_SECRET=%s\n'  "${{ secrets.TWITCH_CLIENT_SECRET }}"   >> TwitchAddon/.env
-          printf 'CHANNEL_NAME=%s\n'          "${{ secrets.CHANNEL_NAME }}"           >> TwitchAddon/.env
-          printf 'TWITCH_REFRESH_TOKEN=%s\n'  "${{ secrets.TWITCH_REFRESH_TOKEN }}"   >> TwitchAddon/.env
-          printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
-          printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
-
-      - name: Build TwitchAddon EXE
-        working-directory: TwitchAddon
-        run: bun build --compile --target=bun-windows-x64 index.ts --outfile dist/TwitchAddon.exe
-
-      - name: Build Setup-Wizard EXE
-        run: bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
-
-      - name: Package release ZIP
+          cd TwitchAddon
+          bun build --compile --target=bun-windows-x64 index.ts --outfile dist/TwitchAddon.exe
+          cd ..
+          bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
+      - name: Package & Upload
         shell: pwsh
         run: |
           $dist = "TwitchAddon\dist\TwitchAddon-PreRelease.zip"
-          $files = @(
-            "TwitchAddon\dist\TwitchAddon.exe",
-            "TwitchAddon\.env",
-            "TwitchAddon\overlay.html"
-          )
-          Compress-Archive -Path $files -DestinationPath $dist -Force
-          Compress-Archive -Path "TwitchAddon\extension\*" -Update -DestinationPath $dist
-          Compress-Archive -Path "TwitchAddon\media\*"     -Update -DestinationPath $dist
+          Compress-Archive -Path "TwitchAddon\dist\TwitchAddon.exe","TwitchAddon\.env","TwitchAddon\overlay.html" -DestinationPath $dist -Force
+          uses: actions/upload-artifact@v4
+          with:
+            name: twitchaddon-prerelease-assets
+            path: |
+              TwitchAddon/dist/TwitchAddon-PreRelease.zip
+              setup.exe
 
-      - name: Zip extension folder
-        shell: pwsh
-        run: |
-          Compress-Archive -Path "TwitchAddon\extension\*" `
-            -DestinationPath "TwitchAddon\dist\extension.zip" -Force
-
-      - name: Create Pre-Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ needs.compute-version.outputs.version }}-dev.${{ github.run_number }}
-          name: "TwitchAddon ${{ needs.compute-version.outputs.version }}-dev"
-          prerelease: true
-          body: |
-            ⚠️ **Pre-Release** – gebaut vom `dev`-Branch, Commit `${{ github.sha }}`.
-
-            Dieses Build ist eine Entwicklerversion und nicht für den produktiven Einsatz gedacht.
-          files: |
-            TwitchAddon/dist/TwitchAddon-PreRelease.zip
-            TwitchAddon/dist/extension.zip
-            setup.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # ─── 3. Docker Images mit `dev`-Tag ──────────────────────────────────
-  docker-landingpage-dev:
-    needs: [test-landingpage, compute-version]
+  publish-twitchaddon-prerelease:
+    needs: [build-twitchaddon, compute-version]
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: actions/download-artifact@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: twitchaddon-prerelease-assets
+          path: release-assets
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.compute-version.outputs.version }}-dev.${{ needs.compute-version.outputs.dev_num }}
+          prerelease: true
+          files: release-assets/**
 
-      - name: Extract Docker metadata
+  # ─── 3. Docker Images (Dev) ──────────────────────────────────────────
+  docker-landingpage-dev-build:
+    needs: [compute-version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lowercase repo name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ env.REPO_LC }}
           tags: |
             type=sha,prefix=dev-sha-
             type=raw,value=dev
-            type=raw,value=v${{ needs.compute-version.outputs.version }}-dev
-
-      - name: Build and push Docker image
+      - name: Build & Export
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-            VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
+          outputs: type=docker,dest=/tmp/landingpage-dev-image.tar
+          tags: ghcr.io/${{ env.REPO_LC }}:build-${{ github.sha }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: landingpage-dev-image
+          path: /tmp/landingpage-dev-image.tar
 
-  docker-twitchaddon-dev:
-    needs: [test-landingpage, compute-version]
+  docker-landingpage-dev-deploy:
+    needs: [docker-landingpage-dev-build]
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get Twitch OAuth Access Token
-        id: get_oauth
-        run: |
-          RESPONSE=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
-            -d "client_id=${{ secrets.VITE_TWITCH_CLIENT_ID }}" \
-            -d "client_secret=${{ secrets.TWITCH_CLIENT_SECRET }}" \
-            -d "grant_type=refresh_token" \
-            -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
-          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
-          echo "::add-mask::$ACCESS_TOKEN"
-          echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-
-      - name: Create .env
-        run: |
-          printf 'SUPABASE_URL=%s\n'          "${{ secrets.VITE_SUPABASE_URL }}"      > TwitchAddon/.env
-          printf 'SUPABASE_API_KEY=%s\n'      "${{ secrets.SUPABASE_API_KEY }}"       >> TwitchAddon/.env
-          printf 'TWITCH_OAUTH_TOKEN=%s\n'    "${{ env.TWITCH_OAUTH_TOKEN }}"         >> TwitchAddon/.env
-          printf 'TWITCH_CLIENT_ID=%s\n'      "${{ secrets.VITE_TWITCH_CLIENT_ID }}"  >> TwitchAddon/.env
-          printf 'TWITCH_CLIENT_SECRET=%s\n'  "${{ secrets.TWITCH_CLIENT_SECRET }}"   >> TwitchAddon/.env
-          printf 'CHANNEL_NAME=%s\n'          "${{ secrets.CHANNEL_NAME }}"           >> TwitchAddon/.env
-          printf 'TWITCH_REFRESH_TOKEN=%s\n'  "${{ secrets.TWITCH_REFRESH_TOKEN }}"   >> TwitchAddon/.env
-          printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
-          printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: actions/download-artifact@v4
+        with: { name: landingpage-dev-image, path: /tmp }
+      - name: Lowercase repo name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push
+        run: |
+          docker load -i /tmp/landingpage-dev-image.tar
+          docker tag ghcr.io/${{ env.REPO_LC }}:build-${{ github.sha }} ghcr.io/${{ env.REPO_LC }}:dev
+          docker push ghcr.io/${{ env.REPO_LC }}:dev
 
       - name: Extract Docker metadata
         id: meta
@@ -262,6 +209,28 @@ jobs:
         with:
           context: .
           file: TwitchAddon/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=docker,dest=/tmp/twitchaddon-dev-image.tar
+          tags: ghcr.io/${{ env.REPO_LC }}/twitchaddon:build-${{ github.sha }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: twitchaddon-dev-image
+          path: /tmp/twitchaddon-dev-image.tar
+
+  docker-twitchaddon-dev-deploy:
+    needs: [docker-twitchaddon-dev-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: twitchaddon-dev-image, path: /tmp }
+      - name: Lowercase repo name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push
+        run: |
+          docker load -i /tmp/twitchaddon-dev-image.tar
+          docker tag ghcr.io/${{ env.REPO_LC }}/twitchaddon:build-${{ github.sha }} ghcr.io/${{ env.REPO_LC }}/twitchaddon:dev
+          docker push ghcr.io/${{ env.REPO_LC }}/twitchaddon:dev
