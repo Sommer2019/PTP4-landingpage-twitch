@@ -122,19 +122,6 @@ jobs:
           printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
           printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
 
-      - name: Inject config into extension JS
-        shell: bash
-        run: |
-          EXT="TwitchAddon/extension"
-          sed -i \
-            -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
-            -e "s|__SUPABASE_URL__|${{ secrets.VITE_SUPABASE_URL }}|g" \
-            -e "s|__SUPABASE_ANON_KEY__|${{ secrets.VITE_SUPABASE_ANON_KEY }}|g" \
-            "$EXT/panel.js"
-          sed -i \
-            -e "s|__EBS_BASE_URL__|${{ secrets.EBS_BASE_URL }}|g" \
-            "$EXT/mobile.js"
-
       - name: Build TwitchAddon EXE
         working-directory: TwitchAddon
         run: bun build --compile --target=bun-windows-x64 index.ts --outfile dist/TwitchAddon.exe

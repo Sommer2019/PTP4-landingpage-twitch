@@ -1,4 +1,4 @@
-var EBS_BASE_URL = '__EBS_BASE_URL__';
+var EBS_BASE_URL = '';
 
 var broadcasterJwt = null;
 var allRewards = [];
@@ -30,6 +30,29 @@ function showToast(msg, type) {
 }
 
 function fmt(n) { return Number(n).toLocaleString('de-DE'); }
+
+function setPrivacyLink(url) {
+  var link = document.getElementById('privacyLink');
+  if (!link) return;
+  if (!url) {
+    link.removeAttribute('href');
+    link.style.pointerEvents = 'none';
+    link.style.opacity = '0.7';
+    return;
+  }
+  try {
+    var parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('invalid protocol');
+    link.href = parsed.toString();
+  } catch(e) {
+    link.removeAttribute('href');
+    link.style.pointerEvents = 'none';
+    link.style.opacity = '0.7';
+    return;
+  }
+  link.style.pointerEvents = '';
+  link.style.opacity = '';
+}
 
 // ── Typ-Mapping: intern (DB) ↔ Formular ─────────────────────────────────
 
@@ -353,7 +376,7 @@ function loadSettings() {
     if (cfg.ebsUrl)      { document.getElementById('sEbsUrl').value      = cfg.ebsUrl;      EBS_BASE_URL = cfg.ebsUrl; }
     if (cfg.supabaseUrl) { document.getElementById('sSupabaseUrl').value = cfg.supabaseUrl; }
     if (cfg.supabaseKey) { document.getElementById('sSupabaseKey').value = cfg.supabaseKey; }
-    if (cfg.privacyUrl)  { document.getElementById('sPrivacyUrl').value  = cfg.privacyUrl;  }
+    if (cfg.privacyUrl)  { document.getElementById('sPrivacyUrl').value  = cfg.privacyUrl; setPrivacyLink(cfg.privacyUrl); }
   } catch(e) { /* ignorieren */ }
 }
 
@@ -374,6 +397,7 @@ function handleSaveSettings() {
   if (supabaseUrl) cfg.supabaseUrl = supabaseUrl;
   if (supabaseKey) cfg.supabaseKey = supabaseKey;
   if (privacyUrl)  cfg.privacyUrl  = privacyUrl;
+  setPrivacyLink(privacyUrl);
 
   var saveBtn = document.getElementById('saveSettingsBtn');
   saveBtn.disabled = true;
@@ -420,3 +444,4 @@ window.Twitch.ext.onAuthorized(function(auth) {
 
 // Initiale Typ-Sektionen setzen
 onTypeChange();
+setPrivacyLink('');

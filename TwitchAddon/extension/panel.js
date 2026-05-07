@@ -1,7 +1,7 @@
-// Werte werden beim GitHub-Build per sed ersetzt (siehe build.yml)
-const EBS_BASE_URL = '__EBS_BASE_URL__';
-const SUPABASE_URL = '__SUPABASE_URL__';
-const SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
+let EBS_BASE_URL = '';
+let SUPABASE_URL = '';
+let SUPABASE_ANON = '';
+let PRIVACY_URL = '';
 
 let viewerUserId = null;
 let viewerJwt = null;
@@ -26,6 +26,43 @@ function updateFooterPoints(pts) {
   if (el) el.textContent = (pts !== null && pts !== undefined) ? fmt(pts) : '–';
 }
 
+function loadRuntimeConfig() {
+  try {
+    const extConfig = window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration;
+    const broadcasterConfig = extConfig && extConfig.broadcaster;
+    const content = broadcasterConfig && broadcasterConfig.content;
+    if (!content) return;
+    const cfg = JSON.parse(content);
+    EBS_BASE_URL = (cfg.ebsUrl || '').trim();
+    SUPABASE_URL = (cfg.supabaseUrl || '').trim();
+    SUPABASE_ANON = (cfg.supabaseKey || '').trim();
+    PRIVACY_URL = (cfg.privacyUrl || '').trim();
+  } catch (e) {}
+}
+
+function applyPrivacyLink() {
+  const link = document.getElementById('privacyLink');
+  if (!link) return;
+  if (!PRIVACY_URL) {
+    link.removeAttribute('href');
+    link.style.pointerEvents = 'none';
+    link.style.opacity = '0.7';
+    return;
+  }
+  try {
+    const parsed = new URL(PRIVACY_URL);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('invalid protocol');
+    link.href = parsed.toString();
+  } catch (e) {
+    link.removeAttribute('href');
+    link.style.pointerEvents = 'none';
+    link.style.opacity = '0.7';
+    return;
+  }
+  link.style.pointerEvents = '';
+  link.style.opacity = '';
+}
+
 function sbRpc(fn, params) {
   return fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, {
     method: 'POST',
@@ -47,6 +84,10 @@ function sbGet(table, qs) {
 }
 
 function loadMyPoints(uid, jwt) {
+  if (!EBS_BASE_URL) {
+    updateFooterPoints(null);
+    return;
+  }
   const headers = {};
   if (jwt) headers['x-extension-jwt'] = jwt;
   fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid), { headers: headers })
@@ -65,6 +106,10 @@ function loadMyPoints(uid, jwt) {
 
 function loadLeaderboard() {
   const el = document.getElementById('leaderboardList');
+  if (!EBS_BASE_URL) {
+    el.innerHTML = '<div class="status-msg">Backend-URL im Konfig-Tab setzen.</div>';
+    return;
+  }
   fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
       .then(function(res) { return res.json(); })
       .then(function(data) {
@@ -83,6 +128,10 @@ function loadLeaderboard() {
 }
 
 function loadRewards() {
+  if (!EBS_BASE_URL) {
+    document.getElementById('rewardsArea').innerHTML = '<div class="status-msg">Backend-URL im Konfig-Tab setzen.</div>';
+    return;
+  }
   fetch(EBS_BASE_URL + '/api/rewards')
       .then(function(res) { return res.json(); })
       .then(function(data) {
@@ -147,6 +196,7 @@ function backToList() {
 }
 
 function checkCooldown(reward) {
+  if (!SUPABASE_URL || !SUPABASE_ANON) return;
   const btn = document.getElementById('redeemBtn');
   if (!btn) return;
 
@@ -185,7 +235,7 @@ function checkCooldown(reward) {
 }
 
 function handleRedeem() {
-  if (!selectedId || redeemBusy) return;
+  if (!selectedId || redeemBusy || !EBS_BASE_URL) return;
   const r = allRewards.find(function (x) {
     return String(x.id) === String(selectedId);
   });
@@ -264,10 +314,23 @@ window.Twitch.ext.onAuthorized(function(auth) {
     window.Twitch.ext.actions.requestIdShare();
   }
 
+  loadRuntimeConfig();
+  applyPrivacyLink();
   loadMyPoints(auth.userId, auth.token);
 
   if (allRewards.length && !selectedId) renderList();
 });
+
+if (window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration && window.Twitch.ext.configuration.onChanged) {
+  window.Twitch.ext.configuration.onChanged(function() {
+    loadRuntimeConfig();
+    applyPrivacyLink();
+    if (!selectedId) {
+      loadRewards();
+      loadLeaderboard();
+    }
+  });
+}
 
 loadLeaderboard();
 loadRewards();
