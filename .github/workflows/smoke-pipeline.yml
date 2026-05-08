@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node & Bun
         uses: actions/setup-node@v6
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # NEU: Dummy .env erstellen, damit Docker nicht crashed
       - name: Create dummy .env for smoke test
@@ -67,7 +67,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Smoke Build Landingpage
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: false
@@ -78,7 +78,7 @@ jobs:
             VITE_TWITCH_CLIENT_ID=fake_value
 
       - name: Smoke Build TwitchAddon
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: TwitchAddon/Dockerfile

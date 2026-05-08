@@ -181,7 +181,7 @@ export default defineConfig({
           if (nid.includes('/node_modules/')) {
             // Precise matching per package folder to avoid accidental substring matches
             if (/\/node_modules\/(react|react-dom)(\/|$)/.test(nid)) return 'vendor-react'
-            if (/\/node_modules\/framer-motion(\/|$)/.test(nid)) return 'vendor-framer-motion'
+            if (/\/(node_modules\/)(framer-motion|motion)(\/|$)/.test(nid)) return 'vendor-motion'
             if (/\/node_modules\/@supabase(\/|$)/.test(nid)) return 'vendor-supabase'
             if (/\/node_modules\/(i18next|react-i18next|i18next-browser-languagedetector)(\/|$)/.test(nid)) return 'vendor-i18n'
             if (/\/node_modules\/react-router-dom(\/|$)/.test(nid)) return 'vendor-router'
