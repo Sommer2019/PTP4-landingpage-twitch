@@ -1,0 +1,265 @@
+name: Integrated CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - dev
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── 1. Versionsberechnung ──────────────────────────────────────────
+  compute-version:
+    if: github.ref_name == 'main' || github.ref_name == 'master' || github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
+    steps:
+      - name: Checkout code (full history)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: semver
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | grep -vE '\-' | sort -V | tail -1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+            COMMITS=$(git log --format="%s%n%b%n")
+          else
+            COMMITS=$(git log "${LATEST_TAG}..HEAD" --format="%s%n%b%n")
+          fi
+          VERSION="${LATEST_TAG#v}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          BUMP="patch"
+          if echo "$COMMITS" | grep -qE '^[a-zA-Z]+(\([^)]*\))?!:|BREAKING CHANGE|BREAKING[[:space:]]|\bBREAK[A-Z]'; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qE '^feat(\([^)]*\))?:'; then
+            BUMP="minor"
+          fi
+          if [ "$BUMP" = "major" ]; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          echo "version=${MAJOR}.${MINOR}.${PATCH}" >> "$GITHUB_OUTPUT"
+
+  # ─── 2. Validierung & Security (JS/TS Focused) ──────────────────────
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node & Bun
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Landingpage Validierung
+        run: |
+          npm ci
+          npm run lint
+          npx tsc -b
+          npm run test
+
+      - name: DiscordBot Validierung
+        working-directory: DiscordBot
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npx tsc --noEmit
+
+      - name: TwitchAddon Validierung
+        working-directory: TwitchAddon
+        run: |
+          bun install
+          bun build index.ts --target=bun --outfile /tmp/twitch-smoke.js
+
+      # --- Security Scans für Node.js/TypeScript ---
+      - name: NPM Audit (Check for vulnerabilities)
+        run: npm audit --audit-level=high
+
+      - name: Retire.js Scan (OWASP JS Security Tool)
+        run: |
+          npm install -g retire
+          retire --path . --outputformat json --outputpath reports/retire-report.json --severity high
+        continue-on-error: true # Verhindert Abbruch, falls du nur Warnungen willst
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: security-reports
+          path: reports/
+
+  # ─── 3. TwitchAddon EXE Build & Release ─────────────────────────────
+  release-twitchaddon:
+    needs: [validate, compute-version]
+    if: github.ref_name == 'main' || github.ref_name == 'master' || github.ref_name == 'dev'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Get Twitch OAuth Access Token
+        id: get_oauth
+        shell: bash
+        run: |
+          RESPONSE=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
+            -d "client_id=${{ secrets.VITE_TWITCH_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.TWITCH_CLIENT_SECRET }}" \
+            -d "grant_type=refresh_token" \
+            -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      - name: Create .env
+        shell: bash
+        run: |
+          printf 'SUPABASE_URL=%s\n'          "${{ secrets.VITE_SUPABASE_URL }}"      > TwitchAddon/.env
+          printf 'SUPABASE_API_KEY=%s\n'      "${{ secrets.SUPABASE_API_KEY }}"       >> TwitchAddon/.env
+          printf 'TWITCH_OAUTH_TOKEN=%s\n'    "${{ env.TWITCH_OAUTH_TOKEN }}"         >> TwitchAddon/.env
+          printf 'TWITCH_CLIENT_ID=%s\n'      "${{ secrets.VITE_TWITCH_CLIENT_ID }}"  >> TwitchAddon/.env
+          printf 'TWITCH_CLIENT_SECRET=%s\n'  "${{ secrets.TWITCH_CLIENT_SECRET }}"   >> TwitchAddon/.env
+          printf 'CHANNEL_NAME=%s\n'          "${{ secrets.CHANNEL_NAME }}"           >> TwitchAddon/.env
+          printf 'TWITCH_REFRESH_TOKEN=%s\n'  "${{ secrets.TWITCH_REFRESH_TOKEN }}"   >> TwitchAddon/.env
+          printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
+          printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
+
+      - name: Build EXEs
+        run: |
+          bun build --compile --target=bun-windows-x64 TwitchAddon/index.ts --outfile TwitchAddon/dist/TwitchAddon.exe
+          bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
+
+      - name: Package Release
+        shell: pwsh
+        run: |
+          $suffix = if ("${{ github.ref_name }}" -eq "dev") { "PreRelease" } else { "Release" }
+          $dist = "TwitchAddon\dist\TwitchAddon-$suffix.zip"
+          Compress-Archive -Path "TwitchAddon\dist\TwitchAddon.exe", "TwitchAddon\.env", "TwitchAddon\overlay.html" -DestinationPath $dist -Force
+          Compress-Archive -Path "TwitchAddon\extension\*", "TwitchAddon\media\*" -Update -DestinationPath $dist
+          Compress-Archive -Path "TwitchAddon\extension\*" -DestinationPath "TwitchAddon\dist\extension.zip" -Force
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name == 'dev' && format('v{0}-dev.{1}', needs.compute-version.outputs.version, github.run_number) || format('v{0}', needs.compute-version.outputs.version) }}
+          name: "TwitchAddon ${{ needs.compute-version.outputs.version }}${{ github.ref_name == 'dev' && '-dev' || '' }}"
+          prerelease: ${{ github.ref_name == 'dev' }}
+          body: |
+            ${{ github.ref_name == 'dev' && '⚠️ **Pre-Release** – Build vom dev-Branch.' || '🚀 **Stabiler Release**' }}
+            Commit: ${{ github.sha }}
+          files: |
+            TwitchAddon/dist/*.zip
+            setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── 4. Docker Images ───────────────────────────────────────────────
+  docker:
+    needs: [validate, compute-version]
+    if: always() && (needs.validate.result == 'success')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - context: .
+            file: Dockerfile
+            image: ghcr.io/${{ github.repository }}
+          - context: .
+            file: TwitchAddon/Dockerfile
+            image: ghcr.io/${{ github.repository }}/twitchaddon
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Create dummy .env for Build Check
+        run: touch TwitchAddon/.env
+      - name: Log in to GHCR
+        if: github.ref_name == 'main' || github.ref_name == 'master' || github.ref_name == 'dev'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' || github.ref_name == 'master' }}
+            type=raw,value=v${{ needs.compute-version.outputs.version }},enable=${{ github.ref_name == 'main' || github.ref_name == 'master' }}
+            type=raw,value=dev,enable=${{ github.ref_name == 'dev' }}
+            type=raw,value=v${{ needs.compute-version.outputs.version }}-dev,enable=${{ github.ref_name == 'dev' }}
+            type=sha,prefix=sha-
+      - name: Build and Push
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: ${{ github.ref_name == 'main' || github.ref_name == 'master' || github.ref_name == 'dev' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
+
+  # ─── 5. Deployment Landingpage (Nur Main/Master) ─────────────────────
+  deploy-pages:
+    needs: validate
+    if: github.ref_name == 'main' || github.ref_name == 'master'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Build
+        run: |
+          npm ci
+          npx vite build
+          cp dist/index.html dist/404.html
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
+          VITE_CHANNEL_NAME: ${{ secrets.CHANNEL_NAME }}
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
