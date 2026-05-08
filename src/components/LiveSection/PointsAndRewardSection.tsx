@@ -193,8 +193,8 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
     }
 
     // Beschreibung bestimmen
-    let descriptionToInsert: string | undefined = undefined;
-    let ttsToSend: string | null = null;
+    let descriptionToInsert: string | undefined;
+    let ttsToSend: string | null;
     if (reward.istts) {
       if (reward.text) {
         // Wenn vordefinierter Text, diesen verwenden
