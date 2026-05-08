@@ -104,8 +104,9 @@ jobs:
       - name: Retire.js Scan (OWASP JS Security Tool)
         run: |
           npm install -g retire
+          mkdir -p reports
           retire --path . --outputformat json --outputpath reports/retire-report.json --severity high
-        continue-on-error: true # Verhindert Abbruch, falls du nur Warnungen willst
+        continue-on-error: false
 
       - name: Upload Security Report
         uses: actions/upload-artifact@v7
