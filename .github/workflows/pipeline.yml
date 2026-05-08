@@ -156,6 +156,14 @@ jobs:
         run: |
           bun build --compile --target=bun-windows-x64 TwitchAddon/index.ts --outfile TwitchAddon/dist/TwitchAddon.exe
           bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
+        env:
+          # Ohne das hier sind die Variablen NICHT in der EXE "baked-in"
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
+          TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
+          CHANNEL_NAME: ${{ secrets.CHANNEL_NAME }}
 
       - name: Package Release
         shell: pwsh
@@ -235,6 +243,12 @@ jobs:
             VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
+            SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}
+            TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
+            TWITCH_CLIENT_SECRET=${{ secrets.TWITCH_CLIENT_SECRET }}
+            CHANNEL_NAME=${{ secrets.CHANNEL_NAME }}
+            TWITCH_REFRESH_TOKEN=${{ secrets.TWITCH_REFRESH_TOKEN }}
 
   # ─── 5. Deployment Landingpage (Nur Main/Master) ─────────────────────
   deploy-pages:
