@@ -309,7 +309,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "🚨 Pipeline Error in ${{ github.repository }}"
           to: ${{ secrets.MAIL_TO_LIST }}
-          from: GitHub CI Bot
+          from: "GitHub Pipeline <${{ secrets.MAIL_USERNAME }}>"
           body: |
             Hallo,
             
