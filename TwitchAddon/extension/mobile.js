@@ -189,6 +189,11 @@ function openReward(id) {
     document.getElementById('backBtn').addEventListener('click', backToList);
     document.getElementById('redeemBtn').addEventListener('click', handleRedeem);
 
+    // Beim Aufklappen einer Belohnung nach oben scrollen
+    const scrollArea = document.querySelector('.scroll-area');
+    if (scrollArea) scrollArea.scrollTop = 0;
+    window.scrollTo(0, 0);
+
     if (userPoints < r.cost) {
         const btn = document.getElementById('redeemBtn');
         btn.disabled = true;
