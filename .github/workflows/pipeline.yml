@@ -294,3 +294,30 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+    # ─── 6. Benachrichtigung bei Fehlern ────────────────────────────────
+  notify-failure:
+    needs: [compute-version, validate, release-twitchaddon, docker, deploy-pages]
+    if: failure() # Wichtig: Triggert nur, wenn ein "needed" Job failed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sende E-Mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "🚨 Pipeline Error in ${{ github.repository }}"
+          to: deine-email@beispiel.de
+          from: GitHub CI Bot
+          body: |
+            Hallo,
+            
+            die Integrated CI/CD Pipeline ist fehlgeschlagen!
+            
+            - Repository: ${{ github.repository }}
+            - Branch: ${{ github.ref_name }}
+            - Verursacht durch: ${{ github.actor }}
+            
+            Den genauen Fehler kannst du hier einsehen:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
