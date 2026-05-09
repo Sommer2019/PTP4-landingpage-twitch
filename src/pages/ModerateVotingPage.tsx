@@ -33,9 +33,12 @@ export default function ModerateVotingPage() {
         setBusy(true)
         const {data, error} = await supabase.rpc(fn)
         setBusy(false)
-        const result = data as { error?: string; success?: boolean } | null
+        const result = data as { error?: string; success?: boolean; deleted?: number } | null
         if (error || result?.error) showToast(`❌ ${error?.message ?? result?.error}`)
-        else {
+        else if (fn === 'admin_cleanup_clips') {
+            showToast(`✅ ${t('moderate.cleanupClipsResult', {count: result?.deleted ?? 0})}`)
+            setRefreshKey((k) => k + 1)
+        } else {
             showToast(`✅ ${fn} ${t('moderate.success')}`);
             setRefreshKey((k) => k + 1)
         }
@@ -73,6 +76,8 @@ export default function ModerateVotingPage() {
                         onClick={() => callRpc('admin_start_yearly')}>🏆 {t('moderate.startYearly')}</button>
                 <button className="btn btn-primary" disabled={busy || !hasActiveYearly}
                         onClick={() => callRpc('admin_end_yearly')}>🏁 {t('moderate.endYearly')}</button>
+                <button className="btn btn-primary" disabled={busy}
+                        onClick={() => callRpc('admin_cleanup_clips')}>🧹 {t('moderate.cleanupClips')}</button>
             </div>
 
             {/* ── Round overview ── */}
