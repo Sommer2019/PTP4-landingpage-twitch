@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits, TextChannel } from 'discord.js';
 import express, { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
+import { buildRoundMessage, isAuthorized, parsePort, type RoundEndpoint } from './lib';
 
 dotenv.config();
 
@@ -11,8 +12,7 @@ app.use(express.json());
 
 // Middleware zum Prüfen des API-Keys
 app.use((req: Request, res: Response, next: express.NextFunction) => {
-    const userKey = req.headers['x-api-key'];
-    if (userKey === SUPABASE_SERVICE_ROLE_KEY) {
+    if (isAuthorized(req.headers['x-api-key'], SUPABASE_SERVICE_ROLE_KEY)) {
         next();
     } else {
         res.status(401).send('Nicht autorisiert!');
@@ -26,7 +26,7 @@ const client = new Client({
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
-const PORT: number = parseInt(process.env.PORT || '3000', 10);
+const PORT: number = parsePort(process.env.PORT);
 
 const sendDiscordMessage = async (message: string) => {
     try {
@@ -41,35 +41,19 @@ const sendDiscordMessage = async (message: string) => {
 
 // --- API Endpunkte ---
 
-app.post('/start-runde-1', (_req: Request, res: Response) => {
-    sendDiscordMessage("🚀 **Clip des Monats Runde 1 hat begonnen!** Jetzt abstimmen! https://hd1920x1080.de/clipdesmonats");
-    res.status(200).send({ status: 'Gesendet' });
-});
+function registerRoundEndpoint(endpoint: RoundEndpoint) {
+    app.post(`/${endpoint}`, (_req: Request, res: Response) => {
+        sendDiscordMessage(buildRoundMessage(endpoint));
+        res.status(200).send({ status: 'Gesendet' });
+    });
+}
 
-app.post('/ende-runde-1', (_req: Request, res: Response) => {
-    sendDiscordMessage("🏁 **Clip des Monats Runde 1 ist beendet.** Die Ergebnisse werden ausgewertet! https://hd1920x1080.de/clipdesmonats");
-    res.status(200).send({ status: 'Gesendet' });
-});
-
-app.post('/start-runde-2', (_req: Request, res: Response) => {
-    sendDiscordMessage("🔥 **Clip des Monats Runde 2 startet jetzt!** Hier abstimmen und die besten Clips küren! https://hd1920x1080.de/clipdesmonats");
-    res.status(200).send({ status: 'Gesendet' });
-});
-
-app.post('/ende-runde-2', (_req: Request, res: Response) => {
-    sendDiscordMessage("🛑 **Clip des Monats Runde 2 ist vorbei.** Vielen Dank fürs Mitmachen! https://hd1920x1080.de/clipdesmonats");
-    res.status(200).send({ status: 'Gesendet' });
-});
-
-app.post('/start-jahr', (_req: Request, res: Response) => {
-    sendDiscordMessage("🌟 **Das Clip des Jahres Voting beginnt!** Ein Rückblick der Superlative. https://hd1920x1080.de/clipdesmonats");
-    res.status(200).send({ status: 'Gesendet' });
-});
-
-app.post('/ende-jahr', (_req: Request, res: Response) => {
-    sendDiscordMessage("🏆 **Das Clip des Jahres Voting ist abgeschlossen!** Die Legenden stehen fest. https://hd1920x1080.de/clipdesmonats");
-    res.status(200).send({ status: 'Gesendet' });
-});
+registerRoundEndpoint('start-runde-1');
+registerRoundEndpoint('ende-runde-1');
+registerRoundEndpoint('start-runde-2');
+registerRoundEndpoint('ende-runde-2');
+registerRoundEndpoint('start-jahr');
+registerRoundEndpoint('ende-jahr');
 
 // Health-Check — muss vor client.login registriert sein, damit der Server sofort antwortet
 app.get('/', (_req: Request, res: Response) => {

@@ -260,6 +260,8 @@
     "endRound2": "Runde 2 beende",
     "startYearly": "Jahres-Voting starte",
     "endYearly": "Jahres-Voting beende",
+    "cleanupClips": "Alti Clips ufruume",
+    "cleanupClipsResult": "{{count}} alti Clips glöscht",
     "success": "erfolgriich",
     "roundOverview": "Runde-Überblick",
     "noRounds": "No keini Voting-Runde vorhande.",
