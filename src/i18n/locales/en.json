@@ -272,6 +272,8 @@
     "endRound2": "End Round 2",
     "startYearly": "Start Yearly Voting",
     "endYearly": "End Yearly Voting",
+    "cleanupClips": "Clean up old clips",
+    "cleanupClipsResult": "{{count}} old clips deleted",
     "success": "successful",
     "roundOverview": "Round Overview",
     "noRounds": "No voting rounds yet.",

@@ -272,6 +272,8 @@
     "endRound2": "Runde 2 beenden",
     "startYearly": "Jahres-Voting starten",
     "endYearly": "Jahres-Voting beenden",
+    "cleanupClips": "Alte Clips aufräumen",
+    "cleanupClipsResult": "{{count}} alte Clips gelöscht",
     "success": "erfolgreich",
     "roundOverview": "Runden-Übersicht",
     "noRounds": "Noch keine Voting-Runden vorhanden.",

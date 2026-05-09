@@ -11,7 +11,7 @@ import type {
 } from '../types/clipVoting'
 
 /* ── UI-Phase aus den DB-Daten ableiten ── */
-function derivePhase(
+export function derivePhase(
   active: VotingRound | null,
   pending: VotingRound | null,
   completed: VotingRound | null,
