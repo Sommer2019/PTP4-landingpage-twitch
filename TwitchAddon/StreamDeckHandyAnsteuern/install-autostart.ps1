@@ -13,6 +13,35 @@ if (-not (Test-Path $target)) {
     Write-Error "start-controll-mobile.vbs nicht gefunden unter: $target"
 }
 
+# ADB-Check: Bridge braucht adb im PATH. Sonst per winget Google PlatformTools installieren.
+if (-not (Get-Command adb -ErrorAction SilentlyContinue)) {
+    Write-Host "adb nicht gefunden im PATH." -ForegroundColor Yellow
+
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Error "winget ist nicht verfuegbar. Bitte adb (Android Platform Tools) manuell installieren: https://developer.android.com/tools/releases/platform-tools"
+    }
+
+    Write-Host "Installiere Google.PlatformTools per winget..." -ForegroundColor Cyan
+    winget install --id Google.PlatformTools --exact --silent `
+        --accept-source-agreements --accept-package-agreements
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "winget-Installation fehlgeschlagen (Exit-Code $LASTEXITCODE). Bitte adb manuell installieren."
+    }
+
+    # PATH der laufenden Session refreshen, damit der Re-Check unten greift.
+    $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
+                [Environment]::GetEnvironmentVariable('Path', 'User')
+
+    if (-not (Get-Command adb -ErrorAction SilentlyContinue)) {
+        Write-Host "adb wurde installiert, ist aber in dieser Shell noch nicht im PATH." -ForegroundColor Yellow
+        Write-Host "Nach naechstem Login bzw. neuer PowerShell-Session sollte 'adb' auffindbar sein." -ForegroundColor Yellow
+    } else {
+        Write-Host "adb erfolgreich installiert: $((Get-Command adb).Source)" -ForegroundColor Green
+    }
+} else {
+    Write-Host "adb gefunden: $((Get-Command adb).Source)" -ForegroundColor Green
+}
+
 $wsh = New-Object -ComObject WScript.Shell
 $sc  = $wsh.CreateShortcut($shortcut)
 $sc.TargetPath       = $target
