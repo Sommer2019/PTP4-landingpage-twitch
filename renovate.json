@@ -8,12 +8,14 @@
   "dependencyDashboard": true,
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
+  "assignees": ["Sommer2019"],
+  "reviewers": ["Sommer2019"],
   "postUpdateOptions": ["npmDedupe"],
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
-      "automergeType": "branch",
+      "automergeType": "pr",
       "platformAutomerge": true
     },
     {

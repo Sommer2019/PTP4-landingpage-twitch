@@ -211,6 +211,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Get Twitch OAuth Access Token for Docker
+        id: get_oauth_docker
+        shell: bash
+        run: |
+          RESPONSE=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
+            -d "client_id=${{ secrets.VITE_TWITCH_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.TWITCH_CLIENT_SECRET }}" \
+            -d "grant_type=refresh_token" \
+            -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
       - name: Create dummy .env for Build Check
         run: touch TwitchAddon/.env
       - name: Log in to GHCR
@@ -240,16 +254,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-            VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
             SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}
             TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
             TWITCH_CLIENT_SECRET=${{ secrets.TWITCH_CLIENT_SECRET }}
             CHANNEL_NAME=${{ secrets.CHANNEL_NAME }}
             TWITCH_REFRESH_TOKEN=${{ secrets.TWITCH_REFRESH_TOKEN }}
-
+            TWITCH_OAUTH_TOKEN=${{ env.TWITCH_OAUTH_TOKEN }}
   # ─── 5. Deployment Landingpage (Nur Main/Master) ─────────────────────
   deploy-pages:
     needs: validate
@@ -283,3 +294,30 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+  # ─── 6. Benachrichtigung bei Fehlern ────────────────────────────────
+  notify-failure:
+    needs: [compute-version, validate, release-twitchaddon, docker, deploy-pages]
+    if: failure() # Wichtig: Triggert nur, wenn ein "needed" Job failed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sende E-Mail
+        uses: dawidd6/action-send-mail@v17
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "🚨 Pipeline Error in ${{ github.repository }}"
+          to: ${{ secrets.MAIL_TO_LIST }}
+          from: "GitHub Pipeline <${{ secrets.MAIL_USERNAME }}>"
+          body: |
+            Hallo,
+            
+            die Integrated CI/CD Pipeline ist fehlgeschlagen!
+            
+            - Repository: ${{ github.repository }}
+            - Branch: ${{ github.ref_name }}
+            - Verursacht durch: ${{ github.actor }}
+            
+            Den genauen Fehler kannst du hier einsehen:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
