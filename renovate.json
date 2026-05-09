@@ -8,6 +8,7 @@
   "dependencyDashboard": true,
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
+  "assignees": ["Sommer2019"],
   "postUpdateOptions": ["npmDedupe"],
   "packageRules": [
     {
