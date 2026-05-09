@@ -294,7 +294,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
-    # ─── 6. Benachrichtigung bei Fehlern ────────────────────────────────
+  # ─── 6. Benachrichtigung bei Fehlern ────────────────────────────────
   notify-failure:
     needs: [compute-version, validate, release-twitchaddon, docker, deploy-pages]
     if: failure() # Wichtig: Triggert nur, wenn ein "needed" Job failed
@@ -308,7 +308,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "🚨 Pipeline Error in ${{ github.repository }}"
-          to: deine-email@beispiel.de
+          to: ${{ secrets.MAIL_TO_LIST }}
           from: GitHub CI Bot
           body: |
             Hallo,
