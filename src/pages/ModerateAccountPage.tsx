@@ -144,7 +144,10 @@ export default function ModerateAccountPage() {
 
   const fetchRewards = useCallback(async () => {
     const { data, error } = await supabase.from('rewards').select('*')
-    if (error) return null
+    if (error) {
+      console.warn('[ModerateAccountPage] fetchRewards failed:', error)
+      return null
+    }
     return (data ?? []) as Reward[]
   }, [])
 
@@ -313,13 +316,32 @@ export default function ModerateAccountPage() {
       const upsertData = { ...rewardForm }
       if (rewardEdit?.id) upsertData.id = rewardEdit.id
 
-      const { error } = await supabase.from('rewards').upsert([upsertData])
+      const { data: upserted, error } = await supabase
+          .from('rewards')
+          .upsert([upsertData])
+          .select()
       if (error) throw new Error(getErrorMessage(error))
 
       showToast(t('moderate.rewardSaved'))
       setRewardEdit(null)
       setRewardForm(DEFAULT_REWARD)
       setRewardModalOpen(false)
+
+      // Lokalen State direkt aus der Upsert-Antwort updaten, damit die Liste
+      // auch dann sofort aktualisiert, wenn der nachfolgende SELECT (Cache/RLS)
+      // hakt. Refetch laeuft weiter als Sync, blockiert aber nicht.
+      if (upserted && upserted.length > 0) {
+        setRewards((prev) => {
+          const next = [...prev]
+          for (const row of upserted as Reward[]) {
+            if (!row.id) continue
+            const idx = next.findIndex((r) => r.id === row.id)
+            if (idx >= 0) next[idx] = row
+            else next.push(row)
+          }
+          return next
+        })
+      }
 
       const updatedRewards = await fetchRewards()
       if (updatedRewards) setRewards(updatedRewards)
