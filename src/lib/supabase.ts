@@ -15,49 +15,32 @@ const validKey = supabaseAnonKey || 'placeholder'
 // Mod-Aenderungen (Rewards aktivieren/deaktivieren, neuer Reward) erst nach
 // "Cookies & Websitedaten loeschen" auf.
 //
-// `cache: 'no-store'` allein reicht nicht — manche Browser (Safari/Firefox)
-// bedienen GETs trotzdem aus dem Disk-Cache, wenn die Antwort keine
-// expliziten no-store-Header hat. Daher zusaetzlich:
-//   1. URL-Cachebuster (`_t=<timestamp>`) → eindeutiger Cache-Key pro Request
-//   2. Request-Header `Cache-Control: no-cache, no-store, must-revalidate`
-//      und `Pragma: no-cache` → erzwingt Revalidierung beim Origin
+// Nur GETs (string-URL) bekommen einen URL-Cachebuster + no-cache-Header,
+// damit Browser/Disk-Cache zwingend revalidieren. POST/PUT/PATCH (Insert/
+// Update/RPC, Auth) lassen wir unangetastet — Request-Bodies als Stream
+// lassen sich nicht zuverlaessig umpacken.
 // Realtime laeuft via WebSocket und ist davon nicht betroffen.
 const noCacheFetch: typeof fetch = (input, init) => {
-  // URL extrahieren, egal ob string | URL | Request
-  let url: string
-  let baseInit: RequestInit | undefined = init
-  if (typeof input === 'string') {
-    url = input
-  } else if (input instanceof URL) {
-    url = input.href
-  } else {
-    url = input.url
-    // Bei Request-Objekt init aus dem Request uebernehmen, falls nicht ueberschrieben
-    if (!baseInit) {
-      baseInit = {
-        method: input.method,
-        headers: input.headers,
-        body: input.body,
-        credentials: input.credentials,
-        mode: input.mode,
-        redirect: input.redirect,
-        referrer: input.referrer,
-        integrity: input.integrity,
-      }
-    }
+  const method = (init?.method ?? 'GET').toUpperCase()
+  const isGet = method === 'GET' && (typeof input === 'string' || input instanceof URL)
+
+  if (!isGet) {
+    // Nicht-GET: nur cache-mode setzen, keine URL/Header anfassen.
+    return fetch(input, { ...init, cache: 'no-store' })
   }
 
-  const sep = url.includes('?') ? '&' : '?'
-  const bustedUrl = `${url}${sep}_t=${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  const baseUrl = typeof input === 'string' ? input : (input as URL).href
+  const sep = baseUrl.includes('?') ? '&' : '?'
+  const bustedUrl = `${baseUrl}${sep}_t=${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
-  const mergedHeaders = new Headers(baseInit?.headers)
-  mergedHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-  mergedHeaders.set('Pragma', 'no-cache')
+  const headers = new Headers(init?.headers)
+  headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  headers.set('Pragma', 'no-cache')
 
   return fetch(bustedUrl, {
-    ...baseInit,
+    ...init,
     cache: 'no-store',
-    headers: mergedHeaders,
+    headers,
   })
 }
 
