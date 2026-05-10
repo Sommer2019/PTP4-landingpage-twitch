@@ -15,29 +15,20 @@ const validKey = supabaseAnonKey || 'placeholder'
 // Mod-Aenderungen (Rewards aktivieren/deaktivieren, neuer Reward) erst nach
 // "Cookies & Websitedaten loeschen" auf.
 //
-// Nur GETs (string-URL) bekommen einen URL-Cachebuster + no-cache-Header,
-// damit Browser/Disk-Cache zwingend revalidieren. POST/PUT/PATCH (Insert/
-// Update/RPC, Auth) lassen wir unangetastet — Request-Bodies als Stream
-// lassen sich nicht zuverlaessig umpacken.
+// PostgREST behandelt unbekannte Query-Params als Spaltenfilter, d.h. ein
+// URL-Cachebuster (z.B. `_t=...`) ist nicht moeglich. Wir setzen daher
+// ausschliesslich:
+//   - `cache: 'no-store'`   → Fetch-API-Bypass des HTTP-Caches
+//   - `Cache-Control` und `Pragma` Request-Header → erzwingen Revalidierung
 // Realtime laeuft via WebSocket und ist davon nicht betroffen.
 const noCacheFetch: typeof fetch = (input, init) => {
-  const method = (init?.method ?? 'GET').toUpperCase()
-  const isGet = method === 'GET' && (typeof input === 'string' || input instanceof URL)
-
-  if (!isGet) {
-    // Nicht-GET: nur cache-mode setzen, keine URL/Header anfassen.
-    return fetch(input, { ...init, cache: 'no-store' })
-  }
-
-  const baseUrl = typeof input === 'string' ? input : (input as URL).href
-  const sep = baseUrl.includes('?') ? '&' : '?'
-  const bustedUrl = `${baseUrl}${sep}_t=${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-
   const headers = new Headers(init?.headers)
-  headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-  headers.set('Pragma', 'no-cache')
+  if (!headers.has('Cache-Control')) {
+    headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  }
+  if (!headers.has('Pragma')) headers.set('Pragma', 'no-cache')
 
-  return fetch(bustedUrl, {
+  return fetch(input, {
     ...init,
     cache: 'no-store',
     headers,
