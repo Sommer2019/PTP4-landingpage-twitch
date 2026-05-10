@@ -11,4 +11,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const validUrl = supabaseUrl || 'https://placeholder.supabase.co'
 const validKey = supabaseAnonKey || 'placeholder'
 
-export const supabase = createClient(validUrl, validKey)
+// Browser darf REST-Antworten von Supabase NICHT cachen — sonst zeigen
+// Mod-Aenderungen (Rewards aktivieren/deaktivieren, neuer Reward) erst nach
+// "Cookies & Websitedaten loeschen" auf. Custom fetch zwingt no-store.
+const noCacheFetch: typeof fetch = (input, init) =>
+    fetch(input, { ...init, cache: 'no-store' })
+
+export const supabase = createClient(validUrl, validKey, {
+  global: { fetch: noCacheFetch },
+})
