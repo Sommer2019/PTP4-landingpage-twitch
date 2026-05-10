@@ -312,7 +312,6 @@ export function useBartclickerGame() {
 
     // Verhindere mehrfache simultane Loads
     if (isLoadingRef.current) {
-      console.log('Load already in progress, skipping duplicate request');
       return;
     }
 
@@ -335,7 +334,6 @@ export function useBartclickerGame() {
 
       // Prüfe ob dieser Request abgebrochen wurde
       if (signal.aborted) {
-        console.log('Load request was cancelled');
         isLoadingRef.current = false;
         return;
       }
@@ -343,8 +341,6 @@ export function useBartclickerGame() {
       if (error) {
         // PGRST116 = keine Zeilen gefunden (erwartet für neue Nutzer)
         if (error.code === 'PGRST116') {
-          console.log('Neuer Nutzer erkannt, Spielstand wird initialisiert');
-          
           const initialState: BartclickerGameState = {
             user_id: userId,
             energy: 0,
@@ -382,7 +378,6 @@ export function useBartclickerGame() {
               auto_click_buyer_unlocked: false,
               click_upgrade_buyer_unlocked: false,
             }, { onConflict: 'user_id' });
-            console.log('Initial game state saved successfully');
           } catch (upsertErr) {
             console.error('Failed to create initial game state:', upsertErr);
             // State wird trotzdem gesetzt - Daten sind lokal vorhanden
@@ -480,20 +475,17 @@ export function useBartclickerGame() {
   // Spielstand in der Datenbank speichern
   const saveGameState = useCallback(async () => {
     if (!userId) {
-      console.log('No user ID, skipping save');
       return;
     }
 
     // Verhindere Speichern während eines Load läuft - das löscht die Daten!
     if (isLoadingRef.current) {
-      console.log('Load in progress, deferring save');
       return;
     }
 
     try {
       // Vermeide Speichern von leeren/unvollständigen Daten
       if (!gameState.user_id) {
-        console.log('Game state incomplete, skipping save');
         return;
       }
 
@@ -520,8 +512,6 @@ export function useBartclickerGame() {
 
       if (error) {
         console.error('Error saving game state:', error);
-      } else {
-        console.log('Game state saved successfully');
       }
     } catch (err) {
       console.error('Failed to save game state:', err);

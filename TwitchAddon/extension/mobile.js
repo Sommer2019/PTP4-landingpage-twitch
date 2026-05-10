@@ -1,7 +1,11 @@
-let EBS_BASE_URL = '';
-let SUPABASE_URL = '';
-let SUPABASE_ANON = '';
-let PRIVACY_URL = '';
+// ── Build-time Konfiguration ─────────────────────────────────────────────
+// Diese Sentinels werden in der CI-Pipeline (.github/workflows/pipeline.yml,
+// Job release-twitchaddon, Step "Inject extension config") aus GitHub-Secrets
+// durch die echten Werte ersetzt, bevor extension.zip gepackt wird.
+const EBS_BASE_URL  = '__EBS_BASE_URL__';
+const SUPABASE_URL  = '__SUPABASE_URL__';
+const SUPABASE_ANON = '__SUPABASE_ANON__';
+const PRIVACY_URL   = '__PRIVACY_URL__';
 
 let viewerUserId = null;
 let viewerJwt = null;
@@ -24,29 +28,6 @@ function setRedeemStatus(msg, type) {
 function updateFooterPoints(pts) {
     const el = document.getElementById('pointsDisplay');
     if (el) el.textContent = (pts !== null && pts !== undefined) ? fmt(pts) : '–';
-}
-
-function loadRuntimeConfig() {
-    EBS_BASE_URL = '';
-    SUPABASE_URL = '';
-    SUPABASE_ANON = '';
-    PRIVACY_URL = '';
-
-    try {
-        const extConfig = window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration;
-        const broadcasterConfig = extConfig && extConfig.broadcaster;
-        const content = broadcasterConfig && broadcasterConfig.content;
-        if (!content) return;
-        const cfg = JSON.parse(content);
-        const ebsBaseUrl = (cfg.ebsUrl || '').trim();
-        const supabaseUrl = (cfg.supabaseUrl || '').trim();
-        const supabaseAnon = (cfg.supabaseKey || '').trim();
-        const privacyUrl = (cfg.privacyUrl || '').trim();
-        EBS_BASE_URL = ebsBaseUrl;
-        SUPABASE_URL = supabaseUrl;
-        SUPABASE_ANON = supabaseAnon;
-        PRIVACY_URL = privacyUrl;
-    } catch (e) {}
 }
 
 function applyPrivacyLink() {
@@ -95,10 +76,6 @@ function sbGet(table, qs) {
 
 // Loaders
 function loadMyPoints(uid, jwt) {
-    if (!EBS_BASE_URL) {
-        updateFooterPoints(null);
-        return;
-    }
     const headers = {};
     if (jwt) headers['x-extension-jwt'] = jwt;
     fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid), { headers: headers })
@@ -117,10 +94,6 @@ function loadMyPoints(uid, jwt) {
 
 function loadLeaderboard() {
     const el = document.getElementById('leaderboardList');
-    if (!EBS_BASE_URL) {
-        el.innerHTML = '<div class="status-msg">Backend-URL im Konfig-Tab setzen.</div>';
-        return;
-    }
     fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
         .then(function(res) { return res.json(); })
         .then(function(data) {
@@ -138,10 +111,6 @@ function loadLeaderboard() {
 }
 
 function loadRewards() {
-    if (!EBS_BASE_URL) {
-        document.getElementById('rewardsArea').innerHTML = '<div class="status-msg">Backend-URL im Konfig-Tab setzen.</div>';
-        return;
-    }
     fetch(EBS_BASE_URL + '/api/rewards')
         .then(function(res) { return res.json(); })
         .then(function(data) {
@@ -331,7 +300,6 @@ window.Twitch.ext.onAuthorized(function(auth) {
         window.Twitch.ext.actions.requestIdShare();
     }
 
-    loadRuntimeConfig();
     applyPrivacyLink();
     loadLeaderboard();
     if (!selectedId) loadRewards();
@@ -339,17 +307,6 @@ window.Twitch.ext.onAuthorized(function(auth) {
 
     if (allRewards.length && !selectedId) renderList();
 });
-
-if (window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration && window.Twitch.ext.configuration.onChanged) {
-    window.Twitch.ext.configuration.onChanged(function() {
-        loadRuntimeConfig();
-        applyPrivacyLink();
-        if (!selectedId) {
-            loadRewards();
-            loadLeaderboard();
-        }
-    });
-}
 
 setInterval(function() {
     loadLeaderboard();

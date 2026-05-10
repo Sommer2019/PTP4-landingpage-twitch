@@ -1,4 +1,9 @@
-var EBS_BASE_URL = '';
+// ── Build-time Konfiguration ─────────────────────────────────────────────
+// Diese Sentinels werden in der CI-Pipeline (.github/workflows/pipeline.yml,
+// Job release-twitchaddon, Step "Inject extension config") aus GitHub-Secrets
+// durch die echten Werte ersetzt, bevor extension.zip gepackt wird.
+var EBS_BASE_URL = '__EBS_BASE_URL__';
+var PRIVACY_URL  = '__PRIVACY_URL__';
 
 var broadcasterJwt = null;
 var allRewards = [];
@@ -348,75 +353,6 @@ document.getElementById('modalBackdrop').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-// ── Tab-Switching ────────────────────────────────────────────────────────
-
-var tabPanels = { rewards: 'tabRewards', settings: 'tabSettings' };
-
-document.querySelectorAll('.tab-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-    btn.classList.add('active');
-    var panelId = tabPanels[btn.dataset.tab];
-    if (panelId) document.getElementById(panelId).classList.add('active');
-  });
-});
-
-document.getElementById('saveSettingsBtn').addEventListener('click', handleSaveSettings);
-
-// ── Einstellungen laden (Twitch Configuration Service) ──────────────────
-
-function loadSettings() {
-  try {
-    var extConfig = window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration;
-    var broadcasterConfig = extConfig && extConfig.broadcaster;
-    var content = broadcasterConfig && broadcasterConfig.content;
-    if (!content) return;
-    var cfg = JSON.parse(content);
-    if (cfg.ebsUrl)      { document.getElementById('sEbsUrl').value      = cfg.ebsUrl;      EBS_BASE_URL = cfg.ebsUrl; }
-    if (cfg.supabaseUrl) { document.getElementById('sSupabaseUrl').value = cfg.supabaseUrl; }
-    if (cfg.supabaseKey) { document.getElementById('sSupabaseKey').value = cfg.supabaseKey; }
-    if (cfg.privacyUrl)  { document.getElementById('sPrivacyUrl').value  = cfg.privacyUrl; setPrivacyLink(cfg.privacyUrl); }
-  } catch(e) { /* ignorieren */ }
-}
-
-// ── Einstellungen speichern ──────────────────────────────────────────────
-
-function handleSaveSettings() {
-  var ebsUrl     = document.getElementById('sEbsUrl').value.trim();
-  var supabaseUrl = document.getElementById('sSupabaseUrl').value.trim();
-  var supabaseKey = document.getElementById('sSupabaseKey').value.trim();
-  var privacyUrl  = document.getElementById('sPrivacyUrl').value.trim();
-  var errEl = document.getElementById('settingsError');
-
-  if (!ebsUrl) { errEl.textContent = '⚠️ Backend-URL darf nicht leer sein.'; return; }
-  errEl.textContent = '';
-
-  var cfg = {};
-  if (ebsUrl)      cfg.ebsUrl      = ebsUrl;
-  if (supabaseUrl) cfg.supabaseUrl = supabaseUrl;
-  if (supabaseKey) cfg.supabaseKey = supabaseKey;
-  if (privacyUrl)  cfg.privacyUrl  = privacyUrl;
-  setPrivacyLink(privacyUrl);
-
-  var saveBtn = document.getElementById('saveSettingsBtn');
-  saveBtn.disabled = true;
-  saveBtn.textContent = 'Speichern…';
-
-  try {
-    window.Twitch.ext.configuration.set('broadcaster', '1.0', JSON.stringify(cfg));
-    // Lokale Variable sofort aktualisieren, damit Reward-CRUD die neue URL nutzt
-    EBS_BASE_URL = ebsUrl;
-    showToast('✅ Einstellungen gespeichert!', 'ok');
-    // Rewards mit neuer URL neu laden
-    loadRewards();
-  } catch(e) {
-    errEl.textContent = '❌ Fehler beim Speichern: ' + (e.message || e);
-  }
-  saveBtn.disabled = false;
-  saveBtn.textContent = '💾 Einstellungen speichern';
-}
-
 // ── Twitch-Autorisierung ─────────────────────────────────────────────────
 
 window.Twitch.ext.onAuthorized(function(auth) {
@@ -436,12 +372,9 @@ window.Twitch.ext.onAuthorized(function(auth) {
 
   document.getElementById('mainPanel').classList.add('visible');
 
-  // Gespeicherte Einstellungen laden und anwenden
-  loadSettings();
-
   loadRewards();
 });
 
-// Initiale Typ-Sektionen setzen
+// Initiale Typ-Sektionen + Privacy-Link setzen
 onTypeChange();
-setPrivacyLink('');
+setPrivacyLink(PRIVACY_URL);
