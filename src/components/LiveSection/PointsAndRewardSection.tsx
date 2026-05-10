@@ -106,17 +106,6 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         const now = Date.now();
         const cooldownMs = reward.cooldown * 1000;
         const remaining = last + cooldownMs - now;
-        // Debug-Logging für Cooldown-Check
-        console.log('[Cooldown-Check]', {
-          rewardId: selectedRewardId,
-          timestamp: data.timestamp,
-          last,
-          now,
-          cooldown: reward.cooldown,
-          cooldownMs,
-          remaining,
-          diffSec: Math.ceil(remaining / 1000)
-        });
         if (remaining > 0) {
           setCooldownActive(true);
           setCooldownRemaining(Math.ceil(remaining / 1000));

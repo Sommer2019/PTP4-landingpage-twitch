@@ -161,13 +161,11 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
         if (cancelled) return
         if (!res.ok) {
           setGame(null)
-          console.log('[CurrentGame] Fehler oder nicht live:', res.status, await res.text())
           return
         }
         const data = await res.json()
         if (!data?.isLive) {
           setGame(null)
-          console.log('[CurrentGame] Fehler oder nicht live:', data)
         } else {
           setGame({
             gameId: data.gameId,
@@ -175,7 +173,6 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
             boxArtUrl: data.boxArtUrl,
             streamTitle: data.streamTitle,
           })
-          console.log('[CurrentGame] Game gesetzt:', data)
         }
       } catch (err) {
         if (!cancelled) setGame(null)
@@ -195,12 +192,6 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
       clearInterval(interval)
     }
   }, [isLive])
-
-  // Debug-Ausgabe für Render-Entscheidung
-  if (!isLive) console.log('[CurrentGame] Render: nicht live')
-  if (loading) console.log('[CurrentGame] Render: loading')
-  if (!game) console.log('[CurrentGame] Render: kein game')
-  if (game && !game.gameName) console.log('[CurrentGame] Render: gameName fehlt')
 
   if (!isLive || loading || !game || !game.gameName) return null
 

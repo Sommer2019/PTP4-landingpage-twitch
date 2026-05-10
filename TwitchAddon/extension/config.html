@@ -16,59 +16,11 @@
   <div class="status-bar wait" id="authStatus">⏳ Warte auf Twitch-Autorisierung…</div>
 
   <div class="auth-required" id="mainPanel">
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="rewards">🎁 Rewards</button>
-      <button class="tab-btn" data-tab="settings">⚙️ Einstellungen</button>
+    <div class="toolbar">
+      <h2>🎁 Rewards</h2>
+      <button class="btn btn-primary" id="addBtn">+ Neu</button>
     </div>
-
-    <!-- Rewards tab -->
-    <div class="tab-panel active" id="tabRewards">
-      <div class="toolbar">
-        <h2>🎁 Rewards</h2>
-        <button class="btn btn-primary" id="addBtn">+ Neu</button>
-      </div>
-      <div id="rewardList"><div class="state-msg">Lade…</div></div>
-    </div>
-
-    <!-- Settings tab -->
-    <div class="tab-panel" id="tabSettings">
-
-      <div class="settings-card">
-        <div class="settings-card-title">🔗 Backend (EBS)</div>
-        <div class="form-row">
-          <label for="sEbsUrl">Backend-URL</label>
-          <input class="form-input" id="sEbsUrl" type="url" placeholder="https://dein-server.example.com">
-          <div class="settings-hint">Öffentliche HTTPS-URL deines TwitchAddon-Servers (Port 8081 via Reverse-Proxy).</div>
-        </div>
-      </div>
-
-      <div class="settings-card">
-        <div class="settings-card-title">🗄️ Supabase (optional)</div>
-        <div class="form-row">
-          <label for="sSupabaseUrl">Supabase URL</label>
-          <input class="form-input" id="sSupabaseUrl" type="url" placeholder="https://xyz.supabase.co">
-        </div>
-        <div class="form-row" style="margin-top:8px;">
-          <label for="sSupabaseKey">Supabase Anon Key</label>
-          <input class="form-input" id="sSupabaseKey" type="text" placeholder="eyJhbGci…">
-          <div class="settings-hint">Wird für Cooldown-Checks im Panel verwendet. Nur öffentlichen Anon-Key eintragen.</div>
-        </div>
-      </div>
-
-      <div class="settings-card">
-        <div class="settings-card-title">🔒 Datenschutz / Privacy</div>
-        <div class="form-row">
-          <label for="sPrivacyUrl">Datenschutz-URL</label>
-          <input class="form-input" id="sPrivacyUrl" type="url" placeholder="https://www.hd1920x1080.de/datenschutz-kanalpunkte.html">
-          <div class="settings-hint">Link zur Datenschutzerklärung im Panel und auf der Mobile-Ansicht.</div>
-        </div>
-      </div>
-
-      <div id="settingsError" style="font-size:0.78rem;color:var(--red);min-height:18px;margin-bottom:6px;"></div>
-
-      <button class="btn btn-primary" id="saveSettingsBtn" style="width:100%;">💾 Einstellungen speichern</button>
-    </div>
+    <div id="rewardList"><div class="state-msg">Lade…</div></div>
   </div>
 
   <!-- Modal: Add / Edit -->
