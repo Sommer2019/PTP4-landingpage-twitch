@@ -1,6 +1,8 @@
 // Service Worker für SPA-Routing Fallback
 // Fehlerhafte Responses werden nicht gecacht
-const CACHE_NAME = 'v1-spa-cache'
+// v2: Cross-Origin-Requests (Supabase, Twitch, ...) NIE cachen
+//     → alte v1-Caches mit gestauten API-Antworten werden beim Activate geloescht.
+const CACHE_NAME = 'v2-spa-cache'
 const NO_CACHE_URLS = ['/404.html', '/?', '/']
 
 self.addEventListener('install', (event) => {
@@ -31,6 +33,16 @@ self.addEventListener('fetch', (event) => {
 
   // Nur GET-Anfragen verarbeiten
   if (method !== 'GET') {
+    return
+  }
+
+  // Cross-Origin-Requests (Supabase REST/Realtime, Twitch-API, GitHub, ...)
+  // NIEMALS cachen oder umleiten — sonst sehen Mods DB-Aenderungen erst nach
+  // "Cookies & Websitedaten loeschen" durch. Direkt ans Netzwerk weiterreichen
+  // = SW grætscht nicht ein.
+  let requestOrigin
+  try { requestOrigin = new URL(url).origin } catch { requestOrigin = null }
+  if (requestOrigin && requestOrigin !== self.location.origin) {
     return
   }
 
