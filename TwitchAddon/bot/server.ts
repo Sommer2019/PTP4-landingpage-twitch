@@ -70,9 +70,45 @@ async function handleRedeemedRewards(req: Request, supabase: SupabaseClient): Pr
   return json({ error: 'method_not_allowed' }, 405, req)
 }
 
-async function handleRewards(req: Request, supabase: SupabaseClient): Promise<Response> {
-  if (req.method !== 'GET') return json({ error: 'method_not_allowed' }, 405, req)
-  return json(await supabase.getRewards(), 200, req)
+async function handleRewards(req: Request, supabase: SupabaseClient, extensionSecret: string): Promise<Response> {
+  if (req.method === 'GET') {
+    return json(await supabase.getRewards(), 200, req)
+  }
+
+  // Schreibzugriff (POST/PATCH/DELETE) nur für Broadcaster
+  const rawJwt = req.headers.get('x-extension-jwt')
+  if (!rawJwt) return json({ error: 'missing_jwt' }, 401, req)
+  const payload = await verifyExtensionJwt(rawJwt, extensionSecret)
+  if (!payload || payload.role !== 'broadcaster') {
+    return json({ error: 'forbidden' }, 403, req)
+  }
+
+  if (req.method === 'POST') {
+    const body = await req.json().catch(() => null) as Record<string, unknown> | null
+    if (!body) return json({ error: 'invalid_body' }, 400, req)
+    const created = await supabase.createReward(body)
+    if (!created) return json({ error: 'create_failed' }, 500, req)
+    return json(created, 201, req)
+  }
+
+  const id = queryParam(new URL(req.url), 'id')
+  if (!id) return json({ error: 'missing_id' }, 400, req)
+
+  if (req.method === 'PATCH') {
+    const body = await req.json().catch(() => null) as Record<string, unknown> | null
+    if (!body) return json({ error: 'invalid_body' }, 400, req)
+    const updated = await supabase.updateReward(id, body)
+    if (!updated) return json({ error: 'update_failed' }, 500, req)
+    return json(updated, 200, req)
+  }
+
+  if (req.method === 'DELETE') {
+    const ok = await supabase.deleteReward(id)
+    if (!ok) return json({ error: 'delete_failed' }, 500, req)
+    return json({ success: true }, 200, req)
+  }
+
+  return json({ error: 'method_not_allowed' }, 405, req)
 }
 
 async function handleRedeemCheck(req: Request, supabase: SupabaseClient): Promise<Response> {
@@ -252,7 +288,7 @@ export function startServer(supabase: SupabaseClient, bot: TwitchBot, extensionS
 
       // API-Routen
       if (path === '/api/redeemed_rewards') return handleRedeemedRewards(req, supabase)
-      if (path === '/api/rewards')           return handleRewards(req, supabase)
+      if (path === '/api/rewards')           return handleRewards(req, supabase, extensionSecret)
       if (path === '/api/redeem_check')      return handleRedeemCheck(req, supabase)
       if (path === '/api/redeem')            return handleRedeem(req, supabase, bot, extensionSecret)
       if (path === '/api/points')            return handlePoints(req, supabase, extensionSecret)

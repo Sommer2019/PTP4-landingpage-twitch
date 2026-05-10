@@ -30,7 +30,7 @@ export function corsHeaders(req: Request): Record<string, string> {
     : 'https://supervisor.ext-twitch.tv'
   return {
     'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-extension-jwt',
     Vary: 'Origin',
   }

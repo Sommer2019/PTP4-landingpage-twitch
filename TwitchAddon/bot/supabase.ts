@@ -123,6 +123,56 @@ export class SupabaseClient {
     } catch { return null }
   }
 
+  async createReward(payload: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+    try {
+      const r = await this.supaFetch('/rest/v1/rewards', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(payload),
+      })
+      if (!r.ok) {
+        console.error('[Supabase] createReward fehlgeschlagen:', r.status, await r.text())
+        return null
+      }
+      const arr = await r.json() as Record<string, unknown>[]
+      return arr[0] ?? null
+    } catch (e) {
+      console.error('[Supabase] createReward Fehler:', e)
+      return null
+    }
+  }
+
+  async updateReward(rewardId: string, payload: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+    try {
+      const r = await this.supaFetch(`/rest/v1/rewards?id=eq.${encodeURIComponent(rewardId)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(payload),
+      })
+      if (!r.ok) {
+        console.error('[Supabase] updateReward fehlgeschlagen:', r.status, await r.text())
+        return null
+      }
+      const arr = await r.json() as Record<string, unknown>[]
+      return arr[0] ?? null
+    } catch (e) {
+      console.error('[Supabase] updateReward Fehler:', e)
+      return null
+    }
+  }
+
+  async deleteReward(rewardId: string): Promise<boolean> {
+    try {
+      const r = await this.supaFetch(`/rest/v1/rewards?id=eq.${encodeURIComponent(rewardId)}`, {
+        method: 'DELETE',
+      })
+      return r.ok
+    } catch (e) {
+      console.error('[Supabase] deleteReward Fehler:', e)
+      return false
+    }
+  }
+
   async getRewardCooldown(rewardId: string): Promise<number> {
     try {
       const r = await this.supaFetch(`/rest/v1/rewards?id=eq.${rewardId}`)
