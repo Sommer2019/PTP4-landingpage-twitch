@@ -355,6 +355,28 @@ export default function ModerateAccountPage() {
     }
   }
 
+  async function triggerTestAlert(reward: Reward) {
+    if (!reward.id) return
+    if (!isBroadcaster && !isMod) {
+      showToast(t('moderate.noPermission'))
+      return
+    }
+    setRewardBusy(true)
+    try {
+      const { data, error } = await supabase.rpc('mod_test_redeem_reward', { p_reward_id: reward.id })
+      if (error) throw new Error(getErrorMessage(error))
+      if (data && typeof data === 'object' && 'error' in data) {
+        showToast(t('moderate.errorTestAlert', { msg: String((data as { error: string }).error) }))
+        return
+      }
+      showToast(t('moderate.testAlertSent'))
+    } catch (e) {
+      showToast(t('moderate.errorTestAlert', { msg: getErrorMessage(e) }))
+    } finally {
+      setRewardBusy(false)
+    }
+  }
+
   async function toggleRewardEnabled(reward: Reward) {
     if (!reward.id) return
     setRewardBusy(true)
@@ -521,6 +543,14 @@ export default function ModerateAccountPage() {
                         onClick={() => { setRewardEdit(r); setRewardForm(mergeRewardWithDefaults(r)); setRewardModalOpen(true); }}
                     >
                       {t('moderate.editRewardBtn')}
+                    </button>
+                    <button
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => { void triggerTestAlert(r) }}
+                        disabled={rewardBusy}
+                        title={t('moderate.testAlertBtn')}
+                    >
+                      🔔
                     </button>
                     <button
                         className="btn btn-sm btn-secondary"
