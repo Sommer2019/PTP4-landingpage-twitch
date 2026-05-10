@@ -193,7 +193,7 @@
         console.log(`[Overlay] Zeige Reward: ${reward.id}, Dauer: ${duration}s`);
         const mediaUrl = reward.mediaurl || '';
         const imageUrl = reward.imageurl || '';
-        const textContent = reward.text || reward.description || '';
+        const textContent = reward.text || '';
 
         // Hole Display-User vom Backend
         let username = redeemed.display_user || redeemed.username || redeemed.user || redeemed.twitch_user_name;
@@ -262,10 +262,10 @@
 
         // Text-Logik beibehalten
         if (reward.name && reward.name.toLowerCase().includes('raid')) {
-          const target = redeemed.ttstext || redeemed.tts_text || redeemed.ttsText || redeemed.description || '';
+          const target = redeemed.ttstext || redeemed.tts_text || redeemed.ttsText || '';
           text = `RAID-Anführer ${username} zu ${target}`;
         } else {
-          text = redeemed.ttstext || redeemed.tts_text || redeemed.ttsText || redeemed.description || reward.description || 'Text to Speech';
+          text = redeemed.ttstext || redeemed.tts_text || redeemed.ttsText || '';
         }
 
         // 1. Text anzeigen
@@ -379,16 +379,16 @@
            console.log('[Overlay] Image+Text Reward:', imgSrc, textContent);
            setTimeout(afterPlayback, duration * 1000);
          } else {
-           const contentHtml = getRewardTextHtml(textContent || reward.description || '');
+           const contentHtml = getRewardTextHtml(textContent || '');
            mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
-           console.log('[Overlay] Unbekannter Media-Typ, zeige Text:', textContent || reward.description || '');
+           console.log('[Overlay] Unbekannter Media-Typ, zeige Text:', textContent);
            setTimeout(afterPlayback, duration * 1000);
          }
        } else {
-         const contentHtml = getRewardTextHtml(textContent || reward.description || '');
+           const contentHtml = getRewardTextHtml(textContent || '');
          mediaDiv.innerHTML = getRewardContainerHtml(username, contentHtml);
-         console.log('[Overlay] Fallback Reward:', reward.description);
-         setTimeout(afterPlayback, duration * 1000);
+          console.log('[Overlay] Fallback Reward ohne Media');
+          setTimeout(afterPlayback, duration * 1000);
        }
       } catch (error) {
         console.error('[Overlay] FEHLER in playAndDeleteReward:', error);

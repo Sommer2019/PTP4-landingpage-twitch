@@ -180,9 +180,13 @@ function openEdit(id) {
     document.getElementById('fTtsFixed').value = r.text || '';
   } else if (formType === 'image_text') {
     document.getElementById('fImgUrl').value  = r.mediaurl || r.imageurl || '';
-    document.getElementById('fImgText').value = r.text || r.description || '';
+    // text-Feld nur aus r.text, nicht aus r.description — Description ist
+    // ein eigenständiges Feld (z.B. für Streamdeck-Trigger-Marker), das
+    // nicht ins Anzeige-Text-Feld gemirrored werden darf.
+    document.getElementById('fImgText').value = r.text || '';
   } else {
-    document.getElementById('fOnlyText').value = r.text || r.description || '';
+    // Siehe oben: kein Description-Mirror.
+    document.getElementById('fOnlyText').value = r.text || '';
   }
 
   onTypeChange();
@@ -275,10 +279,11 @@ function buildPayload() {
     payload.mediaurl = imgUrl;
     payload.text     = document.getElementById('fImgText').value.trim() || null;
   } else {
-    // text_only
+    // text_only — Text darf leer sein, dann ist der Reward "trigger-only"
+    // (z.B. für Streamdeck via description="STD_ID_<n>"); das Overlay
+    // rendert dann nichts, die Description steuert die Bridge.
     var txt = document.getElementById('fOnlyText').value.trim();
-    if (!txt) return { error: 'Text darf nicht leer sein.' };
-    payload.text = txt;
+    payload.text = txt || null;
   }
 
   return { payload: payload };
