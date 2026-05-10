@@ -368,6 +368,10 @@ export default function ModerateAccountPage() {
         await supabase.from('rewards').delete().eq('id', id)
       }
       showToast(t('moderate.rewardDeleted'))
+
+      // Sofort lokal entfernen, damit die Liste nicht auf den Refetch warten muss.
+      setRewards((prev) => prev.filter((r) => r.id !== id))
+
       const updatedRewards = await fetchRewards()
       if (updatedRewards) setRewards(updatedRewards)
     } catch (e) {
@@ -403,13 +407,29 @@ export default function ModerateAccountPage() {
     if (!reward.id) return
     setRewardBusy(true)
     try {
-      const { error } = await supabase
+      const newEnabled = !reward.is_enabled
+      const { data: updated, error } = await supabase
           .from('rewards')
-          .update({ is_enabled: !reward.is_enabled })
+          .update({ is_enabled: newEnabled })
           .eq('id', reward.id)
+          .select()
       if (error) throw new Error(getErrorMessage(error))
 
       showToast(reward.is_enabled ? t('moderate.rewardDisabled') : t('moderate.rewardEnabled'))
+
+      // Lokalen State direkt aus der UPDATE-Antwort patchen, damit der Toggle
+      // sofort sichtbar wird — unabhaengig von Refetch-Cache/RLS-Problemen.
+      if (updated && updated.length > 0) {
+        setRewards((prev) => prev.map((r) =>
+            r.id === reward.id ? { ...r, ...(updated[0] as Reward) } : r
+        ))
+      } else {
+        // Fallback: Optimistic update, falls die UPDATE-Antwort leer ist.
+        setRewards((prev) => prev.map((r) =>
+            r.id === reward.id ? { ...r, is_enabled: newEnabled } : r
+        ))
+      }
+
       const updatedRewards = await fetchRewards()
       if (updatedRewards) setRewards(updatedRewards)
     } catch (e) {
