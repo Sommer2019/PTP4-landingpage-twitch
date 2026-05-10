@@ -153,17 +153,28 @@ jobs:
           printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
 
       - name: Build EXEs
+        shell: pwsh
         run: |
           bun build --compile --target=bun-windows-x64 TwitchAddon/index.ts --outfile TwitchAddon/dist/TwitchAddon.exe
           bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
+          Push-Location TwitchAddon/StreamDeckHandyAnsteuern
+          bun install --no-save
+          # --windows-hide-console: EXE läuft windowless (kein Konsolen-Fenster).
+          # ControllMobile.js schreibt stattdessen ins controll-mobile.log.
+          bun build --compile --windows-hide-console --target=bun-windows-x64 ControllMobile.js --outfile ControllMobile.exe
+          Pop-Location
         env:
-          # Ohne das hier sind die Variablen NICHT in der EXE "baked-in"
+          # Ohne das hier sind die Variablen NICHT in den EXEs "baked-in".
+          # bun --compile inlined process.env.<NAME>-Zugriffe als String-Konstanten.
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
           TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
           CHANNEL_NAME: ${{ secrets.CHANNEL_NAME }}
+          # Für ControllMobile.exe (StreamDeckHandyAnsteuern) — die Bridge braucht
+          # den Service-Role-Key, weil redeemed_rewards keine SELECT-Policy für anon hat.
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Inject extension config
         # Ersetzt die Sentinel-Strings (__EBS_BASE_URL__, __SUPABASE_URL__,
@@ -212,7 +223,10 @@ jobs:
 
           Compress-Archive -Path "TwitchAddon\extension\*" -DestinationPath "TwitchAddon\dist\extension.zip" -Force
 
-          Compress-Archive -Path "TwitchAddon\StreamDeckHandyAnsteuern\*" -DestinationPath "TwitchAddon\dist\StreamDeckHandyAnsteuern.zip" -Force
+          # ZIP enthält die self-contained .exe + Wrapper-Skripte; die JS-Quelle
+          # bleibt draußen, damit der Endnutzer kein Node/Bun installieren muss.
+          $sdItems = Get-ChildItem "TwitchAddon\StreamDeckHandyAnsteuern\*" -Exclude "ControllMobile.js","package.json","node_modules","bun.lockb","bun.lock"
+          Compress-Archive -Path $sdItems.FullName -DestinationPath "TwitchAddon\dist\StreamDeckHandyAnsteuern.zip" -Force
 
       - name: GitHub Release
         uses: softprops/action-gh-release@v3

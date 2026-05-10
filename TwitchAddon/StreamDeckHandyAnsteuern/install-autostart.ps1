@@ -1,19 +1,15 @@
-# Legt einen Verknuepfungs-Shortcut auf start-controll-mobile.vbs in den
-# Windows-Autostart-Ordner des aktuellen Users. Lauft beim Login.
+# Stellt sicher, dass adb (Android Platform Tools) installiert ist und
+# startet anschließend ControllMobile.exe einmalig — die EXE registriert
+# sich daraufhin selbst im Windows-Autostart und läuft windowless weiter.
+#
 # Aufruf:  powershell -ExecutionPolicy Bypass -File install-autostart.ps1
 
 $ErrorActionPreference = 'Stop'
 
-$scriptDir   = $PSScriptRoot
-$target      = Join-Path $scriptDir 'start-controll-mobile.vbs'
-$startup     = [Environment]::GetFolderPath('Startup')
-$shortcut    = Join-Path $startup 'ControllMobile.lnk'
+$scriptDir = $PSScriptRoot
+$exe       = Join-Path $scriptDir 'ControllMobile.exe'
 
-if (-not (Test-Path $target)) {
-    Write-Error "start-controll-mobile.vbs nicht gefunden unter: $target"
-}
-
-# ADB-Check: Bridge braucht adb im PATH. Sonst per winget Google PlatformTools installieren.
+# ── adb-Check ────────────────────────────────────────────────────────────
 if (-not (Get-Command adb -ErrorAction SilentlyContinue)) {
     Write-Host "adb nicht gefunden im PATH." -ForegroundColor Yellow
 
@@ -32,28 +28,24 @@ if (-not (Get-Command adb -ErrorAction SilentlyContinue)) {
     $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
                 [Environment]::GetEnvironmentVariable('Path', 'User')
 
-    if (-not (Get-Command adb -ErrorAction SilentlyContinue)) {
-        Write-Host "adb wurde installiert, ist aber in dieser Shell noch nicht im PATH." -ForegroundColor Yellow
-        Write-Host "Nach naechstem Login bzw. neuer PowerShell-Session sollte 'adb' auffindbar sein." -ForegroundColor Yellow
-    } else {
+    if (Get-Command adb -ErrorAction SilentlyContinue) {
         Write-Host "adb erfolgreich installiert: $((Get-Command adb).Source)" -ForegroundColor Green
+    } else {
+        Write-Host "adb wurde installiert, ist aber in dieser Shell noch nicht im PATH. Nach naechstem Login verfuegbar." -ForegroundColor Yellow
     }
 } else {
     Write-Host "adb gefunden: $((Get-Command adb).Source)" -ForegroundColor Green
 }
 
-$wsh = New-Object -ComObject WScript.Shell
-$sc  = $wsh.CreateShortcut($shortcut)
-$sc.TargetPath       = $target
-$sc.WorkingDirectory = $scriptDir
-$sc.WindowStyle      = 7   # minimiert (VBS startet eh ohne Fenster)
-$sc.Description      = 'ControllMobile Bridge: Streamdeck-Trigger via redeemed_rewards'
-$sc.Save()
+# ── EXE einmal starten — sie traegt sich selbst in den Autostart ein ─────
+if (-not (Test-Path $exe)) {
+    Write-Error "ControllMobile.exe nicht gefunden unter: $exe"
+}
 
-Write-Host "Autostart-Eintrag angelegt:" -ForegroundColor Green
-Write-Host "  $shortcut"
-Write-Host "Ziel:"
-Write-Host "  $target"
+Write-Host "Starte ControllMobile.exe (windowless) — registriert sich selbst im Autostart..." -ForegroundColor Cyan
+Start-Process -FilePath $exe -WorkingDirectory $scriptDir
+
 Write-Host ""
-Write-Host "Test ohne Reboot:  Doppelklick auf den Shortcut oder die VBS-Datei."
-Write-Host "Logs landen in:    $(Join-Path $scriptDir 'controll-mobile.log')"
+Write-Host "Logs landen in: $(Join-Path $scriptDir 'controll-mobile.log')"
+Write-Host "Entfernen via:  powershell -File uninstall-autostart.ps1"
+Write-Host "         oder:  ControllMobile.exe --uninstall"
