@@ -21,25 +21,29 @@ if (process.argv.includes('--uninstall')) {
   process.exit(0)
 }
 
-function requireEnv(key: string): string {
-  const val = process.env[key]
+/**
+ * Bricht ab, wenn der Wert leer ist. Aufruf erfolgt mit dem expliziten
+ * `process.env.NAME`-Zugriff — nur so kann Bun beim --compile den Wert als
+ * String-Konstante in die EXE einbacken (indirektes process.env[key] wird NICHT inlined).
+ */
+function strict(name: string, val: string | undefined): string {
   if (!val) {
-    console.error(`[Main] Fehlende Umgebungsvariable: ${key}`)
+    console.error(`[Main] Fehlende Umgebungsvariable: ${name}`)
     process.exit(1)
   }
   return val
 }
 
 async function main(): Promise<void> {
-  const supabaseUrl    = requireEnv('SUPABASE_URL')
-  const supabaseApiKey = requireEnv('SUPABASE_API_KEY')
-  const clientId       = requireEnv('TWITCH_CLIENT_ID')
-  const clientSecret   = requireEnv('TWITCH_CLIENT_SECRET')
-  const refreshToken   = requireEnv('TWITCH_REFRESH_TOKEN')
-  const channelName    = requireEnv('CHANNEL_NAME')
+  const supabaseUrl    = strict('SUPABASE_URL',         process.env.SUPABASE_URL)
+  const supabaseApiKey = strict('SUPABASE_API_KEY',     process.env.SUPABASE_API_KEY)
+  const clientId       = strict('TWITCH_CLIENT_ID',     process.env.TWITCH_CLIENT_ID)
+  const clientSecret   = strict('TWITCH_CLIENT_SECRET', process.env.TWITCH_CLIENT_SECRET)
+  const refreshToken   = strict('TWITCH_REFRESH_TOKEN', process.env.TWITCH_REFRESH_TOKEN)
+  const channelName    = strict('CHANNEL_NAME',         process.env.CHANNEL_NAME)
   const extensionSecret = process.env.EXTENSION_SECRET ?? ''
 
-  let oauthToken = requireEnv('TWITCH_OAUTH_TOKEN')
+  let oauthToken = strict('TWITCH_OAUTH_TOKEN', process.env.TWITCH_OAUTH_TOKEN)
 
   // OAuth-Token sofort erneuern, damit er garantiert frisch ist
   console.log('[Main] Erneuere OAuth-Token...')

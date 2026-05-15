@@ -46,13 +46,10 @@ function updateFooterPoints(pts) {
 
 function setStreamOnline(online) {
     streamOnline = online;
+    // body.offline blendet via CSS alle Sektionen außer dem Banner aus.
+    document.body.classList.toggle('offline', !online);
     const banner = document.getElementById('offlineBanner');
     if (banner) banner.style.display = online ? 'none' : 'block';
-    if (!online) {
-        // Falls eine Reward-Detailansicht offen ist, den Einlösen-Button sofort sperren
-        const btn = document.getElementById('redeemBtn');
-        if (btn) { btn.disabled = true; btn.textContent = 'Streamer offline'; }
-    }
 }
 
 // EBS nicht erreichbar oder {online:false} gilt beides als offline — die EXE läuft

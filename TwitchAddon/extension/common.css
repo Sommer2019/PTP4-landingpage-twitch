@@ -53,3 +53,10 @@ body {
 .privacy-notice a:hover {
   color: var(--text);
 }
+
+/* Offline-Modus: nur den Offline-Banner zeigen, alle anderen Sektionen verstecken. */
+body.offline .points-footer,
+body.offline .privacy-notice,
+body.offline .scroll-area > *:not(#offlineBanner) {
+  display: none !important;
+}
