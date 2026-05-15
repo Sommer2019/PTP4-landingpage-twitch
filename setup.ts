@@ -5,11 +5,21 @@
  */
 
 import { createInterface } from 'readline'
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, rmSync, renameSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { execSync } from 'child_process'
 
-const __dir = dirname(fileURLToPath(import.meta.url))
+// Wird beim CI-Build via `bun build --define` eingebacken.
+// Beispiel: https://github.com/<owner>/<repo>/archive/refs/heads/master.zip
+const REPO_ZIP_URL = process.env.SETUP_REPO_ZIP_URL ?? ''
+
+// Im kompilierten EXE zeigt import.meta.url auf Bun's virtuelles Dateisystem
+// (z.B. B:\~BUN\root\setup.ts) — dort gibt es die Projekt-Files nicht. Stattdessen
+// nehmen wir process.cwd(): der User führt setup.exe ja im Projekt-Wurzelverzeichnis aus.
+// Im Dev-Betrieb (bun run / tsx) zeigt process.execPath auf das bun- bzw. node-Binary.
+const COMPILED_EXE = !/[\\/](bun|node|tsx)(\.exe)?$/i.test(process.execPath)
+const __dir = COMPILED_EXE ? process.cwd() : dirname(fileURLToPath(import.meta.url))
 const rl = createInterface({ input: process.stdin, output: process.stdout })
 
 /** Stellt eine Frage auf der Konsole; leere Eingabe faellt auf den Default zurueck. */
@@ -20,6 +30,80 @@ function ask(question: string, def = ''): Promise<string> {
       resolve(answer.trim() || def)
     })
   })
+}
+
+/**
+ * Lädt das Repo als ZIP von GitHub und entpackt es ins Zielverzeichnis.
+ * Nutzt Windows-`tar.exe` (seit Windows 10 1803 enthalten) mit PowerShell
+ * `Expand-Archive` als Fallback. GitHub-Archive haben einen einzelnen
+ * Top-Folder (`<repo>-<branch>/`); dessen Inhalt wird hochgehoben.
+ */
+async function downloadRepo(dir: string): Promise<void> {
+  if (!REPO_ZIP_URL) {
+    console.error('  ❌ Keine Repo-URL eingebacken. Beim Build muss SETUP_REPO_ZIP_URL gesetzt sein.')
+    process.exit(1)
+  }
+
+  // Schutz gegen versehentliches Überschreiben: Ordner muss leer sein (außer EXE/Setup-Tempfiles).
+  const items = readdirSync(dir).filter(f => f !== 'setup.exe' && !f.startsWith('.setup'))
+  if (items.length > 0) {
+    console.log('  ⚠️  Aktueller Ordner ist nicht leer:')
+    console.log('     ' + items.slice(0, 5).join(', ') + (items.length > 5 ? ` … (+${items.length - 5})` : ''))
+    const ok = await ask('Trotzdem entpacken? (j/N)', 'n')
+    if (!/^j(a)?$/i.test(ok)) { console.log('  Abgebrochen.'); process.exit(0) }
+  }
+
+  console.log('\n  ⬇️  Lade Repo-ZIP von', REPO_ZIP_URL)
+  const res = await fetch(REPO_ZIP_URL)
+  if (!res.ok) {
+    console.error('  ❌ Download fehlgeschlagen: HTTP', res.status)
+    process.exit(1)
+  }
+  const buf = Buffer.from(await res.arrayBuffer())
+
+  const tmpZip = join(dir, '.setup-repo.zip')
+  const tmpExtract = join(dir, '.setup-extract')
+  writeFileSync(tmpZip, buf)
+  if (existsSync(tmpExtract)) rmSync(tmpExtract, { recursive: true, force: true })
+  mkdirSync(tmpExtract)
+
+  console.log('  📦 Entpacke (' + Math.round(buf.length / 1024) + ' KB)...')
+  try {
+    execSync(`tar -xf "${tmpZip}" -C "${tmpExtract}"`, { stdio: 'pipe' })
+  } catch {
+    // Fallback für ältere Windows ohne tar.exe
+    execSync(
+      `powershell -NoProfile -Command "Expand-Archive -LiteralPath '${tmpZip}' -DestinationPath '${tmpExtract}' -Force"`,
+      { stdio: 'pipe' },
+    )
+  }
+
+  const roots = readdirSync(tmpExtract)
+  if (roots.length !== 1) {
+    rmSync(tmpExtract, { recursive: true, force: true })
+    rmSync(tmpZip)
+    throw new Error(`Unerwartete ZIP-Struktur (${roots.length} Top-Level-Einträge)`)
+  }
+  const repoRoot = join(tmpExtract, roots[0])
+  for (const item of readdirSync(repoRoot)) {
+    renameSync(join(repoRoot, item), join(dir, item))
+  }
+
+  rmSync(tmpExtract, { recursive: true, force: true })
+  rmSync(tmpZip)
+  console.log('  ✅ Repo entpackt nach', dir, '\n')
+}
+
+/**
+ * Stellt sicher, dass das Repo lokal vorhanden ist: wenn `src/config/siteConfig.ts`
+ * schon existiert, gilt der Ordner als „bereit", sonst wird das ZIP gezogen.
+ */
+async function bootstrap(dir: string): Promise<void> {
+  if (existsSync(join(dir, 'src', 'config', 'siteConfig.ts'))) {
+    console.log('  ℹ️  Repo bereits im Ordner gefunden — überspringe Download.\n')
+    return
+  }
+  await downloadRepo(dir)
 }
 
 /** Ersetzt das erste Vorkommen; warnt statt zu werfen, falls das Muster fehlt. */
@@ -36,7 +120,10 @@ async function main(): Promise<void> {
   console.log('\n┌─────────────────────────────────────────────────────────┐')
   console.log('│  🛠️   Twitch Landing Page – Setup-Assistent              │')
   console.log('└─────────────────────────────────────────────────────────┘')
-  console.log('\nBeantworte die folgenden Fragen. [Wert in Klammern] = Standard.\n')
+
+  await bootstrap(__dir)
+
+  console.log('Beantworte die folgenden Fragen. [Wert in Klammern] = Standard.\n')
 
   // ── Eingaben ──────────────────────────────────────────────────────────────
   const channelName    = await ask('Twitch-Kanalname (Kleinbuchstaben, z.B. meinkanal)')
