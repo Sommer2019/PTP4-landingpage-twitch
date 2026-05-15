@@ -183,7 +183,14 @@ jobs:
           }
 
           & bun build --compile --target=bun-windows-x64 @defines TwitchAddon/index.ts --outfile TwitchAddon/dist/TwitchAddon.exe
-          & bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
+
+          # setup.exe lädt das Repo selbst von GitHub — die URL wird hier eingebacken,
+          # damit der Streamer nur die EXE braucht (kein git clone, kein .git-Ordner).
+          # Verwende den aktuellen Commit statt eines fest verdrahteten Branch-Namens,
+          # damit die EXE immer genau die Revision lädt, die hier gebaut wird.
+          $repoZipUrl = "https://github.com/$env:GITHUB_REPOSITORY/archive/$env:GITHUB_SHA.zip"
+          $repoZipJson = $repoZipUrl | ConvertTo-Json -Compress
+          & bun build --compile --target=bun-windows-x64 --define "process.env.SETUP_REPO_ZIP_URL=$repoZipJson" setup.ts --outfile setup.exe
         env:
           # Werte werden vom run-Block oben via --define in die EXE eingebacken.
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
