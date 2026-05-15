@@ -10,9 +10,13 @@ import LinkCard from '../components/LinkCard/LinkCard'
 import DownloadModal from '../components/DownloadModal/DownloadModal'
 import Footer from '../components/Footer/Footer'
 
+/**
+ * Startseite: Hero, Live-Bereich und die aus siteConfig gespeisten Link-Sektionen.
+ */
 export default function HomePage() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<MobileTab>('live')
+  // Auf Mobile entscheidet downloadItem, ob das DownloadModal offen ist.
   const [downloadItem, setDownloadItem] = useState<LinkItem | null>(null)
 
   return (
@@ -22,7 +26,7 @@ export default function HomePage() {
       <main className="landing-container" data-tab={activeTab}>
         <MobileToggle activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* ── Live Section ── */}
+        {/* ── Live-Bereich ── */}
         <div className="section-live">
           <LiveSection />
         </div>

@@ -1,3 +1,7 @@
+// Bridge-Skript (läuft als windowless EXE auf dem Streamer-PC): lauscht per Supabase
+// Realtime auf neue redeemed_rewards-Einträge und löst bei passenden Description-Markern
+// per ADB einen Tap auf einem angeschlossenen Android-Gerät aus.
+
 import { createClient } from '@supabase/supabase-js';
 import { exec, execFileSync } from 'child_process';
 import fs from 'fs';
@@ -32,12 +36,13 @@ try {
 const startupDir = path.join(os.homedir(), 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup');
 const shortcutPath = path.join(startupDir, 'ControllMobile.lnk');
 
+/** Führt ein PowerShell-Skript aus. -NoProfile + Base64-Command vermeidet Quoting-Probleme bei Pfaden mit Leerzeichen. */
 function runPowerShell(script) {
-    // -NoProfile + Base64-encoded Command vermeidet Quoting-Probleme bei Pfaden mit Leerzeichen.
     const b64 = Buffer.from(script, 'utf16le').toString('base64');
     execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', b64], { stdio: 'pipe' });
 }
 
+/** Legt bei jedem Start einen Autostart-Shortcut im Windows-Startup-Ordner an, falls noch keiner existiert. */
 function ensureAutostartShortcut() {
     if (process.platform !== 'win32') return;
     try {
@@ -60,6 +65,7 @@ function ensureAutostartShortcut() {
     }
 }
 
+/** Entfernt den Autostart-Shortcut (für den --uninstall-Aufruf). */
 function removeAutostartShortcut() {
     if (process.platform !== 'win32') return false;
     try {
@@ -115,6 +121,7 @@ const TRIGGER_PATTERN = /^STD_ID_(\d+)$/;
 
 console.log("Bridge gestartet. Warte auf Supabase-Events...");
 
+/** Sendet per ADB einen Tap auf die im buttonMapping hinterlegten Koordinaten der Taste. */
 function triggerButton(buttonId, source) {
     const coords = buttonMapping[buttonId];
     if (!coords) {

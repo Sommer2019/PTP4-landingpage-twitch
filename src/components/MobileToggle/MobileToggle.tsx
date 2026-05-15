@@ -10,6 +10,7 @@ interface MobileToggleProps {
 
 const tabs: MobileTab[] = ['live', 'links', 'games']
 
+/** Tab-Umschalter fuer die mobile Ansicht zwischen Live-, Links- und Games-Bereich. */
 export default function MobileToggle({ activeTab, onTabChange }: MobileToggleProps) {
   const { t } = useTranslation()
 

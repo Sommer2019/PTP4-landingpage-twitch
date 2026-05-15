@@ -51,6 +51,10 @@ function TrendBars({ points }: { points: TrendPoint[] }) {
   )
 }
 
+/**
+ * Statistik-Dashboard des Moderationsbereichs: KPIs, Trend-Diagramme und
+ * Auswertungen zum Clip-Voting fuer einen waehlbaren Zeitraum.
+ */
 export default function ModerateStatisticsPage() {
   const { t } = useTranslation()
   const { data, loading, error, rangeDays, setRangeDays, refresh } = useModerateStatistics()

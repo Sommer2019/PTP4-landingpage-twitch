@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 
+/**
+ * Liest die Haupt-ICS-URL via Regex aus der Site-Config.
+ * Bewusst Text-Parsing statt Import: siteConfig.ts ist Browser-/App-Code und
+ * laesst sich nicht zuverlaessig zur Vite-Config-Ladezeit importieren.
+ */
 function getMainCalendarUrl(): string {
   const fallback = '';
   try {
@@ -44,7 +49,6 @@ function getCategoryCalendars(): Array<{ id: number; url: string }> {
     const entries: Array<{ id: number; url: string }> = []
 
     for (const chunk of block.split('{')) {
-      // id ist jetzt eine Zahl (kein String mit Anführungszeichen)
       const idMatch = chunk.match(/id:\s*(\d+)/)
       const urlMatch = chunk.match(/url:\s*'([^']+)'/)
       if (idMatch && urlMatch) {
@@ -160,26 +164,21 @@ export default defineConfig({
       exclude: ['src/test/**', 'src/main.tsx', 'src/vite-env.d.ts'],
     },
   },
-  // Für GitHub Pages mit Custom Domain (z.B. hd1920x1080.de): base: '/'
-  // Für GitHub Pages OHNE Custom Domain: base: '/repo-name/'
+  // GitHub Pages: '/' bei Custom Domain, '/repo-name/' ohne.
   base: '/',
 
-  // Build / Rollup-Tuning: Aufteilen großer Bundles in mehrere Chunks.
-  // Dadurch werden einzelne output-Chunks (z. B. vendor) kleiner und die
-  // "chunk is larger than"-Warnungen treten seltener auf.
   build: {
-    // Optional: Erhöhe die Warn-Grenze falls gewünscht (Standard 500 KB)
-    // chunkSizeWarningLimit: 600,
-
     rollupOptions: {
       output: {
-        // Manuelle Chunk-Aufteilung: gruppiere bekannte node_modules in eigene Dateien
+        // Bekannte node_modules in eigene Vendor-Chunks aufteilen, damit einzelne
+        // Bundles kleiner bleiben und die "chunk is larger than"-Warnung seltener greift.
         manualChunks(id) {
           if (!id) return undefined
-          // Normalize separators to '/' for safer matching (Vite/Rollup uses posix style paths in ids)
+          // Backslashes vereinheitlichen: Rollup-IDs sind posix-artig, unter Windows
+          // koennen aber Backslash-Pfade durchschlagen.
           const nid = id.split('\\').join('/')
           if (nid.includes('/node_modules/')) {
-            // Precise matching per package folder to avoid accidental substring matches
+            // Pro Paket-Ordner exakt matchen, um versehentliche Teilstring-Treffer zu vermeiden.
             if (/\/node_modules\/(react|react-dom)(\/|$)/.test(nid)) return 'vendor-react'
             if (/\/(node_modules\/)(framer-motion|motion)(\/|$)/.test(nid)) return 'vendor-motion'
             if (/\/node_modules\/@supabase(\/|$)/.test(nid)) return 'vendor-supabase'
@@ -189,8 +188,8 @@ export default defineConfig({
             if (/\/node_modules\/react-icons(\/|$)/.test(nid)) return 'vendor-react-icons'
             if (/\/node_modules\/ical\.js(\/|$)/.test(nid)) return 'vendor-ical'
 
-            // Kein generischer Fallback mehr: für unbekannte node_modules
-            // zurückgeben undefined und Rollup seine Standard-Aufteilung wählen lassen.
+            // Kein generischer Fallback: unbekannte node_modules ueberlaesst man
+            // bewusst Rollups Standard-Aufteilung.
             return undefined
           }
         },

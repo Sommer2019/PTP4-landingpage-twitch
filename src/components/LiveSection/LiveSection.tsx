@@ -6,7 +6,7 @@ import CurrentGame from '../CurrentGame/CurrentGame'
 import {supabase} from '../../lib/supabase'
 import './LiveSection.css'
 
-/* ── Twitch Player SDK types ── */
+/* ── Typen fuer das Twitch-Player-SDK ── */
 interface TwitchPlayerInstance {
     addEventListener(event: string, cb: () => void): void
 }
@@ -27,6 +27,7 @@ declare global {
     }
 }
 
+/** Live-Bereich: prueft den Stream-Status und bettet bei Live-Betrieb Player und Chat ein. */
 export default function LiveSection() {
     const {t} = useTranslation()
     const {channel} = siteConfig.twitch
@@ -126,7 +127,7 @@ export default function LiveSection() {
                 {/* ── Offline → nächster Termin ── */}
                 {!showStream && <NextStream/>}
 
-                {/* ── Current Game (only while live) ── */}
+                {/* ── Aktuelles Spiel (nur waehrend des Streams) ── */}
                 <CurrentGame isLive={showStream}/>
                 <p></p>
                 <div className={`embed-row ${!showStream ? 'embed-row--hidden' : ''}`}>

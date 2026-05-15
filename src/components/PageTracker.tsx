@@ -62,10 +62,9 @@ export default function PageTracker() {
         if (ref.origin !== window.location.origin) {
           redirectInfo.referrer = document.referrer
         }
-      } catch { /* invalid URL – ignore */ }
+      } catch { /* ungültige URL – ignorieren */ }
     }
 
-    /** UTM-Parameter und Query-String erfassen */
     if (location.search) {
       redirectInfo.query = location.search
     }

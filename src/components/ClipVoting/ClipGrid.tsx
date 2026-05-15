@@ -10,6 +10,7 @@ interface ClipGridProps {
   onVote: (clipId: string) => void
 }
 
+/** Raster aller Clips einer Voting-Runde; vergibt im Ergebnis-Modus Plaetze nach Listenreihenfolge. */
 export default function ClipGrid({
   clips,
   userVoteClipId,

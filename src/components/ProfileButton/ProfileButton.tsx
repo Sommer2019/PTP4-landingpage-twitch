@@ -6,6 +6,7 @@ import './ProfileButton.css'
 import siteConfig from "../../config/siteConfig.ts";
 import { useTranslation } from 'react-i18next'
 
+/** Profil-Button in der Kopfzeile: Login-Aufforderung oder Avatar mit Dropdown-Menue je nach Anmeldestatus. */
 export default function ProfileButton() {
   const { user, session, signInWithTwitch, signOut, loading } = useAuth()
   const [showMenu, setShowMenu] = useState(false)
@@ -15,7 +16,7 @@ export default function ProfileButton() {
   const { t } = useTranslation()
   const moderatorLink = siteConfig.moderatorLink
 
-  // Schließe Menu wenn außerhalb geklickt wird
+  // Menue schliessen, sobald ausserhalb geklickt wird
   const handleClickOutside = (e: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
       setShowMenu(false)
@@ -39,7 +40,6 @@ export default function ProfileButton() {
     )
   }
 
-  // Benutzer ist abgemeldet
   if (!user || !session) {
     return (
       <div className="profile-button">
@@ -55,7 +55,6 @@ export default function ProfileButton() {
     )
   }
 
-  // Benutzer ist angemeldet
   const twitchProfilePicture = user.user_metadata?.avatar_url
   const twitchUsername = user.user_metadata?.user_login || user.user_metadata?.full_name || user.email || 'User'
 
@@ -79,7 +78,7 @@ export default function ProfileButton() {
 
       {showMenu && (
         <div className="profile-menu" role="menu">
-          {/* Mod-Settings Button nur für Moderatoren anzeigen */}
+          {/* Mod-Bereich-Eintrag nur fuer Moderatoren */}
           {!modLoading && isMod && moderatorLink && (
             <button
               className="menu-item"

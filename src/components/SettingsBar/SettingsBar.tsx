@@ -28,6 +28,7 @@ function getCurrentLang(language: string): Lang {
   return 'en'
 }
 
+/** Obere Leiste mit Profil-Button, Home-Link sowie Theme- und Sprachumschaltung. */
 export default function SettingsBar() {
   const { mode, setMode } = useTheme()
   const { t, i18n } = useTranslation()

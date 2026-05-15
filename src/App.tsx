@@ -28,7 +28,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage/NotFoundPage'))
 const ModerateAccountPage = lazy(() => import('./pages/ModerateAccountPage'))
 const ModerateDonationTriggersPage = lazy(() => import('./pages/ModerateDonationTriggersPage'))
 
-/** Component for direct browser navigation (full page reload) */
+/** Erzwingt einen vollen Browser-Wechsel (kompletter Reload) statt eines React-Router-Wechsels. */
 const RedirectToHtml: React.FC<{ to: string }> = ({ to }) => {
     useLayoutEffect(() => {
         window.location.href = to
@@ -42,15 +42,13 @@ const externalRedirects: Record<string, string> = {
     "/twitch": `https://www.twitch.tv/${channel}`,
 };
 
+/** Leitet bekannte Kurz-Pfade per voller Browser-Navigation auf externe Ziele um. */
 const ExternalRedirectHandler = () => {
     const { pathname } = useLocation();
 
     useLayoutEffect(() => {
         const target = externalRedirects[pathname];
         if (target) {
-            // Wenn der Link intern ist (fängt mit / an, aber nicht //) dann nutzen wir location.href,
-            // was zu einem vollen Reload führt, oder wir machen einen React Router Redirect.
-            // Die redirects im siteConfig sind meist extern (http...).
             window.location.href = target;
         }
     }, [pathname]);
@@ -58,12 +56,13 @@ const ExternalRedirectHandler = () => {
     return null;
 };
 
+/** Wurzel-Komponente: Routing, globale Leisten und Ban-Gate für den gesamten Auftritt. */
 function App() {
     const { isBanned, loading: banLoading } = useIsBanned();
     const { t } = useTranslation();
 
     useLayoutEffect(() => {
-        // Hier könnte man Analytics oder andere Effekte triggern
+        // Platzhalter für künftige Effekte (z.B. Analytics)
     }, []);
 
     if (banLoading) {
@@ -91,7 +90,6 @@ function App() {
             <PageTracker/>
             <Suspense fallback={null}>
              <Routes>
-                 {/* External redirect mappings */}
                  {Object.keys(externalRedirects).map((path) => (
                     <Route key={path} path={path} element={<ExternalRedirectHandler />} />
                 ))}
@@ -121,7 +119,7 @@ function App() {
                 <Route path="/moderate/triggers"
                        element={<ModeratorRoute><ModerateDonationTriggersPage/></ModeratorRoute>}/>
 
-                {/* ── Alternative Pfade (werden nun auch großteils oben im externalRedirects / siteConfig behandelt, aber hier als Fallbacks falls intern gewünscht) ── */}
+                {/* ── Interne Kurz-Pfade: bewusst hier als React-Router-Weiterleitungen, damit kein voller Reload nötig ist ── */}
                 <Route path="/actuator/data" element={<Navigate to="/moderate/statistics" replace/>}/>
                 <Route path="/se" element={<Navigate to="/streamelements" replace/>}/>
                 <Route path="/s" element={<Navigate to="/streamplan" replace/>}/>
@@ -129,11 +127,10 @@ function App() {
                 <Route path="/bc" element={<Navigate to="/bartclicker" replace/>}/>
                 <Route path="/cdm" element={<Navigate to="/clipdesmonats" replace/>}/>
 
-                {/* ── New "OnlyBart" Page ── */}
                 <Route path="/onlybart" element={<OnlyBartPage/>}/>
                 <Route path="/onlybart/*" element={<Navigate to="/onlybart" replace/>}/>
 
-                {/* ── Custom Wünsche (werden nun ebenfalls über siteConfig externalRedirects abgefangen) ── */}
+                {/* ── Hart kodierte Sonder-Weiterleitungen; redundant zu siteConfig.redirects, hier als Sicherheitsnetz ── */}
                 <Route path="/rp" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/ressourcepack" element={<RedirectToHtml to="https://github.com/HD1920x1080Media/Minecraft-Ressource-Pack/archive/refs/tags/latest.zip"/>}/>
                 <Route path="/tanggle" element={<RedirectToHtml to="http://tng.gl/c/hd1920x1080"/>}/>

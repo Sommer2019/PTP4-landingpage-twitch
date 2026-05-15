@@ -61,6 +61,7 @@ const SKIP_PATHS = new Set(['bartclicker.unitArray'])
 
 // ── .env.local laden ─────────────────────────────────────────────────────────
 
+/** Liest .env.local und setzt darin definierte Variablen, ohne bereits gesetzte zu ueberschreiben. */
 function loadEnvLocal() {
   const envPath = join(ROOT, '.env.local')
   if (!existsSync(envPath)) return
@@ -74,6 +75,10 @@ function loadEnvLocal() {
 
 // ── i18next-Interpolationsvariablen schützen ─────────────────────────────────
 
+/**
+ * Ersetzt {{var}}-Platzhalter durch Token, damit DeepL sie nicht uebersetzt oder zerlegt.
+ * Rueckgabe-Map dient dem spaeteren Wiedereinsetzen.
+ */
 function protectVars(text: string): { safe: string; map: string[] } {
   const map: string[] = []
   const safe = text.replace(/\{\{[^}]+\}\}/g, match => {
@@ -83,6 +88,7 @@ function protectVars(text: string): { safe: string; map: string[] } {
   return { safe, map }
 }
 
+/** Macht protectVars rueckgaengig: setzt die Token wieder durch die Originalplatzhalter. */
 function restoreVars(text: string, map: string[]): string {
   return text.replace(/__TVar(\d+)__/g, (_, i) => map[Number(i)] ?? _)
 }
@@ -91,6 +97,7 @@ function restoreVars(text: string, map: string[]): string {
 
 type Entry = { path: string; safe: string; varMap: string[] }
 
+/** Sammelt rekursiv alle nicht-leeren Strings eines JSON-Baums mit ihrem Pfad. */
 function collectStrings(value: unknown, path: string): Entry[] {
   if (typeof value === 'string') {
     if (!value.trim()) return []
@@ -109,7 +116,7 @@ function collectStrings(value: unknown, path: string): Entry[] {
   return []
 }
 
-// Wert tief in einem Objekt anhand eines Pfads setzen (mit Array-Index-Support)
+/** Setzt einen Wert tief im Objekt anhand eines Pfads (inkl. Array-Index-Notation). */
 function setDeep(obj: Record<string, unknown>, path: string, value: unknown): void {
   const parts = path.replace(/\[(\d+)\]/g, '.$1').split('.')
   let cur: Record<string, unknown> = obj
@@ -121,6 +128,7 @@ function setDeep(obj: Record<string, unknown>, path: string, value: unknown): vo
 
 // ── DeepL API ────────────────────────────────────────────────────────────────
 
+/** Uebersetzt einen Schwung Texte in einem DeepL-Request. */
 async function translateBatch(texts: string[], targetLang: string, apiKey: string): Promise<string[]> {
   // Free-API-Keys enden auf ":fx", Pro-Keys nicht
   const endpoint = apiKey.endsWith(':fx')
@@ -147,6 +155,7 @@ async function translateBatch(texts: string[], targetLang: string, apiKey: strin
   return data.translations.map(t => t.text)
 }
 
+/** Uebersetzt alle Eintraege batchweise und liefert eine Pfad-zu-Uebersetzung-Map. */
 async function translateAll(entries: Entry[], targetLang: string, apiKey: string): Promise<Map<string, string>> {
   const BATCH_SIZE = 50
   const result = new Map<string, string>()
@@ -162,6 +171,7 @@ async function translateAll(entries: Entry[], targetLang: string, apiKey: string
     })
 
     console.log(' ✓')
+    // Kurze Pause zwischen Batches, um das DeepL-Rate-Limit nicht zu reizen.
     if (end < entries.length) await new Promise(r => setTimeout(r, 150))
   }
 
@@ -170,6 +180,7 @@ async function translateAll(entries: Entry[], targetLang: string, apiKey: string
 
 // ── i18n.ts patchen ──────────────────────────────────────────────────────────
 
+/** Traegt eine neue Sprache in src/i18n/i18n.ts ein (Import, Resource, supportedLngs). Idempotent. */
 function patchI18nTs(lang: string): void {
   const filePath = join(ROOT, 'src', 'i18n', 'i18n.ts')
   const lines = readFileSync(filePath, 'utf-8').split('\n')
@@ -197,6 +208,7 @@ function patchI18nTs(lang: string): void {
 
 // ── SettingsBar.tsx patchen ───────────────────────────────────────────────────
 
+/** Traegt eine neue Sprache in SettingsBar.tsx ein (Flag, langOrder, getCurrentLang, option). Idempotent. */
 function patchSettingsBar(lang: string): void {
   const filePath = join(ROOT, 'src', 'components', 'SettingsBar', 'SettingsBar.tsx')
   const lines = readFileSync(filePath, 'utf-8').split('\n')
@@ -242,6 +254,7 @@ function patchSettingsBar(lang: string): void {
 
 // ── Hauptprogramm ────────────────────────────────────────────────────────────
 
+/** Liest CLI-Argumente, uebersetzt de.json in die angeforderten Sprachen und patcht i18n.ts + SettingsBar.tsx. */
 async function main(): Promise<void> {
   loadEnvLocal()
 

@@ -11,6 +11,7 @@ interface LeaderboardRPCEntry {
   display_name: string;
 }
 
+/** Lädt die Bartclicker-Bestenliste und aktualisiert sie alle 30 Sekunden. */
 export function useBartclickerLeaderboard() {
   const [entries, setEntries] = useState<BartclickerLeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +23,7 @@ export function useBartclickerLeaderboard() {
         setIsLoading(true);
         setError(null);
 
-        // Nutze RPC-Funktion wenn verfügbar, sonst fallback
+        // Bevorzugter Weg: RPC liefert Scores inkl. Anzeigenamen in einer Abfrage
         const { data, error: fetchError } = await supabase.rpc(
           'get_bartclicker_leaderboard_with_names',
           { p_limit: 100 }
@@ -30,7 +31,7 @@ export function useBartclickerLeaderboard() {
 
         if (fetchError) {
           console.error('RPC Error:', fetchError);
-          // Fallback: Lade Daten ohne RPC
+          // Fallback ohne RPC: Scores und Profile getrennt laden und manuell zusammenführen
           const { data: scores, error: scoresError } = await supabase
             .from('bartclicker_scores')
             .select('user_id, total_ever, rebirth_count, last_updated')
@@ -46,7 +47,6 @@ export function useBartclickerLeaderboard() {
           }
 
           if (scores) {
-            // Lade Usernames aus profiles
             const userIds = scores.map(s => s.user_id);
             const { data: profiles } = await supabase
               .from('profiles')
@@ -94,8 +94,8 @@ export function useBartclickerLeaderboard() {
     };
 
     loadLeaderboard();
-    
-    // Refresh leaderboard every 30 seconds
+
+    // Bestenliste alle 30 Sekunden neu laden
     const interval = setInterval(loadLeaderboard, 30000);
     return () => clearInterval(interval);
   }, []);

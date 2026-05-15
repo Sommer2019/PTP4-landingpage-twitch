@@ -15,7 +15,7 @@ Alles Streamer-spezifische ist in **einer** Config-Datei (`src/config/siteConfig
 | OnlyBart (Premium-Bereich) | ✅ | Supabase + Twitch OAuth |
 | Bartclicker-Spiel | ✅ | Supabase |
 | Moderatoren-Dashboard | ✅ | Supabase + Twitch OAuth |
-| Kanalpunkte-Bot + Extension | ✅ (TwitchAddon) | Railway **oder** lokale EXE |
+| Kanalpunkte-Bot + Extension | ✅ (TwitchAddon) | lokale EXE auf Streamer-PC |
 | Discord-Benachrichtigungen | ✅ (DiscordBot) | Render **oder** lokal (optional) |
 
 ---
@@ -342,7 +342,8 @@ Gehe zu: **Repo → Settings → Secrets and variables → Actions → New repos
 | `TWITCH_REFRESH_TOKEN` | Aus Schritt 6b (Token-Generator) | ✅ |
 | `GH_TOKEN` | GitHub → Settings → Developer settings → Personal access tokens (Scopes: `secrets:write`) | ✅ (für Token-Refresh) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role key | ✅ |
-| `EBS_BASE_URL` | URL deines TwitchAddon-Servers (z.B. Railway-URL) | nur mit TwitchAddon |
+| `NGROK_AUTHTOKEN` | ngrok Authtoken (Dashboard → "Your Authtoken") | nur mit TwitchAddon |
+| `NGROK_DOMAIN` | reservierte Static-Domain, z.B. `dein-name.ngrok-free.app` | nur mit TwitchAddon |
 | `EXTENSION_CLIENT_ID` | Twitch Extension Client ID | nur mit Extension |
 | `EXTENSION_SECRET` | Twitch Extension Secret (Base64) | nur mit Extension |
 
@@ -387,46 +388,47 @@ Die GitHub Actions unter `.github/workflows/` laufen automatisch, sobald die Sec
 
 ## Anhang A – TwitchAddon (Kanalpunkte-Bot + Extension)
 
-Der TwitchAddon ist der Kanalpunkte-Bot und stellt die Twitch Panel Extension bereit.  
-Er läuft als kleiner Bun-Prozess (~40–60 MB RAM).
+Der TwitchAddon ist der Kanalpunkte-Bot und stellt die Twitch Panel Extension bereit.
+Er läuft **lokal auf dem Streamer-PC** als selbst-gepackte EXE (~40–60 MB RAM) und
+öffnet beim Start automatisch einen ngrok-Tunnel mit fester Domain — kein Server,
+kein Hosting, keine manuelle Konfiguration.
 
-### Option 1: Railway (empfohlen für 24/7-Betrieb)
+### Einmaliges Setup (Dev)
 
-1. Erstelle ein Konto auf [railway.app](https://railway.app)
-2. Verbinde dein GitHub-Repo
-3. Railway deployed den `TwitchAddon/`-Ordner automatisch (Dockerfile vorhanden)
-4. Trage die generierten Env-Variablen ein (aus `TwitchAddon/.env.example`):
+1. Konto auf [ngrok.com](https://ngrok.com) anlegen.
+2. Im Dashboard unter **Cloud Edge → Domains** eine Static-Domain reservieren
+   (im Free-Plan ist eine Domain enthalten, z.B. `dein-name.ngrok-free.app`).
+3. **Authtoken** kopieren (Dashboard → "Your Authtoken").
+4. In den GitHub-Secrets eintragen:
+   - `NGROK_AUTHTOKEN` = der Authtoken
+   - `NGROK_DOMAIN` = die reservierte Domain (ohne `https://`-Präfix)
+5. In der Twitch-Extension (siehe Anhang B) die Allowlist setzen:
+   **Capabilities → Allowlist for URLs Fetched by the Frontend** → `https://<NGROK_DOMAIN>`
 
-| Variable | Bedeutung |
-|---|---|
-| `SUPABASE_URL` | Supabase Project URL |
-| `SUPABASE_API_KEY` | Supabase service_role key |
-| `TWITCH_CLIENT_ID` | Twitch App Client ID |
-| `TWITCH_CLIENT_SECRET` | Twitch App Secret |
-| `TWITCH_REFRESH_TOKEN` | Aus Schritt 6b |
-| `TWITCH_OAUTH_TOKEN` | Aktueller Access Token (wird automatisch erneuert) |
-| `CHANNEL_NAME` | Dein Twitch-Kanalname |
-| `EXTENSION_CLIENT_ID` | Twitch Extension Client ID (optional) |
-| `EXTENSION_SECRET` | Twitch Extension Secret Base64 (optional) |
+Das war's an Setup. Bei jedem Push auf `master` baut die Pipeline `TwitchAddon-Release.zip`
+mit `TwitchAddon.exe`, `ngrok.exe`, `.env` und `overlay.html` darin.
 
-5. Notiere die Railway-URL und trage sie als `EBS_BASE_URL` in die GitHub Secrets ein.
+### Streamer-Nutzung
 
-### Option 2: Lokal (für Tests oder Hobby-Streamer)
+1. ZIP entpacken in einen festen Ordner.
+2. `TwitchAddon.exe` doppelklicken — fertig.
+
+Die EXE startet den lokalen HTTP-Server auf Port 8081, öffnet den ngrok-Tunnel
+auf die feste Domain und vergibt Zuschauern Punkte. Wenn der Streamer offline ist
+oder die EXE nicht läuft, zeigt die Extension automatisch eine Offline-Meldung an.
+
+### Lokal ohne EXE (Dev)
 
 ```bash
 cd TwitchAddon
 cp .env.example .env
-# .env mit deinen Werten befüllen
+# .env mit deinen Werten befüllen (inkl. NGROK_AUTHTOKEN/NGROK_DOMAIN)
 bun install
 bun run index.ts
 ```
 
-Für HTTPS-Zugang (nötig für die Twitch Extension):
-
-```bash
-ngrok http 8081
-# Generierte HTTPS-URL als EBS_BASE_URL verwenden
-```
+Ohne `NGROK_*`-Variablen läuft der Server nur unter `http://localhost:8081` —
+nützlich für Tests, aber die Twitch-Extension erreicht ihn dann nicht.
 
 **Vollständige Anleitung:** [TwitchAddon/SETUP.md](TwitchAddon/SETUP.md)
 
@@ -438,7 +440,7 @@ Nur nötig wenn du die Panel Extension im Twitch-Kanal anzeigen willst.
 
 1. Gehe zu [dev.twitch.tv/console/extensions](https://dev.twitch.tv/console/extensions)
 2. **Create Extension** → Typ: `Panel`
-3. **Testing Base URI** = URL deines TwitchAddon-Servers (Railway oder ngrok)
+3. **Testing Base URI** = `https://<NGROK_DOMAIN>` (die in den Secrets hinterlegte Static-Domain)
 4. Pfade eintragen:
 
 | Feld | Wert |
@@ -508,7 +510,8 @@ npm start
 | `TWITCH_REFRESH_TOKEN` | ✅ | Twitch OAuth Refresh Token (Scopes: chat, moderation, subscriptions, redemptions) |
 | `CHANNEL_NAME` | ✅ | Twitch-Kanalname (Kleinbuchstaben, ohne @) |
 | `GH_TOKEN` | ✅ | GitHub Personal Access Token (Scope: `secrets:write`) – für automatischen Token-Refresh |
-| `EBS_BASE_URL` | TwitchAddon | HTTPS-URL des TwitchAddon-Servers (Railway oder ngrok) |
+| `NGROK_AUTHTOKEN` | TwitchAddon | ngrok Authtoken — die EXE öffnet damit automatisch den Tunnel |
+| `NGROK_DOMAIN` | TwitchAddon | reservierte Static-Domain (z.B. `dein-name.ngrok-free.app`) |
 | `EXTENSION_CLIENT_ID` | Extension | Client ID der Twitch Extension |
 | `EXTENSION_SECRET` | Extension | Base64-kodiertes Extension Secret |
 
@@ -525,7 +528,8 @@ npm start
 | 404 bei direktem Aufruf von `/streamplan` etc. | GitHub Pages SPA-Fallback aktiv? `dist/404.html` muss existieren (wird automatisch erstellt) |
 | GitHub Pages zeigt alten Stand | Actions → Deploy to GitHub Pages → Re-run |
 | TwitchAddon startet nicht | `bun --version` prüfen; `.env` vollständig befüllt? |
-| Extension zeigt HTTPS-Fehler | ngrok muss laufen; Testing Base URI in Twitch Dev Dashboard aktualisieren |
+| Extension zeigt "Streamer offline" obwohl der Streamer live ist | TwitchAddon.exe läuft? Logfenster der EXE prüfen — dort steht die ngrok-URL. Falls fehlend: `NGROK_AUTHTOKEN`/`NGROK_DOMAIN` in `.env` neben der EXE setzen. |
+| Extension lädt gar keine Daten | `NGROK_DOMAIN` muss in der Twitch-Extension-Allowlist (Capabilities → URLs Fetched by Frontend) eingetragen sein |
 | Twitch Refresh Token abgelaufen | `twitch-sync.yml` Workflow manuell ausführen oder neuen Token aus Schritt 6b generieren |
 | `rpc_missing`-Fehler im Moderatoren-Dashboard | SQL-Migration noch nicht ausgeführt → Schritt 7b wiederholen |
 | `base: '/'` in vite.config.ts falsch | Ohne Custom Domain: `base: '/REPO-NAME/'` setzen |

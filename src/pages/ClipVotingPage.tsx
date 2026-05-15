@@ -10,6 +10,10 @@ import WinnerDisplay from '../components/ClipVoting/WinnerDisplay'
 import YearlyStandingsDisplay from '../components/ClipVoting/YearlyStandingsDisplay'
 import '../components/ClipVoting/ClipVoting.css'
 
+/**
+ * Oeffentliche Clip-Voting-Seite: zeigt je nach Voting-Phase Abstimmung,
+ * Zwischenstaende oder Monats-/Jahressieger an.
+ */
 export default function ClipVotingPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -62,15 +66,15 @@ export default function ClipVotingPage() {
         <WinnerDisplay type="yearly" winner={yearlyWinner} />
       )}
 
-      {/* ── Monthly winner (between rounds, not during yearly) ── */}
+      {/* ── Monatssieger (zwischen Runden, nicht waehrend der Jahresphase) ── */}
       {monthlyWinner && !roundActive && !isYearlyPhase && (
         <WinnerDisplay type="monthly" winner={monthlyWinner} />
       )}
 
-      {/* ── Voting status bar ── */}
+      {/* ── Status-Leiste des Votings ── */}
       {round && <VotingStatus round={round} phase={phase} />}
 
-      {/* ── Login hint ── */}
+      {/* ── Login-Hinweis ── */}
       {!user && roundActive && (
         <div className="clip-voting__login">
           <p>{t('clipVoting.loginToVote')}</p>
@@ -78,7 +82,7 @@ export default function ClipVotingPage() {
         </div>
       )}
 
-      {/* ── User vote hint ── */}
+      {/* ── Abstimmungs-Hinweis fuer eingeloggte Nutzer ── */}
       {user && roundActive && (
         <p className="clip-voting__user">
           {userVote
@@ -96,7 +100,7 @@ export default function ClipVotingPage() {
         />
       )}
 
-      {/* ── Clip grid (voting + embeds) — not shown during yearly-results ── */}
+      {/* ── Clip-Grid (Abstimmung + Embeds) — bei Jahres-Endstand ausgeblendet ── */}
       {clips.length > 0 && phase !== 'yearly-results' ? (
         <ClipGrid
           clips={clips}

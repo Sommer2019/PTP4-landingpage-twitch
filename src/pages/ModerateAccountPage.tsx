@@ -53,6 +53,10 @@ interface RecentRedemption {
   description: string | null
 }
 
+/**
+ * Account-Management fuer Moderatoren: Account-Banns, Kanalpunkte-Verwaltung,
+ * Pflege der Channel-Point-Belohnungen und Anzeige der letzten Einloesungen.
+ */
 export default function ModerateAccountPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -151,9 +155,6 @@ export default function ModerateAccountPage() {
     return (data ?? []) as Reward[]
   }, [])
 
-  /**
-   * Effekt-Hooks
-   */
   useEffect(() => {
     let isMounted = true
     const load = async () => {
@@ -203,9 +204,6 @@ export default function ModerateAccountPage() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  /**
-   * Action Handler
-   */
   async function banAccount() {
     if (!isBroadcaster && !isMod) {
       showToast(t('moderate.noPermission'))

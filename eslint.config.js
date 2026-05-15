@@ -1,3 +1,4 @@
+// ESLint Flat-Config: TS/React-Regeln fuers Projekt, gelockerte Regeln fuer Test-Dateien.
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -23,6 +24,7 @@ export default defineConfig([
   {
     files: ['**/*.test.{ts,tsx}', '**/test/**/*.{ts,tsx}'],
     rules: {
+      // Testdateien exportieren oft Helfer neben Komponenten - Fast-Refresh-Regel hier irrelevant.
       'react-refresh/only-export-components': 'off',
     },
   },

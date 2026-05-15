@@ -9,6 +9,7 @@ interface DownloadModalProps {
   onClose: () => void
 }
 
+/** Bestaetigungsdialog vor einem Datei-Download; loest bei Zustimmung den Download aus. */
 export default function DownloadModal({ item, onClose }: DownloadModalProps) {
   const { t } = useTranslation()
   const { showToast } = useToast()
@@ -17,6 +18,7 @@ export default function DownloadModal({ item, onClose }: DownloadModalProps) {
   if (!item) return null
 
   const handleClose = () => {
+    // Schliessen erst nach der CSS-Ausblendanimation melden (180ms muss zur .is-closing-Transition passen)
     setClosing(true)
     setTimeout(() => {
       setClosing(false)

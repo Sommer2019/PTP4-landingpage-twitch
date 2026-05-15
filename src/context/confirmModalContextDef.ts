@@ -5,18 +5,18 @@ export interface ConfirmModalOptions {
   message: string
   confirmLabel?: string
   cancelLabel?: string
-  /** If set, a text input field is shown (prompt mode). Value is the placeholder. */
+  /** Wenn gesetzt, wird ein Texteingabefeld angezeigt (Prompt-Modus). Der Wert dient als Platzhalter. */
   inputPlaceholder?: string
-  /** If true, no cancel button is shown (alert mode). */
+  /** Wenn true, wird kein Abbrechen-Button angezeigt (Alert-Modus). */
   alertOnly?: boolean
 }
 
 export interface ConfirmModalContextType {
-  /** Like window.confirm – resolves true/false */
+  /** Wie window.confirm – löst mit true/false auf. */
   showConfirm: (options: ConfirmModalOptions) => Promise<boolean>
-  /** Like window.alert – resolves when dismissed */
+  /** Wie window.alert – löst beim Schließen auf. */
   showAlert: (options: Omit<ConfirmModalOptions, 'alertOnly'>) => Promise<void>
-  /** Like window.prompt – resolves with string or null */
+  /** Wie window.prompt – löst mit String oder null auf. */
   showPrompt: (options: ConfirmModalOptions) => Promise<string | null>
 }
 

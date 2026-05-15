@@ -3,6 +3,7 @@ import { useAuth } from '../../context/useAuth'
 import { useIsModerator } from '../../hooks/useIsModerator'
 import LoginButton from '../LoginButton/LoginButton'
 
+/** Route-Wrapper, der die Kinder nur fuer den eingeloggten Broadcaster rendert. */
 export default function BroadcasterRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { isBroadcaster, loading: modLoading } = useIsModerator();

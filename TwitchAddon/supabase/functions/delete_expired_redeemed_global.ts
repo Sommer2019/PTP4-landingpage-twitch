@@ -1,5 +1,5 @@
-// Supabase Edge Function (TypeScript) zum automatischen Löschen abgelaufener redeemed_global-Einträge
-// Diese Funktion kann per Zeitplan (Scheduled Trigger) ausgeführt werden
+// Supabase Edge Function: räumt die redeemed_global-Tabelle auf.
+// Gedacht für einen geplanten Trigger (Scheduled Function), der regelmäßig läuft.
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -13,6 +13,7 @@ interface ResponseLike {
   json(body: unknown): void;
 }
 
+/** Löscht redeemed_global-Einträge, deren redeemed_at in der Vergangenheit liegt. */
 export default async function handler(res: ResponseLike) {
   const { error } = await supabase
     .from('redeemed_global')

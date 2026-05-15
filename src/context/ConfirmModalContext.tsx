@@ -6,6 +6,7 @@ interface ModalState extends ConfirmModalOptions {
   mode: 'confirm' | 'alert' | 'prompt'
 }
 
+/** Stellt versprochene-basierte Ersatz-Dialoge für window.confirm/alert/prompt bereit. */
 export function ConfirmModalProvider({ children }: { children: ReactNode }) {
   const [modal, setModal] = useState<ModalState | null>(null)
   const [closing, setClosing] = useState(false)
@@ -21,6 +22,8 @@ export function ConfirmModalProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  // Das Promise wird erst nach der 180ms-Schließanimation aufgelöst,
+  // damit der Aufrufer nicht reagiert, bevor das Modal verschwunden ist.
   const close = useCallback((result: unknown) => {
     setClosing(true)
     setTimeout(() => {
@@ -71,7 +74,6 @@ export function ConfirmModalProvider({ children }: { children: ReactNode }) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Enter bestätigt, Escape bricht ab
     if (e.key === 'Enter') handleConfirm()
     if (e.key === 'Escape') handleCancel()
   }

@@ -7,6 +7,7 @@
 import { SupabaseClient, refreshOauthToken, getBroadcasterId } from './bot/supabase.ts'
 import { TwitchBot } from './bot/twitchBot.ts'
 import { startServer } from './bot/server.ts'
+import { startTunnel } from './bot/tunnel.ts'
 
 function requireEnv(key: string): string {
   const val = process.env[key]
@@ -67,6 +68,7 @@ async function main(): Promise<void> {
   bot.connect()
 
   startServer(supabase, bot, extensionSecret)
+  startTunnel()
 
   console.log('[Main] Bot läuft. Punkte werden in Supabase gespeichert.')
 }

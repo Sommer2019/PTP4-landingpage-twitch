@@ -1,3 +1,6 @@
+// Twitch-Extension Config-View: Reward-Verwaltung (CRUD) für den Broadcaster.
+// Wird im Twitch-Dashboard unter "Konfigurieren" angezeigt.
+
 // ── Build-time Konfiguration ─────────────────────────────────────────────
 // Diese Sentinels werden in der CI-Pipeline (.github/workflows/pipeline.yml,
 // Job release-twitchaddon, Step "Inject extension config") aus GitHub-Secrets
@@ -7,7 +10,7 @@ var PRIVACY_URL  = '__PRIVACY_URL__';
 
 var broadcasterJwt = null;
 var allRewards = [];
-var editingId = null;   // null = new reward
+var editingId = null;   // null = neuer Reward, sonst ID des bearbeiteten Rewards
 
 // ── Hilfsfunktionen ──────────────────────────────────────────────────────
 
@@ -17,6 +20,7 @@ function esc(s) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/** Dekodiert den Payload-Teil eines JWT (ohne Signaturprüfung); null bei ungültigem Token. */
 function decodeJwtPayload(token) {
   try {
     var parts = token.split('.');
@@ -61,6 +65,7 @@ function setPrivacyLink(url) {
 
 // ── Typ-Mapping: intern (DB) ↔ Formular ─────────────────────────────────
 
+/** Leitet aus den DB-Feldern eines Rewards den Formular-Typ ab (tts/video/image_text/text_only). */
 function rewardToFormType(r) {
   if (r.istts) return 'tts';
   var url = (r.mediaurl || '').toLowerCase();
@@ -80,6 +85,7 @@ function typeBadge(type) {
 
 // ── API-Aufrufe ──────────────────────────────────────────────────────────
 
+/** Ruft den /api/rewards-Endpunkt auf; sendet das Broadcaster-JWT für Schreibzugriffe mit. */
 function apiRewards(method, params, body) {
   var url = EBS_BASE_URL + '/api/rewards' + (params ? '?' + params : '');
   var opts = {
@@ -229,6 +235,7 @@ function onTypeChange() {
 
 // ── Formular → DB-Objekt ─────────────────────────────────────────────────
 
+/** Liest das Formular aus und baut das DB-Payload; liefert { error } bei Validierungsfehlern. */
 function buildPayload() {
   var type = document.getElementById('fType').value;
   var name = document.getElementById('fName').value.trim();

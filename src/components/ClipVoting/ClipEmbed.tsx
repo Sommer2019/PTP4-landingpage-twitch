@@ -5,8 +5,13 @@ interface ClipEmbedProps {
   thumbnailUrl?: string | null
 }
 
+/**
+ * Twitch-Clip-Einbettung mit Klick-Fassade: Das iframe wird erst nach Nutzerinteraktion
+ * geladen, damit ohne Zustimmung keine Twitch-Ressourcen angefragt werden.
+ */
 export default function ClipEmbed({ twitchClipId, thumbnailUrl }: ClipEmbedProps) {
   const [activated, setActivated] = useState(false)
+  // Twitch verlangt im embed-Aufruf die einbettende Domain als parent-Parameter
   const parent =
     typeof window !== 'undefined' ? window.location.hostname : 'localhost'
 

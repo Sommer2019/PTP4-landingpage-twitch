@@ -10,7 +10,8 @@ import type {
   VotingState,
 } from '../types/clipVoting'
 
-/* ── UI-Phase aus den DB-Daten ableiten ── */
+/** Leitet die anzuzeigende UI-Phase aus der jeweils aktivsten Voting-Runde ab.
+ *  Priorität: aktive Runde vor ausstehender vor abgeschlossener. */
 export function derivePhase(
   active: VotingRound | null,
   pending: VotingRound | null,
@@ -22,7 +23,7 @@ export function derivePhase(
     return 'yearly-active'
   }
   if (pending) {
-    // Runde 2 noch ausstehend → Ergebnisse von Runde 1 anzeigen
+    // Runde 2 steht noch aus → solange die Ergebnisse von Runde 1 zeigen
     if (pending.type === 'round2') return 'round1-results'
     return 'no-round'
   }
@@ -34,6 +35,8 @@ export function derivePhase(
   return 'no-round'
 }
 
+/** Liefert den kompletten Zustand des Clip-Votings (Phase, Runde, Clips, Sieger)
+ *  und eine castVote-Funktion. Pollt alle 30 Sekunden. */
 export function useClipVoting(): VotingState & {
   castVote: (clipId: string) => Promise<{ error?: string }>
   refresh: () => void
@@ -51,10 +54,10 @@ export function useClipVoting(): VotingState & {
     error: null,
   })
 
-  /* ── Alle für die UI benötigten Daten laden ── */
+  // Lädt alle für die UI benötigten Daten in einem Durchgang
   const fetchState = useCallback(async () => {
     try {
-      // 1 — Aktuellste Voting-Runden laden
+      // 1 — Die letzten Voting-Runden laden, um daraus die aktuelle Phase abzuleiten
       const { data: rounds } = await supabase
         .schema('clipvoting')
         .from('voting_rounds')
@@ -75,8 +78,8 @@ export function useClipVoting(): VotingState & {
       // 2 — Clips der anzuzeigenden Runde laden
       let clips: ClipWithVotes[] = []
       if (displayRound) {
-        // Bei ausstehender Runde 2 die abgeschlossene Runde 1 anzeigen,
-        // damit Zuschauer die Top-10-Ergebnisse sehen
+        // Solange Runde 2 nur "pending" ist, die Clips der abgeschlossenen Runde 1
+        // zeigen – sonst sähen Zuschauer eine leere Runde
         const roundIdForClips =
           displayRound.status === 'pending'
             ? list.find(
@@ -153,11 +156,10 @@ export function useClipVoting(): VotingState & {
 
   useEffect(() => {
     fetchState()
-    const id = setInterval(fetchState, 30_000) // alle 30 Sekunden aktualisieren
+    const id = setInterval(fetchState, 30_000)
     return () => clearInterval(id)
   }, [fetchState])
 
-  /* ── Stimme abgeben ── */
   const castVote = useCallback(
     async (clipId: string): Promise<{ error?: string }> => {
       if (!state.round || state.round.status !== 'active')
@@ -172,7 +174,7 @@ export function useClipVoting(): VotingState & {
       const result = data as { error?: string; success?: boolean } | null
       if (result?.error) return { error: result.error }
 
-      // Optimistisches Update: userVote sofort setzen, dann Daten aktualisieren
+      // Optimistisches Update: userVote sofort setzen, danach echten Stand nachladen
       setState((prev) => ({ ...prev, userVote: clipId }))
       await fetchState()
       return {}

@@ -9,7 +9,7 @@ import SubPage from '../components/SubPage/SubPage'
 
 const TWITCH_CLIENT_ID = import.meta.env.VITE_TWITCH_CLIENT_ID as string | undefined
 
-/* ── Twitch API helpers ── */
+/* ── Twitch-API-Helfer ── */
 
 async function twitchGet<T>(endpoint: string, token: string): Promise<T> {
   const res = await fetch(`https://api.twitch.tv/helix/${endpoint}`, {
@@ -63,10 +63,9 @@ async function lookupTwitchUser(providerToken: string, login: string): Promise<T
 interface ModRow { twitch_user_id: string; display_name: string | null; is_broadcaster: boolean }
 interface ExcludedRow { twitch_user_id: string; display_name: string | null; excluded_at: string }
 
-/* ── OnlyBart Broadcaster Sync (VIPs/Subs) ── */
+/* ── OnlyBart-Rollen-Sync (VIPs/Abonnenten) ── */
 async function fetchOnlyBartRoles(providerToken: string, broadcasterId: string) {
-    // 1. VIPs abrufen
-    // Benötigt Scope 'channel:read:vips'. Schlägt fehl wenn nicht verfügbar.
+    // VIPs abrufen — benoetigt Scope 'channel:read:vips', faellt bei fehlendem Scope still aus.
     const vips: string[] = []
     try {
         let cursor = ''
@@ -85,8 +84,7 @@ async function fetchOnlyBartRoles(providerToken: string, broadcasterId: string) 
         console.warn('Failed to fetch VIPs', e)
     }
 
-    // 2. Abonnenten abrufen
-    // Benötigt Scope 'channel:read:subscriptions'
+    // Abonnenten abrufen — benoetigt Scope 'channel:read:subscriptions'.
     const subs: string[] = []
     try {
         let cursor = ''
@@ -110,6 +108,10 @@ async function fetchOnlyBartRoles(providerToken: string, broadcasterId: string) 
 
 /* ═════════════════════════════════════════════════════════ */
 
+/**
+ * Broadcaster-Einstellungen: Moderatoren-Verwaltung (Auto-Sync via Twitch-API
+ * oder manuell) sowie Pflege der Sync-Ausschlussliste.
+ */
 export default function ModerateSettingsPage() {
   const { t } = useTranslation()
   const { user, session } = useAuth()

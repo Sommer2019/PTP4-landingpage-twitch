@@ -1,3 +1,4 @@
+/** Laufzeitzustand eines im Chat anwesenden Zuschauers; die Flags verhindern doppelte Punktevergabe. */
 export interface UserSession {
   username: string
   userid: string
@@ -7,6 +8,7 @@ export interface UserSession {
   hasReceivedStayTillEndPoints: boolean
 }
 
+/** Erwartete Umgebungsvariablen für Bot und Server. */
 export interface Env {
   SUPABASE_URL: string
   SUPABASE_API_KEY: string

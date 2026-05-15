@@ -8,6 +8,7 @@ export interface MascotProps {
   className?: string
 }
 
+/** Maskottchen als SVG; der Bart wächst abhängig von bartLength und clickCount nach unten. */
 export function MascotSVG({ bartLength = 50, clickCount = 0, onClick, className = 'beard-svg' }: MascotProps) {
   const bartGrowth = (bartLength - 50) / 50
   const rebirthHeight = bartGrowth * 100
