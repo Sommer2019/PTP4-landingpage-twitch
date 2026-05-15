@@ -32,6 +32,19 @@ body {
   line-height: 1.5;
 }
 
+.offline-banner {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
 .privacy-notice a {
   color: var(--text-muted);
   text-decoration: underline;
@@ -39,4 +52,11 @@ body {
 
 .privacy-notice a:hover {
   color: var(--text);
+}
+
+/* Offline-Modus: nur den Offline-Banner zeigen, alle anderen Sektionen verstecken. */
+body.offline .points-footer,
+body.offline .privacy-notice,
+body.offline .scroll-area > *:not(#offlineBanner) {
+  display: none !important;
 }

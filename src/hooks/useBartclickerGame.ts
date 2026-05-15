@@ -16,14 +16,15 @@ const MAX_OFFLINE_SECONDS = 8 * 3600;
 // Basiskosten für das erste Rebirth (verdoppelt sich mit jedem Rebirth)
 export const BASE_REBIRTH_COST = 1_000_000;
 
-// Rebirth-Multiplikator aus rebirth_count ableiten.
-// Jeder Rebirth verdoppelt den Multiplikator, aber Rebirths für Shop-Items
-// (Autobuyer, Offline-Upgrades, …) senken den Zähler und damit den Multiplikator.
+// Rebirth-Multiplikator ist die einzige Quelle der Wahrheit: er wird nie persistiert,
+// sondern immer aus rebirth_count abgeleitet. Rebirths, die für Shop-Items ausgegeben
+// werden (Autobuyer, Offline-Upgrades), senken rebirth_count und damit auch den Multiplikator.
 function deriveRebirthMultiplier(rebirthCount: number): number {
   return Math.pow(2, rebirthCount);
 }
 
-// CPS aus Rohdaten berechnen (für Offline-Verdienst – kein React-State nötig)
+// Eigenständige CPS-Berechnung ohne React-State – nötig, weil der Offline-Verdienst
+// schon vor dem ersten Render aus den geladenen Rohdaten bestimmt werden muss.
 function calculateCpsFromData(
   shopItems: ShopItem[],
   rebirthCount: number,
@@ -47,7 +48,8 @@ function calculateCpsFromData(
   return Math.max(0, totalCps);
 }
 
-// Hilfsfunktion: Preise der passiven Shop-Items anhand aktuellem Rebirth-Stand neu berechnen
+// Passive Shop-Item-Preise skalieren mit rebirth_count. Muss immer dann neu berechnet
+// werden, wenn Rebirths ausgegeben werden, ohne dass ein echter Rebirth stattfindet.
 function recalculatePassiveShopItemCosts(shopItems: ShopItem[], rebirthCount: number): ShopItem[] {
   return shopItems.map((item) => {
     if (item.type === 'passive') {
@@ -164,11 +166,12 @@ const AVAILABLE_RELICS = [
   { id: 3, name: 'Zeitreisendes Bartöl', icon: '⏳', effect: 'offlineBonus' as const, value: 0.5, unlockCost: 200000000, description: '+50% Offline-Verdienst' },
 ];
 
+/** Verwaltet den kompletten Bartclicker-Spielstand: Klicks, CPS, Shop, Buffs, Rebirths,
+ *  Offline-Verdienst und Persistierung gegen Supabase. */
 export function useBartclickerGame() {
   const { user } = useAuth();
   const userId = user?.id;
 
-  // Spielstand
   const [gameState, setGameState] = useState<BartclickerGameState>({
     energy: 0,
     total_ever: 0,
@@ -186,7 +189,7 @@ export function useBartclickerGame() {
     click_upgrade_buyer_unlocked: false,
   });
 
-  // Hand-CPS-Statistiken
+  // Hand-CPS-Statistiken (nur manuelle Klicks, getrennt vom Autoclicker)
   const [handCps, setHandCps] = useState(0);
   const [handCpsAvg, setHandCpsAvg] = useState(0);
   const [handCpsTop, setHandCpsTop] = useState(0);
@@ -197,7 +200,8 @@ export function useBartclickerGame() {
   const [offlineEarnings, setOfflineEarnings] = useState<{ amount: number; seconds: number } | null>(null);
   const [clickBlocked, setClickBlocked] = useState(false);
   const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
-      // Event-Listener für Auto-Upgrade-Checkboxen (CustomEvent aus der UI)
+      // Auto-Upgrade-Checkboxen kommunizieren per CustomEvent statt Props,
+      // weil die Checkbox-UI tief in unabhängigen Komponenten sitzt.
       useEffect(() => {
         function handleToggleAutoUpgradeItem(e: Event) {
           const detail = (e as CustomEvent).detail;
@@ -205,11 +209,9 @@ export function useBartclickerGame() {
           setGameState(prev => {
             const items = prev.click_upgrade_buyer_items || [];
             if (detail.checked) {
-              // Hinzufügen, falls nicht enthalten
               if (items.includes(detail.itemId)) return prev;
               return { ...prev, click_upgrade_buyer_items: [...items, detail.itemId] };
             } else {
-              // Entfernen, falls enthalten
               if (!items.includes(detail.itemId)) return prev;
               return { ...prev, click_upgrade_buyer_items: items.filter(id => id !== detail.itemId) };
             }
@@ -232,7 +234,6 @@ export function useBartclickerGame() {
   const AC_MIN_STD_DEV = 3;      // Min Standardabweichung (ms) der Intervalle – zu gleichmäßig = Bot
   const AC_PENALTY_MS = 15000;  // Sperre in ms bei Erkennung
 
-  // CPS aus Shop-Items, Relikten und Multiplikatoren berechnen
   const calculateCps = useCallback((): number => {
     const rebirthMult = deriveRebirthMultiplier(gameState.rebirth_count);
     let totalCps = gameState.shop_items.reduce((sum, item) => {
@@ -242,7 +243,6 @@ export function useBartclickerGame() {
       return sum;
     }, 0);
 
-    // Relik-Boni anwenden
     gameState.relics.forEach((relic) => {
       if (relic.effect === 'cpsBonus' || relic.effect === 'allBonus') {
         const bonus = relic.cpsValue || relic.value || 0;
@@ -250,14 +250,12 @@ export function useBartclickerGame() {
       }
     });
 
-    // Aktive Buffs anwenden
     gameState.active_buffs.forEach((buff) => {
       if (buff.effect === 'cpsMultiplier' || buff.effect === 'both') {
         totalCps *= buff.value || buff.cpsValue || 1;
       }
     });
 
-    // Aktive Debuffs anwenden
     gameState.active_debuffs.forEach((debuff) => {
       if (debuff.type === 'both' || debuff.type === 'energyLoss') {
         totalCps *= 1 - (debuff.cpsValue || debuff.value || 0);
@@ -269,7 +267,6 @@ export function useBartclickerGame() {
 
   const cps = useMemo(() => calculateCps(), [calculateCps]);
 
-  // Klick-Power berechnen
   const calculateClickPower = useCallback((): number => {
     const rebirthMult = deriveRebirthMultiplier(gameState.rebirth_count);
     let power = gameState.shop_items.reduce((sum, item) => {
@@ -279,7 +276,6 @@ export function useBartclickerGame() {
       return sum;
     }, 0);
 
-    // Relik-Boni anwenden
     gameState.relics.forEach((relic) => {
       if (relic.effect === 'clickBonus' || relic.effect === 'allBonus') {
         const bonus = relic.clickValue || relic.value || 0;
@@ -287,14 +283,12 @@ export function useBartclickerGame() {
       }
     });
 
-    // Aktive Buffs anwenden
     gameState.active_buffs.forEach((buff) => {
       if (buff.effect === 'clickMultiplier' || buff.effect === 'both') {
         power *= buff.value || buff.clickValue || 1;
       }
     });
 
-    // Aktive Debuffs anwenden
     gameState.active_debuffs.forEach((debuff) => {
       if (debuff.type === 'both' || debuff.type === 'clickReduction') {
         power *= 1 - (debuff.clickValue || debuff.value || 0);
@@ -304,21 +298,19 @@ export function useBartclickerGame() {
     return Math.max(1, power);
   }, [gameState]);
 
-  // Spielstand aus der Datenbank laden
   const loadGameState = useCallback(async () => {
     if (!userId) {
       return;
     }
 
-    // Verhindere mehrfache simultane Loads
+    // Parallele Loads würden sich gegenseitig State überschreiben
     if (isLoadingRef.current) {
-      console.log('Load already in progress, skipping duplicate request');
       return;
     }
 
     isLoadingRef.current = true;
 
-    // Abbrechen von alten Requests bei schnellem Reload
+    // Alten Request abbrechen, damit ein veraltetes Ergebnis nicht den neuen State überschreibt
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -333,18 +325,14 @@ export function useBartclickerGame() {
         .eq('user_id', userId)
         .single();
 
-      // Prüfe ob dieser Request abgebrochen wurde
       if (signal.aborted) {
-        console.log('Load request was cancelled');
         isLoadingRef.current = false;
         return;
       }
 
       if (error) {
-        // PGRST116 = keine Zeilen gefunden (erwartet für neue Nutzer)
+        // PGRST116 = keine Zeile gefunden, erwartet für neue Nutzer ohne Spielstand
         if (error.code === 'PGRST116') {
-          console.log('Neuer Nutzer erkannt, Spielstand wird initialisiert');
-          
           const initialState: BartclickerGameState = {
             user_id: userId,
             energy: 0,
@@ -363,7 +351,8 @@ export function useBartclickerGame() {
             click_upgrade_buyer_unlocked: false,
           };
 
-          // Versuche zu speichern, aber setze State IMMER
+          // State wird unten unabhängig gesetzt; ein fehlgeschlagener Upsert ist nicht fatal,
+          // da der initiale Spielstand beim nächsten Save erneut persistiert wird.
           try {
             await supabase.from('bartclicker_scores').upsert({
               user_id: userId,
@@ -382,29 +371,25 @@ export function useBartclickerGame() {
               auto_click_buyer_unlocked: false,
               click_upgrade_buyer_unlocked: false,
             }, { onConflict: 'user_id' });
-            console.log('Initial game state saved successfully');
           } catch (upsertErr) {
             console.error('Failed to create initial game state:', upsertErr);
-            // State wird trotzdem gesetzt - Daten sind lokal vorhanden
           }
 
-          // Setze State unabhängig vom Save-Erfolg
           if (!signal.aborted) {
             setGameState(initialState);
           }
         } else {
-          // Andere Fehler (z.B. RLS, Netzwerk)
+          // Andere Fehler (RLS, Netzwerk): State NICHT setzen, damit kein leerer
+          // Spielstand einen vorhandenen überschreibt – UI bleibt im Ladezustand.
           console.error('Error loading game state:', error);
-          
-          // Bei Fehler: zeige Loading-Schirm aber setze State nicht
+
           if (!signal.aborted) {
             setIsLoading(false);
           }
         }
       } else if (data) {
-        // Vorhandene Daten gefunden – NIEMALS State mit leerem Data überschreiben
+        // Leeres data-Objekt würde einen echten Spielstand zerstören – darum der Längen-Check
         if (!signal.aborted && data && Object.keys(data).length > 0) {
-          // Offline-Verdienst berechnen
           let offlineEarningsAmount = 0;
           let offlineEarningsSeconds = 0;
           if (data.last_updated) {
@@ -412,6 +397,7 @@ export function useBartclickerGame() {
             const now = Date.now();
             offlineEarningsSeconds = Math.min((now - lastUpdated) / 1000, MAX_OFFLINE_SECONDS);
 
+            // Unter einer Minute Abwesenheit gibt es keinen Offline-Verdienst
             if (offlineEarningsSeconds > 60) {
               const savedCps = calculateCpsFromData(
                 (data.shop_items || []) as ShopItem[],
@@ -419,11 +405,9 @@ export function useBartclickerGame() {
                 (data.relics || []) as Relic[],
               );
 
-              // Basis-Offline-Rate: 10 % des Online-CPS
+              // Basis-Offline-Rate: 10 % des Online-CPS, +10 % je Offline-Upgrade
               let offlineMultiplier = 0.1;
-              // Jedes Upgrade erhöht um +10 %
               offlineMultiplier += (data.offline_earning_upgrades || 0) * 0.1;
-              // Relik-Offline-Bonus anwenden
               (data.relics as Relic[] || []).forEach((relic) => {
                 if (relic.effect === 'offlineBonus') {
                   offlineMultiplier += relic.value || 0;
@@ -467,8 +451,8 @@ export function useBartclickerGame() {
         }
       }
     } catch (err) {
+      // State bei Fehler bewusst unverändert lassen, um keinen Spielstand zu verlieren
       console.error('Failed to load game state:', err);
-      // Bei Fehler: zeige Loading-Schirm aber verändere State nicht
     } finally {
       if (!signal.aborted) {
         setIsLoading(false);
@@ -477,23 +461,20 @@ export function useBartclickerGame() {
     }
   }, [userId]);
 
-  // Spielstand in der Datenbank speichern
   const saveGameState = useCallback(async () => {
     if (!userId) {
-      console.log('No user ID, skipping save');
       return;
     }
 
-    // Verhindere Speichern während eines Load läuft - das löscht die Daten!
+    // Speichern während eines laufenden Loads würde den noch nicht geladenen
+    // (leeren) State persistieren und den echten Spielstand überschreiben
     if (isLoadingRef.current) {
-      console.log('Load in progress, deferring save');
       return;
     }
 
     try {
-      // Vermeide Speichern von leeren/unvollständigen Daten
+      // Fehlende user_id bedeutet: State ist noch nicht initialisiert – nicht speichern
       if (!gameState.user_id) {
-        console.log('Game state incomplete, skipping save');
         return;
       }
 
@@ -520,33 +501,29 @@ export function useBartclickerGame() {
 
       if (error) {
         console.error('Error saving game state:', error);
-      } else {
-        console.log('Game state saved successfully');
       }
     } catch (err) {
       console.error('Failed to save game state:', err);
     }
   }, [userId, gameState]);
 
-  // Klick verarbeiten – mit optionalem Auto-Klick-Bypass für Anti-Autoclicker
+  // isAutoClick=true umgeht die Anti-Autoclicker-Prüfung – der eigene Autobuyer
+  // soll nicht als Cheat erkannt werden.
   const handleClick = useCallback((isAutoClick = false) => {
     const now = performance.now();
 
     if (!isAutoClick) {
-      // Aktive Sperre?
+      // Während einer aktiven Sperre Klicks stillschweigend verwerfen
       if (penaltyUntilRef.current > Date.now()) {
-        return; // Klick wird stillschweigend ignoriert
+        return;
       }
 
-      // Timestamp aufnehmen
       const timestamps = clickTimestampsRef.current;
       timestamps.push(now);
 
-      // Hand-CPS Tracking
       handClickCountRef.current++;
       if (!handClickStartRef.current) handClickStartRef.current = now;
 
-      // Nur die letzten AC_WINDOW Klicks behalten
       if (timestamps.length > AC_WINDOW) {
         timestamps.splice(0, timestamps.length - AC_WINDOW);
       }
@@ -555,9 +532,9 @@ export function useBartclickerGame() {
       if (timestamps.length >= 6) {
         const windowStart = timestamps[0];
         const windowEnd = timestamps[timestamps.length - 1];
-        const windowDuration = (windowEnd - windowStart) / 1000; // in Sekunden
+        const windowDuration = (windowEnd - windowStart) / 1000;
 
-        // 1. Rate-Limiting: Zu viele Klicks pro Sekunde?
+        // Erkennung 1: zu hohe Klickrate
         if (windowDuration > 0) {
           const clicksPerSecond = (timestamps.length - 1) / windowDuration;
           if (clicksPerSecond > AC_MAX_CPS) {
@@ -570,7 +547,7 @@ export function useBartclickerGame() {
           }
         }
 
-        // 2. Regelmäßigkeitserkennung: Intervalle zu gleichmäßig?
+        // Erkennung 2: zu gleichmäßige Intervalle (menschliche Klicks streuen)
         if (timestamps.length >= AC_WINDOW) {
           const intervals: number[] = [];
           for (let i = 1; i < timestamps.length; i++) {
@@ -580,8 +557,8 @@ export function useBartclickerGame() {
           const variance = intervals.reduce((sum, iv) => sum + Math.pow(iv - mean, 2), 0) / intervals.length;
           const stdDev = Math.sqrt(variance);
 
+          // Nur sperren, wenn die Klicks gleichzeitig sehr regelmäßig UND schnell sind
           if (stdDev < AC_MIN_STD_DEV && mean < 200) {
-            // Zu gleichmäßig UND schnell → Autoclicker
             penaltyUntilRef.current = Date.now() + AC_PENALTY_MS;
             clickTimestampsRef.current = [];
             setClickBlocked(true);
@@ -601,25 +578,24 @@ export function useBartclickerGame() {
       total_ever: prev.total_ever + power,
     }));
   }, [calculateClickPower]);
-  // Auto-Klicker-Loop: 10 CPS, solange aktiviert
+  // Auto-Klicker-Loop: 10 Klicks pro Sekunde, solange der Autobuyer aktiviert ist
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     if (gameState.auto_click_buyer_enabled) {
       interval = setInterval(() => {
-        handleClick(true); // true = Auto-Klick, Anti-Autoclicker-Checks überspringen
-      }, 100); // 10x pro Sekunde
+        handleClick(true);
+      }, 100);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [gameState.auto_click_buyer_enabled, handleClick]);
 
-  // Upgrade-Buyer-Loop: Kauft automatisch Upgrades aus click_upgrade_buyer_items, solange aktiviert
+  // Upgrade-Buyer-Loop: kauft automatisch die in click_upgrade_buyer_items markierten Items
   useEffect(() => {
     if (!gameState.click_upgrade_buyer_enabled) return;
     const interval = setInterval(() => {
       setGameState((prev) => {
-        // Prüfe alle aktivierten Upgrade-IDs
         let newState = { ...prev };
         (prev.click_upgrade_buyer_items || []).forEach((itemId) => {
           const item = newState.shop_items.find((i) => i.id === itemId);
@@ -642,7 +618,7 @@ export function useBartclickerGame() {
     return () => clearInterval(interval);
   }, [gameState.click_upgrade_buyer_enabled]);
 
-  // Buy shop item – item.cost ist bereits der aktuelle Preis (inkl. Rebirth-Skalierung)
+  // item.cost ist bereits der aktuelle, rebirth-skalierte Preis
   const buyItem = useCallback(
     (itemId: number) => {
       const item = gameState.shop_items.find((i) => i.id === itemId);
@@ -667,7 +643,8 @@ export function useBartclickerGame() {
     [gameState.energy, gameState.shop_items]
   );
 
-  // Maximal kaufen – item.cost ist bereits der aktuelle Preis (inkl. Rebirth-Skalierung)
+  // Kauft so viele Einheiten eines Items, wie die aktuelle Energie hergibt.
+  // Jeder Kauf erhöht den Preis um 15 %, daher die zweistufige Berechnung.
   const buyMaxItems = useCallback(
     (itemId: number) => {
       const item = gameState.shop_items.find((i) => i.id === itemId);
@@ -677,7 +654,7 @@ export function useBartclickerGame() {
       let currentEnergy = gameState.energy;
       let count = 0;
 
-      // Berechne wie viele Items man sich leisten kann
+      // Erst ermitteln, wie viele Einheiten leistbar sind
       while (currentEnergy >= nextCost) {
         currentEnergy -= nextCost;
         count++;
@@ -686,7 +663,7 @@ export function useBartclickerGame() {
 
       if (count === 0) return false;
 
-      // Kaufe alle Items – berechne Gesamtkosten und neuen Preis
+      // Dann Gesamtkosten und Endpreis für genau diese Anzahl bestimmen
       let energyUsed = 0;
       let cost = item.cost;
       for (let i = 0; i < count; i++) {
@@ -713,7 +690,6 @@ export function useBartclickerGame() {
     [gameState.energy, gameState.shop_items]
   );
 
-  // Buff aktivieren
   const activateBuff = useCallback(
     (buffId: number) => {
       const buff = AVAILABLE_BUFFS.find((b) => b.id === buffId);
@@ -724,7 +700,7 @@ export function useBartclickerGame() {
 
       const endTime = Date.now() + buff.duration;
 
-      // Würfeln für negativen Nebeneffekt
+      // Jeder Buff kann per Zufall einen negativen Nebeneffekt (Debuff) auslösen
       const newDebuffs: Debuff[] = [];
       if (buff.negativeEffect && Math.random() < buff.negativeEffect.chance) {
         const debuffEndTime = Date.now() + (buff.negativeEffect.duration ?? buff.duration);
@@ -759,7 +735,8 @@ export function useBartclickerGame() {
     [gameState.energy, gameState.rebirth_count]
   );
 
-  // Rebirth - erhöht Multiplikator, setzt Items zurück, behält aber Relikte, Autobuyer & aktive Boosts
+  // Rebirth: erhöht den Multiplikator, setzt Energie und gekaufte Items zurück,
+  // behält aber Relikte und Autobuyer-Freischaltungen.
   const performRebirth = useCallback(() => {
     setGameState((prev) => {
       const rebirthCost = BASE_REBIRTH_COST * Math.pow(2, prev.rebirth_count);
@@ -777,22 +754,20 @@ export function useBartclickerGame() {
         })),
         active_buffs: [],
         active_debuffs: [],
-        // Behalte: relics, auto_click_buyer_enabled, auto_click_buyer_unlocked, click_upgrade_buyer_enabled, Autobuyer Items
         auto_click_buyer_enabled: prev.auto_click_buyer_enabled,
         auto_click_buyer_unlocked: prev.auto_click_buyer_unlocked,
       };
     });
   }, []);
 
-  // Spiel-Loop für CPS
+  // CPS-Loop: schreibt den passiven Verdienst alle 100 ms gutschreibt (cps / 10 pro Tick)
   useEffect(() => {
-    // Spiel-Loop einrichten
     if (gameLoopRef.current) clearInterval(gameLoopRef.current);
 
     gameLoopRef.current = setInterval(() => {
       setGameState((prev) => ({
         ...prev,
-        energy: prev.energy + cps / 10, // Alle 100 ms aktualisieren
+        energy: prev.energy + cps / 10,
         total_ever: prev.total_ever + cps / 10,
       }));
     }, 100);
@@ -823,7 +798,8 @@ export function useBartclickerGame() {
     return () => clearInterval(cleanupInterval);
   }, []);
 
-  // Anfangszustand laden
+  // setTimeout(0) verschiebt den ersten Load hinter den Render, damit nicht
+  // gleichzeitig gerendert und State gesetzt wird.
   useEffect(() => {
     if (!userId) return;
     const timeout = setTimeout(() => {
@@ -832,32 +808,30 @@ export function useBartclickerGame() {
     return () => clearTimeout(timeout);
   }, [loadGameState, userId]);
 
-  // Regelmäßig automatisch speichern (alle 10 Sekunden)
+  // Periodisches Auto-Save alle 10 Sekunden
   useEffect(() => {
     const saveInterval = setInterval(() => {
       saveGameState();
-    }, 10000); // Alle 10 Sekunden speichern
+    }, 10000);
 
     return () => clearInterval(saveInterval);
   }, [saveGameState]);
 
-  // Bei wichtigen Zustandsänderungen speichern (Rebirth, Shop-Kauf, Offline-Upgrade-Kauf)
-  // Gesamtanzahl der Shop-Items statt .length verwenden, um Käufe zu erkennen (count ändert sich)
+  // Zusätzlich sofort speichern bei wichtigen Änderungen (Rebirth, Käufe).
+  // Summe der item.count statt .length, weil sich nur die Anzahl ändert, nicht die Item-Liste.
+  // Das 5-Sekunden-Throttle verhindert Speicher-Spam bei schnellen Käufen.
   const totalShopCount = gameState.shop_items.reduce((sum, item) => sum + item.count, 0);
   useEffect(() => {
     const now = Date.now();
     if (now - lastSaveTimeRef.current > 5000) {
-      // Nicht zu häufig speichern – mindestens 5 Sekunden zwischen Speichervorgängen
       saveGameState();
       lastSaveTimeRef.current = now;
     }
   }, [gameState.rebirth_count, totalShopCount, gameState.offline_earning_upgrades, saveGameState]);
 
-  // Buy Autobuyer (kostet 10 Rebirths für Auto-Klicker)
-  // Autobuyer kann nur einmal gekauft werden (10 Rebirths). Danach Toggle ohne weitere Kosten.
+  // Autobuyer wird einmalig für 10 Rebirths freigeschaltet; danach nur noch kostenloses Toggle.
   const buyAutobuyer = useCallback(() => {
     if (!gameState.auto_click_buyer_unlocked) {
-      // Erstkauf: Kosten abziehen, unlocken und aktivieren
       if (gameState.rebirth_count < 10) return false;
       setGameState((prev) => {
         const newRebirthCount = prev.rebirth_count - 10;
@@ -872,7 +846,6 @@ export function useBartclickerGame() {
       });
       return true;
     } else {
-      // Bereits gekauft: Nur togglen (ohne Kosten)
       setGameState((prev) => ({
         ...prev,
         auto_click_buyer_enabled: !prev.auto_click_buyer_enabled,
@@ -881,10 +854,9 @@ export function useBartclickerGame() {
     }
   }, [gameState.rebirth_count, gameState.auto_click_buyer_unlocked]);
 
-  // Buy Auto-Upgrade Käufer (kostet 10 Rebirths)
+  // Upgrade-Autobuyer: einmalig für 10 Rebirths freischalten, danach kostenloses Toggle.
   const buyUpgradeAutobuyer = useCallback(() => {
     if (!gameState.click_upgrade_buyer_unlocked) {
-      // Erstkauf: Kosten abziehen, unlocken und aktivieren
       if (gameState.rebirth_count < 10) return false;
       setGameState((prev) => {
         const newRebirthCount = prev.rebirth_count - 10;
@@ -899,7 +871,6 @@ export function useBartclickerGame() {
       });
       return true;
     } else {
-      // Bereits gekauft: Nur togglen (ohne Kosten)
       setGameState((prev) => ({
         ...prev,
         click_upgrade_buyer_enabled: !prev.click_upgrade_buyer_enabled,
@@ -908,7 +879,6 @@ export function useBartclickerGame() {
     }
   }, [gameState.rebirth_count, gameState.click_upgrade_buyer_unlocked]);
 
-  // Relik freischalten
   const unlockRelic = useCallback(
     (relicId: number) => {
       const relic = AVAILABLE_RELICS.find((r) => r.id === relicId);
@@ -926,7 +896,7 @@ export function useBartclickerGame() {
     [gameState.energy, gameState.relics]
   );
 
-  // Offline-Verdienst-Upgrade kaufen (kostet 5 Rebirths, erhöht Offline-Rate um +10 % pro Stufe)
+  // Kostet 5 Rebirths pro Stufe und erhöht die Offline-Verdienstrate um +10 %.
   const OFFLINE_UPGRADE_REBIRTH_COST = 5;
   const buyOfflineUpgrade = useCallback(() => {
     if (gameState.offline_earning_upgrades >= MAX_OFFLINE_UPGRADES) return false;
@@ -947,27 +917,23 @@ export function useBartclickerGame() {
     return true;
   }, [gameState.rebirth_count, gameState.offline_earning_upgrades]);
 
-  // Offline-Verdienst-Benachrichtigung schließen
   const dismissOfflineEarnings = useCallback(() => {
     setOfflineEarnings(null);
   }, []);
 
-  // Intervall zur Berechnung der Hand-CPS
+  // Aktualisiert die Hand-CPS-Statistiken (aktuell, Durchschnitt, Spitzenwert) alle 500 ms
   useEffect(() => {
     const interval = setInterval(() => {
       const now = performance.now();
-      // Hand-CPS: Klicks in den letzten 1000ms
       const timestamps = clickTimestampsRef.current;
       const oneSecAgo = now - 1000;
       const recentClicks = timestamps.filter(ts => ts >= oneSecAgo);
       setHandCps(recentClicks.length);
-      // Durchschnittliche CPS
       if (handClickStartRef.current) {
         const duration = (now - handClickStartRef.current) / 1000;
         const avg = duration > 0 ? handClickCountRef.current / duration : 0;
         setHandCpsAvg(avg);
       }
-      // Top-CPS
       if (recentClicks.length > handCpsTop) setHandCpsTop(recentClicks.length);
     }, 500);
     return () => clearInterval(interval);

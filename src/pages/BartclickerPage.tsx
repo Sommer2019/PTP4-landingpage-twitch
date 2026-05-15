@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import SubPage from '../components/SubPage/SubPage'
 import BartclickerGame from '../components/BartclickerGame/BartclickerGame'
 
+/** Seiten-Wrapper fuer das Bartclicker-Minispiel. */
 export default function BartclickerPage() {
   const { t } = useTranslation()
 

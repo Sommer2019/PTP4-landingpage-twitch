@@ -9,6 +9,7 @@ interface ToastItem {
 
 let nextId = 0
 
+/** Stellt showToast bereit und rendert kurzlebige Toast-Benachrichtigungen. */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([])
 

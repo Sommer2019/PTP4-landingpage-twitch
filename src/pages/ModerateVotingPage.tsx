@@ -8,6 +8,10 @@ import type {VotingRound} from '../types/clipVoting'
 
 
 
+/**
+ * Moderations-Seite fuer das Clip-Voting: startet/beendet Runden ueber RPCs
+ * und zeigt eine Uebersicht der letzten Voting-Runden.
+ */
 export default function ModerateVotingPage() {
     const {t} = useTranslation()
     const {user} = useAuth()
@@ -17,7 +21,7 @@ export default function ModerateVotingPage() {
     const [busy, setBusy] = useState(false)
     const [refreshKey, setRefreshKey] = useState(0)
 
-    /** Fetch voting rounds **/
+    // Letzte Voting-Runden laden; refreshKey erzwingt ein erneutes Laden nach Aktionen.
     useEffect(() => {
         (async () => {
             const [roundsRes] = await Promise.all([
@@ -28,7 +32,7 @@ export default function ModerateVotingPage() {
         })()
     }, [refreshKey])
 
-    /** Execute RPC voting actions **/
+    // Fuehrt eine Voting-Admin-RPC aus; admin_cleanup_clips hat ein abweichendes Ergebnisformat.
     async function callRpc(fn: string) {
         setBusy(true)
         const {data, error} = await supabase.rpc(fn)

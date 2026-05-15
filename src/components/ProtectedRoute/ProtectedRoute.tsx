@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 }
 
 
+/** Route-Wrapper, der die Kinder nur fuer eingeloggte Nutzer rendert, sonst eine Login-Aufforderung zeigt. */
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading, signInWithTwitch } = useAuth();
   const { t } = useTranslation();

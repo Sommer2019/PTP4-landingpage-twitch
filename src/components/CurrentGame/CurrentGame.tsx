@@ -62,6 +62,7 @@ function buildStoreLinks(gameName: string): StoreLink[] {
   ]
 }
 
+// Heuristik: erkennt im HTML der Store-Suchseiten, ob es keine Treffer fuer das Spiel gibt
 const NO_RESULTS_RE = /Keine Ergebnisse gefunden|Leider war die Suche erfolglos\.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein\./i
 
 function checkStoreResult(store: StoreLink): Promise<boolean> {
@@ -132,6 +133,7 @@ function CurrentGameStores({ gameName, t }: { gameName: string; t: (key: string)
   )
 }
 
+/** Zeigt das aktuell gestreamte Spiel samt Box-Art; pollt die Spielinfo waehrend des Streams regelmaessig. */
 export default function CurrentGame({ isLive }: CurrentGameProps) {
   const { t } = useTranslation()
   const [game, setGame] = useState<GameInfo | null>(null)
@@ -161,13 +163,11 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
         if (cancelled) return
         if (!res.ok) {
           setGame(null)
-          console.log('[CurrentGame] Fehler oder nicht live:', res.status, await res.text())
           return
         }
         const data = await res.json()
         if (!data?.isLive) {
           setGame(null)
-          console.log('[CurrentGame] Fehler oder nicht live:', data)
         } else {
           setGame({
             gameId: data.gameId,
@@ -175,7 +175,6 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
             boxArtUrl: data.boxArtUrl,
             streamTitle: data.streamTitle,
           })
-          console.log('[CurrentGame] Game gesetzt:', data)
         }
       } catch (err) {
         if (!cancelled) setGame(null)
@@ -195,12 +194,6 @@ export default function CurrentGame({ isLive }: CurrentGameProps) {
       clearInterval(interval)
     }
   }, [isLive])
-
-  // Debug-Ausgabe für Render-Entscheidung
-  if (!isLive) console.log('[CurrentGame] Render: nicht live')
-  if (loading) console.log('[CurrentGame] Render: loading')
-  if (!game) console.log('[CurrentGame] Render: kein game')
-  if (game && !game.gameName) console.log('[CurrentGame] Render: gameName fehlt')
 
   if (!isLive || loading || !game || !game.gameName) return null
 

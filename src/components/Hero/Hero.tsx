@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import siteConfig from '../../config/siteConfig'
 import './Hero.css'
 
+/** Kopfbereich der Seite mit Profilbild, Name und Untertitel des Streamers. */
 export default function Hero() {
   const { t } = useTranslation()
   const { profile } = siteConfig

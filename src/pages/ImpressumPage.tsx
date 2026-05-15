@@ -2,6 +2,7 @@ import siteConfig from '../config/siteConfig'
 import SubPage from '../components/SubPage/SubPage'
 import {useTranslation} from "react-i18next";
 
+/** Impressum-Seite: gesetzlich vorgeschriebene Anbieterkennzeichnung aus siteConfig. */
 export default function ImpressumPage() {
   const { t } = useTranslation()
   const { impressum } = siteConfig

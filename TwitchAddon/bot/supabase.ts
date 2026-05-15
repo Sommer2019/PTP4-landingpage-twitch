@@ -2,6 +2,10 @@
 
 interface CachedEntry { username: string; expiresAt: number }
 
+/**
+ * Zugriff auf die Supabase-REST-API (Punkte, Rewards, Stream-Sessions, RPC) und
+ * Auflösung von Twitch-Anzeigenamen. Hält dafür auch das Twitch-OAuth-Token vor.
+ */
 export class SupabaseClient {
   private readonly base: string
   private readonly apiKey: string
@@ -80,6 +84,7 @@ export class SupabaseClient {
     } catch { return -1 }
   }
 
+  /** Addiert Punkte auf den aktuellen Stand und schreibt ihn zurück; gedeckelt auf int32-Max. */
   async addOrUpdatePoints(userid: string, points: number, reason: string): Promise<void> {
     try {
       const current = await this.getPointsByUserId(userid)
@@ -123,6 +128,56 @@ export class SupabaseClient {
     } catch { return null }
   }
 
+  async createReward(payload: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+    try {
+      const r = await this.supaFetch('/rest/v1/rewards', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(payload),
+      })
+      if (!r.ok) {
+        console.error('[Supabase] createReward fehlgeschlagen:', r.status, await r.text())
+        return null
+      }
+      const arr = await r.json() as Record<string, unknown>[]
+      return arr[0] ?? null
+    } catch (e) {
+      console.error('[Supabase] createReward Fehler:', e)
+      return null
+    }
+  }
+
+  async updateReward(rewardId: string, payload: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+    try {
+      const r = await this.supaFetch(`/rest/v1/rewards?id=eq.${encodeURIComponent(rewardId)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(payload),
+      })
+      if (!r.ok) {
+        console.error('[Supabase] updateReward fehlgeschlagen:', r.status, await r.text())
+        return null
+      }
+      const arr = await r.json() as Record<string, unknown>[]
+      return arr[0] ?? null
+    } catch (e) {
+      console.error('[Supabase] updateReward Fehler:', e)
+      return null
+    }
+  }
+
+  async deleteReward(rewardId: string): Promise<boolean> {
+    try {
+      const r = await this.supaFetch(`/rest/v1/rewards?id=eq.${encodeURIComponent(rewardId)}`, {
+        method: 'DELETE',
+      })
+      return r.ok
+    } catch (e) {
+      console.error('[Supabase] deleteReward Fehler:', e)
+      return false
+    }
+  }
+
   async getRewardCooldown(rewardId: string): Promise<number> {
     try {
       const r = await this.supaFetch(`/rest/v1/rewards?id=eq.${rewardId}`)
@@ -150,6 +205,7 @@ export class SupabaseClient {
     } catch { return [] }
   }
 
+  /** Wie getRedeemedRewards, reichert aber jeden Eintrag mit aufgelöstem Twitch-Anzeigenamen an. */
   async getRedeemedRewardsWithUsernames(): Promise<Record<string, unknown>[]> {
     const rewards = await this.getRedeemedRewards()
     for (const reward of rewards) {
@@ -207,6 +263,7 @@ export class SupabaseClient {
 
   // ── Globale Reward-Locks ────────────────────────────────────────────────────
 
+  /** Prüft, ob für ein Reward aktuell eine aktive globale Einlösung existiert (Once-per-Stream / Cooldown-Lock). */
   async hasActiveGlobalRedemption(rewardId: string, streamId: string | null): Promise<boolean> {
     try {
       let url = `/rest/v1/redeemed_global?reward_id=eq.${rewardId}&is_active=eq.true&limit=10`
@@ -285,6 +342,10 @@ export class SupabaseClient {
 
   // ── RPC ─────────────────────────────────────────────────────────────────────
 
+  /**
+   * Ruft die Postgres-Funktion redeem_reward auf. Diese setzt Punkteabzug, Lock und
+   * Eintrag in redeemed_rewards atomar — daher keine clientseitige Transaktionslogik.
+   */
   async redeemRewardRpc(
     twitchUserId: string,
     rewardId: string,
@@ -322,6 +383,11 @@ export class SupabaseClient {
     return token.startsWith('oauth:') ? token.slice('oauth:'.length) : token
   }
 
+  /**
+   * Löst eine Twitch-User-ID zu ihrem Anzeigenamen auf (gecacht). Bei 401 wird das
+   * OAuth-Token einmalig erneuert und der Request wiederholt. Fehlschläge werden
+   * negativ gecacht, um die Helix-API nicht mit erfolglosen Requests zu fluten.
+   */
   async resolveTwitchUsernameById(userId: string): Promise<string | null> {
     if (!userId) return null
     const now = Date.now()
@@ -370,6 +436,7 @@ export class SupabaseClient {
 
 // ── OAuth-Hilfsfunktion ──────────────────────────────────────────────────────
 
+/** Tauscht den Refresh-Token gegen ein frisches Twitch-Access-Token; null bei Fehler. */
 export async function refreshOauthToken(
   clientId: string,
   clientSecret: string,
@@ -399,6 +466,7 @@ export async function refreshOauthToken(
   }
 }
 
+/** Ermittelt die numerische Twitch-User-ID zu einem Channel-Namen über die Helix-API. */
 export async function getBroadcasterId(
   channelName: string,
   clientId: string,

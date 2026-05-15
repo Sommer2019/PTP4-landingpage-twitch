@@ -9,6 +9,7 @@ interface BartclickerGameProps {
     compact?: boolean;
 }
 
+/** Idle-/Clicker-Minispiel "Bartclicker" mit Shop, Boostern, Reliquien, Rebirth und Leaderboard. */
 export default function BartclickerGame({compact = false}: BartclickerGameProps) {
     const {t, i18n} = useTranslation();
     const {
@@ -222,15 +223,12 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
         },
     ];
 
-    // Hilfsfunktion zum Toggeln der Auto-Upgrade-Auswahl
     const toggleAutoUpgradeItem = (itemId: number) => {
         if (!gameState.click_upgrade_buyer_enabled) return;
         const items = gameState.click_upgrade_buyer_items || [];
         if (items.includes(itemId)) {
-            // Entfernen
             window.dispatchEvent(new CustomEvent('toggleAutoUpgradeItem', {detail: {itemId, checked: false}}));
         } else {
-            // Hinzufügen
             window.dispatchEvent(new CustomEvent('toggleAutoUpgradeItem', {detail: {itemId, checked: true}}));
         }
     };
@@ -241,7 +239,6 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
 
     return (
         <div className={`bartclicker-game ${compact ? 'compact' : ''}`}>
-            {/* Offline Earnings Notification */}
             {offlineEarnings && (
                 <div className="offline-earnings-banner">
                     <span className="offline-earnings-icon">🌙</span>
@@ -255,7 +252,6 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                     <button className="offline-earnings-dismiss" onClick={dismissOfflineEarnings}>✕</button>
                 </div>
             )}
-            {/* Header Stats */}
             <div className="bartclicker-header">
                 <div className="stat-box">
                     <h3 className="stat-value">{formatNumber(gameState.energy)}</h3>
@@ -289,7 +285,6 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                 </button>
             </div>
 
-            {/* Tabs */}
             <div className="tabs">
                 <button
                     className={`tab-button ${activeTab === 'shop' ? 'active' : ''}`}
@@ -648,7 +643,6 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                 </div>
             )}
 
-            {/* Leaderboard Tab */}
             {activeTab === 'leaderboard' && (
                 <div className="leaderboard-content">
                     <div className="leaderboard-header">
@@ -686,7 +680,6 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                 </div>
             )}
 
-            {/* Stats Tab */}
             {activeTab === 'stats' && (
                 <div className="stats-content">
                     <div className="stat-row">
@@ -724,7 +717,6 @@ export default function BartclickerGame({compact = false}: BartclickerGameProps)
                 </div>
             )}
 
-            {/* Rebirth Section - Below Shops + Leaderboard + Stats */}
             <div className="rebirth-section">
                 <button className="rebirth-button" onClick={performRebirth} disabled={!canRebirth}>
                     {t('bartclicker.rebirth.button')} ({gameState.rebirth_count})

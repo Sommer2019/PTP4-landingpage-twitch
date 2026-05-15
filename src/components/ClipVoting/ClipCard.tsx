@@ -13,6 +13,7 @@ interface ClipCardProps {
   onVote: () => void
 }
 
+/** Einzelne Clip-Karte mit Einbettung, Metadaten und optionalem Vote-Button samt Bestaetigungsdialog. */
 export default function ClipCard({
   clip,
   rank,

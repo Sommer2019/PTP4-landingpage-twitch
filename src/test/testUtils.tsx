@@ -30,6 +30,7 @@ function AllProviders({ children }: { children: ReactNode }) {
   )
 }
 
+/** Rendert UI in allen App-Providern (i18n, Router, Toast, ConfirmModal) für Tests. */
 function renderWithProviders(ui: ReactNode, options?: Omit<RenderOptions, 'wrapper'>) {
   return render(ui, { wrapper: AllProviders, ...options })
 }

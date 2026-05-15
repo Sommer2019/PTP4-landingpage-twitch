@@ -1,7 +1,14 @@
-let EBS_BASE_URL = '';
-let SUPABASE_URL = '';
-let SUPABASE_ANON = '';
-let PRIVACY_URL = '';
+// Twitch-Extension Mobile-View: Zuschauer sehen Rewards, Punktestand und Rangliste
+// und können Rewards einlösen. Funktionsgleich zur Panel-View, eigenes Layout.
+
+// ── Build-time Konfiguration ─────────────────────────────────────────────
+// Diese Sentinels werden in der CI-Pipeline (.github/workflows/pipeline.yml,
+// Job release-twitchaddon, Step "Inject extension config") aus GitHub-Secrets
+// durch die echten Werte ersetzt, bevor extension.zip gepackt wird.
+const EBS_BASE_URL  = '__EBS_BASE_URL__';
+const SUPABASE_URL  = '__SUPABASE_URL__';
+const SUPABASE_ANON = '__SUPABASE_ANON__';
+const PRIVACY_URL   = '__PRIVACY_URL__';
 
 let viewerUserId = null;
 let viewerJwt = null;
@@ -10,9 +17,20 @@ let allRewards = [];
 let selectedId = null;
 let redeemBusy = false;
 let cooldownTimer = null;
+// Optimistisch online starten, damit das UI beim ersten Frame nicht offline blinkt.
+let streamOnline = true;
 
 function fmt(n) { return Number(n).toLocaleString('de-DE'); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Wrapper für alle EBS-Calls. Setzt den ngrok-skip-browser-warning-Header,
+// sonst zeigt ngrok-free die Interstitial-HTML-Seite statt unsere JSON-Antwort
+// (Folge: Browser sieht keinen ACAO-Header → CORS-Fehler).
+function ebsFetch(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ 'ngrok-skip-browser-warning': '1' }, opts.headers || {});
+    return window.fetch(EBS_BASE_URL.concat(path), opts);
+}
 
 function setRedeemStatus(msg, type) {
     type = type || 'success';
@@ -26,27 +44,21 @@ function updateFooterPoints(pts) {
     if (el) el.textContent = (pts !== null && pts !== undefined) ? fmt(pts) : '–';
 }
 
-function loadRuntimeConfig() {
-    EBS_BASE_URL = '';
-    SUPABASE_URL = '';
-    SUPABASE_ANON = '';
-    PRIVACY_URL = '';
+function setStreamOnline(online) {
+    streamOnline = online;
+    // body.offline blendet via CSS alle Sektionen außer dem Banner aus.
+    document.body.classList.toggle('offline', !online);
+    const banner = document.getElementById('offlineBanner');
+    if (banner) banner.style.display = online ? 'none' : 'block';
+}
 
-    try {
-        const extConfig = window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration;
-        const broadcasterConfig = extConfig && extConfig.broadcaster;
-        const content = broadcasterConfig && broadcasterConfig.content;
-        if (!content) return;
-        const cfg = JSON.parse(content);
-        const ebsBaseUrl = (cfg.ebsUrl || '').trim();
-        const supabaseUrl = (cfg.supabaseUrl || '').trim();
-        const supabaseAnon = (cfg.supabaseKey || '').trim();
-        const privacyUrl = (cfg.privacyUrl || '').trim();
-        EBS_BASE_URL = ebsBaseUrl;
-        SUPABASE_URL = supabaseUrl;
-        SUPABASE_ANON = supabaseAnon;
-        PRIVACY_URL = privacyUrl;
-    } catch (e) {}
+// EBS nicht erreichbar oder {online:false} gilt beides als offline — die EXE läuft
+// nur am Streamer-PC, ein toter EBS bedeutet also: Streamer ist gerade nicht da.
+function checkStreamStatus() {
+    return ebsFetch('/api/stream_status', { cache: 'no-store' })
+        .then(function(res) { return res.ok ? res.json() : { online: false }; })
+        .then(function(data) { setStreamOnline(!!(data && data.online)); })
+        .catch(function() { setStreamOnline(false); });
 }
 
 function applyPrivacyLink() {
@@ -72,7 +84,7 @@ function applyPrivacyLink() {
     link.style.opacity = '';
 }
 
-// Supabase REST helpers
+// ── Supabase-REST-Hilfsfunktionen ────────────────────────────────────────
 function sbRpc(fn, params) {
     return fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, {
         method: 'POST',
@@ -93,15 +105,11 @@ function sbGet(table, qs) {
     });
 }
 
-// Loaders
+// ── Daten laden ──────────────────────────────────────────────────────────
 function loadMyPoints(uid, jwt) {
-    if (!EBS_BASE_URL) {
-        updateFooterPoints(null);
-        return;
-    }
     const headers = {};
     if (jwt) headers['x-extension-jwt'] = jwt;
-    fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid), { headers: headers })
+    ebsFetch('/api/points?user_id=' + encodeURIComponent(uid), { headers: headers })
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (!data.registered) {
@@ -117,11 +125,7 @@ function loadMyPoints(uid, jwt) {
 
 function loadLeaderboard() {
     const el = document.getElementById('leaderboardList');
-    if (!EBS_BASE_URL) {
-        el.innerHTML = '<div class="status-msg">Backend-URL im Konfig-Tab setzen.</div>';
-        return;
-    }
-    fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
+    ebsFetch('/api/leaderboard?limit=10')
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Eintraege.</div>'; return; }
@@ -138,11 +142,7 @@ function loadLeaderboard() {
 }
 
 function loadRewards() {
-    if (!EBS_BASE_URL) {
-        document.getElementById('rewardsArea').innerHTML = '<div class="status-msg">Backend-URL im Konfig-Tab setzen.</div>';
-        return;
-    }
-    fetch(EBS_BASE_URL + '/api/rewards')
+    ebsFetch('/api/rewards')
         .then(function(res) { return res.json(); })
         .then(function(data) {
             allRewards = data.filter(function(r) { return r.is_enabled !== false; }).sort(function(a,b) { return a.cost - b.cost; });
@@ -151,7 +151,6 @@ function loadRewards() {
         .catch(function() { document.getElementById('rewardsArea').innerHTML = '<div class="error-msg">Rewards konnten nicht geladen werden.</div>'; });
 }
 
-// Einspaltige Liste statt Grid
 function renderList() {
     const el = document.getElementById('rewardsArea');
     if (!allRewards.length) { el.innerHTML = '<div class="status-msg">Keine Rewards verfuegbar.</div>'; return; }
@@ -194,6 +193,13 @@ function openReward(id) {
     if (scrollArea) scrollArea.scrollTop = 0;
     window.scrollTo(0, 0);
 
+    if (!streamOnline) {
+        const btn = document.getElementById('redeemBtn');
+        btn.disabled = true;
+        btn.textContent = 'Streamer offline';
+        return;
+    }
+
     if (userPoints < r.cost) {
         const btn = document.getElementById('redeemBtn');
         btn.disabled = true;
@@ -211,6 +217,11 @@ function backToList() {
     renderList();
 }
 
+/**
+ * Deaktiviert den Einlösen-Button, falls ein globaler Stream-Lock oder ein
+ * userbezogener Cooldown aktiv ist, und zeigt ggf. einen mitlaufenden Countdown.
+ * Nur Anzeige-Logik — die maßgebliche Prüfung passiert serverseitig beim Einlösen.
+ */
 function checkCooldown(reward) {
     if (!SUPABASE_URL || !SUPABASE_ANON) return;
     const btn = document.getElementById('redeemBtn');
@@ -250,12 +261,18 @@ function checkCooldown(reward) {
         }).catch(function() {});
 }
 
+/** Löst den ausgewählten Reward über das EBS ein und verarbeitet die Server-Antwort. */
 function handleRedeem() {
     if (!selectedId || redeemBusy || !EBS_BASE_URL) return;
     const r = allRewards.find(function (x) {
         return String(x.id) === String(selectedId);
     });
     if (!r || !viewerJwt) return;
+
+    if (!streamOnline) {
+        setRedeemStatus('🔴 Der Streamer ist gerade offline.', 'error');
+        return;
+    }
 
     const ttsEl = document.getElementById('ttsInput');
     const ttsText = ttsEl ? ttsEl.value.trim() : '';
@@ -270,7 +287,7 @@ function handleRedeem() {
     const btn = document.getElementById('redeemBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Lädt…'; }
 
-    fetch(EBS_BASE_URL + '/api/redeem', {
+    ebsFetch('/api/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-extension-jwt': viewerJwt },
         body: JSON.stringify({ reward_id: String(r.id), tts_text: ttsText || null }),
@@ -311,7 +328,8 @@ function handleRedeem() {
         });
 }
 
-// Twitch Auth
+// ── Twitch-Autorisierung ─────────────────────────────────────────────────
+/** Dekodiert den Payload-Teil eines JWT (ohne Signaturprüfung); null bei ungültigem Token. */
 function decodeJwtPayload(token) {
     try {
         const parts = token.split('.');
@@ -331,8 +349,8 @@ window.Twitch.ext.onAuthorized(function(auth) {
         window.Twitch.ext.actions.requestIdShare();
     }
 
-    loadRuntimeConfig();
     applyPrivacyLink();
+    checkStreamStatus();
     loadLeaderboard();
     if (!selectedId) loadRewards();
     loadMyPoints(auth.userId, auth.token);
@@ -340,18 +358,8 @@ window.Twitch.ext.onAuthorized(function(auth) {
     if (allRewards.length && !selectedId) renderList();
 });
 
-if (window.Twitch && window.Twitch.ext && window.Twitch.ext.configuration && window.Twitch.ext.configuration.onChanged) {
-    window.Twitch.ext.configuration.onChanged(function() {
-        loadRuntimeConfig();
-        applyPrivacyLink();
-        if (!selectedId) {
-            loadRewards();
-            loadLeaderboard();
-        }
-    });
-}
-
 setInterval(function() {
+    checkStreamStatus();
     loadLeaderboard();
     if (!selectedId) loadRewards();
     if (viewerJwt) loadMyPoints(viewerUserId || '', viewerJwt);

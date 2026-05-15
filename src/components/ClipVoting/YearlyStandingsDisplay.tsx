@@ -9,6 +9,7 @@ interface YearlyStandingsDisplayProps {
   isFinal: boolean
 }
 
+/** Jahres-Rangliste der Clips mit Stimmanteil-Balken; jede Zeile laesst sich zum Abspielen aufklappen. */
 export default function YearlyStandingsDisplay({
   clips,
   year,

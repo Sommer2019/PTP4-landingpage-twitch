@@ -12,6 +12,7 @@ import { dirname, join } from 'path'
 const __dir = dirname(fileURLToPath(import.meta.url))
 const rl = createInterface({ input: process.stdin, output: process.stdout })
 
+/** Stellt eine Frage auf der Konsole; leere Eingabe faellt auf den Default zurueck. */
 function ask(question: string, def = ''): Promise<string> {
   return new Promise(resolve => {
     const hint = def ? ` [${def}]` : ''
@@ -21,6 +22,7 @@ function ask(question: string, def = ''): Promise<string> {
   })
 }
 
+/** Ersetzt das erste Vorkommen; warnt statt zu werfen, falls das Muster fehlt. */
 function replace(text: string, search: string, replacement: string): string {
   if (!text.includes(search)) {
     console.warn(`    ⚠  Muster nicht gefunden: ${search.slice(0, 60)}`)
@@ -29,6 +31,7 @@ function replace(text: string, search: string, replacement: string): string {
   return text.replace(search, replacement)
 }
 
+/** Fragt alle Setup-Werte ab und schreibt siteConfig, Sprachdateien und .env. */
 async function main(): Promise<void> {
   console.log('\n┌─────────────────────────────────────────────────────────┐')
   console.log('│  🛠️   Twitch Landing Page – Setup-Assistent              │')

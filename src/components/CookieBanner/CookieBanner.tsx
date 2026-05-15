@@ -4,6 +4,7 @@ import './CookieBanner.css'
 
 const STORAGE_KEY = 'cookie-consent'
 
+/** Cookie-Consent-Banner; blendet sich aus, sobald eine Entscheidung in localStorage hinterlegt ist. */
 export default function CookieBanner() {
   const { t } = useTranslation()
   const [visible, setVisible] = useState(() => !localStorage.getItem(STORAGE_KEY))

@@ -34,6 +34,7 @@ function useCountdown(endsAt: string | null) {
   return remaining
 }
 
+/** Statuszeile einer Voting-Runde mit Phasen-Badge und laufendem Countdown bis zum Rundenende. */
 export default function VotingStatus({ round, phase }: VotingStatusProps) {
   const { t } = useTranslation()
   const countdown = useCountdown(round.ends_at)

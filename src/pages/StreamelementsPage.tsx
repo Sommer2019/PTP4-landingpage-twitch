@@ -25,6 +25,10 @@ interface DisplayTrigger {
     audioUrl?: string | null
 }
 
+/**
+ * StreamElements-Spendenseite: listet die in der DB aktivierten Donation-Trigger
+ * und oeffnet pro Trigger ein Modal mit Beschreibung und optionalem Audio.
+ */
 export default function StreamelementsPage() {
     const {t} = useTranslation()
     const {donationUrl} = siteConfig.streamelements

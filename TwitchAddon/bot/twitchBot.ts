@@ -13,6 +13,10 @@ import { type SupabaseClient, refreshOauthToken } from './supabase.ts'
 const POINT_INTERVAL_MS = 10_000   // Timer-Check alle 10 Sekunden
 const STREAM_POLL_MS    = 30_000   // Stream-Status prüfen alle 30 Sekunden
 
+/**
+ * Verbindet sich per IRC-WebSocket mit dem Twitch-Chat, verfolgt anwesende Zuschauer
+ * und vergibt zeitbasierte Punkte. Pollt zusätzlich den Stream-Online-Status.
+ */
 export class TwitchBot {
   private oauthToken: string
   private ws: WebSocket | null = null
@@ -40,6 +44,7 @@ export class TwitchBot {
     this.startStreamPolling()
   }
 
+  /** Stellt die IRC-Verbindung her. Stream-Polling läuft bereits ab Konstruktor. */
   connect(): void {
     this.openIrc()
   }
@@ -299,6 +304,7 @@ export class TwitchBot {
       await this.supabase.endStreamSession(this.currentStreamSessionId)
       this.currentStreamSessionId = null
     } else {
+      // Keine Session-ID bekannt (z.B. Bot erst nach Stream-Start gestartet) — alle Locks lösen
       await this.supabase.deactivateAllActiveGlobalRedemptions()
     }
     await this.supabase.deleteAllRedeemedRewards()

@@ -11,4 +11,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const validUrl = supabaseUrl || 'https://placeholder.supabase.co'
 const validKey = supabaseAnonKey || 'placeholder'
 
-export const supabase = createClient(validUrl, validKey)
+// Browser darf REST-Antworten von Supabase NICHT aus dem HTTP-Cache liefern.
+// `cache: 'no-store'` reicht hier: der eigentliche Cache-Verursacher war ein
+// Service Worker, der ist im public/service-worker.js gefixt.
+// Custom Request-Header (Cache-Control/Pragma) sind hier KEINE Option, weil
+// sie einen CORS-Preflight ausloesen, den die Supabase Edge Functions in
+// Access-Control-Allow-Headers nicht erlauben.
+const noCacheFetch: typeof fetch = (input, init) =>
+    fetch(input, { ...init, cache: 'no-store' })
+
+export const supabase = createClient(validUrl, validKey, {
+  global: { fetch: noCacheFetch },
+})

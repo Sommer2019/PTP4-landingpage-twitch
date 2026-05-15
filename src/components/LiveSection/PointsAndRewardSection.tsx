@@ -29,20 +29,21 @@ interface RedeemRewardParams {
   p_stream_id?: string | null;
 }
 
+/** Zeigt die Punkte des Nutzers und ermoeglicht das Einloesen von Rewards inkl. Cooldown- und Global-Lock-Pruefung. */
 export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
 
   const [points, setPoints] = useState<number | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
-  // Änderung: Erlaubt null, damit wir zwischen Liste und Detail unterscheiden können
+  // null = Listenansicht, gesetzte ID = Detailansicht des gewaehlten Rewards
   const [selectedRewardId, setSelectedRewardId] = useState<string | null>(null);
   const [ttsText, setTtsText] = useState('');
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [status, setStatus] = useState<{type: 'success' | 'error', msg: string} | null>(null);
   const [cooldownActive, setCooldownActive] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
-  // Neuer State für globalen Lock
+  // Reward streamweit gesperrt (z.B. once-per-stream oder noch aktive globale Einloesung)
   const [globalLockActive, setGlobalLockActive] = useState(false);
 
   const selectedReward = rewards.find(r => r.id === selectedRewardId) ?? null;
@@ -106,17 +107,6 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         const now = Date.now();
         const cooldownMs = reward.cooldown * 1000;
         const remaining = last + cooldownMs - now;
-        // Debug-Logging für Cooldown-Check
-        console.log('[Cooldown-Check]', {
-          rewardId: selectedRewardId,
-          timestamp: data.timestamp,
-          last,
-          now,
-          cooldown: reward.cooldown,
-          cooldownMs,
-          remaining,
-          diffSec: Math.ceil(remaining / 1000)
-        });
         if (remaining > 0) {
           setCooldownActive(true);
           setCooldownRemaining(Math.ceil(remaining / 1000));
@@ -289,7 +279,6 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
         </div>
 
         {!selectedRewardId ? (
-            /* GRID ANSICHT: 3 Spalten durch CSS */
             <div className="reward-grid" role="list" aria-label={t('pointsAndRewardSection.rewardGridLabel')}>
               {rewards.map((r) => (
                   <button
@@ -304,7 +293,6 @@ export default function PointsAndRewardSection({ isLive }: { isLive: boolean }) 
               ))}
             </div>
         ) : (
-            /* DETAIL ANSICHT */
             <div className="reward-detail-view">
               <button
                   className="back-btn"

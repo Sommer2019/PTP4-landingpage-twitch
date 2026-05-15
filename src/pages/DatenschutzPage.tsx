@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import siteConfig from '../config/siteConfig'
 import SubPage from '../components/SubPage/SubPage'
 
+/** Datenschutzerklaerung: statische, uebersetzte Rechtstexte zu allen Datenverarbeitungen. */
 export default function DatenschutzPage() {
   const { t } = useTranslation()
   const { impressum } = siteConfig
