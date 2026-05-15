@@ -4,5 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "bun run index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.1"
   }
 }

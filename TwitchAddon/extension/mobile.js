@@ -23,6 +23,15 @@ let streamOnline = true;
 function fmt(n) { return Number(n).toLocaleString('de-DE'); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// Wrapper für alle EBS-Calls. Setzt den ngrok-skip-browser-warning-Header,
+// sonst zeigt ngrok-free die Interstitial-HTML-Seite statt unsere JSON-Antwort
+// (Folge: Browser sieht keinen ACAO-Header → CORS-Fehler).
+function ebsFetch(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ 'ngrok-skip-browser-warning': '1' }, opts.headers || {});
+    return window.fetch(EBS_BASE_URL.concat(path), opts);
+}
+
 function setRedeemStatus(msg, type) {
     type = type || 'success';
     const el = document.getElementById('redeemStatus');
@@ -49,7 +58,7 @@ function setStreamOnline(online) {
 // EBS nicht erreichbar oder {online:false} gilt beides als offline — die EXE läuft
 // nur am Streamer-PC, ein toter EBS bedeutet also: Streamer ist gerade nicht da.
 function checkStreamStatus() {
-    return fetch(EBS_BASE_URL + '/api/stream_status', { cache: 'no-store' })
+    return ebsFetch('/api/stream_status', { cache: 'no-store' })
         .then(function(res) { return res.ok ? res.json() : { online: false }; })
         .then(function(data) { setStreamOnline(!!(data && data.online)); })
         .catch(function() { setStreamOnline(false); });
@@ -103,7 +112,7 @@ function sbGet(table, qs) {
 function loadMyPoints(uid, jwt) {
     const headers = {};
     if (jwt) headers['x-extension-jwt'] = jwt;
-    fetch(EBS_BASE_URL + '/api/points?user_id=' + encodeURIComponent(uid), { headers: headers })
+    ebsFetch('/api/points?user_id=' + encodeURIComponent(uid), { headers: headers })
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (!data.registered) {
@@ -119,7 +128,7 @@ function loadMyPoints(uid, jwt) {
 
 function loadLeaderboard() {
     const el = document.getElementById('leaderboardList');
-    fetch(EBS_BASE_URL + '/api/leaderboard?limit=10')
+    ebsFetch('/api/leaderboard?limit=10')
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (!data.length) { el.innerHTML = '<div class="status-msg">Noch keine Eintraege.</div>'; return; }
@@ -136,7 +145,7 @@ function loadLeaderboard() {
 }
 
 function loadRewards() {
-    fetch(EBS_BASE_URL + '/api/rewards')
+    ebsFetch('/api/rewards')
         .then(function(res) { return res.json(); })
         .then(function(data) {
             allRewards = data.filter(function(r) { return r.is_enabled !== false; }).sort(function(a,b) { return a.cost - b.cost; });
@@ -281,7 +290,7 @@ function handleRedeem() {
     const btn = document.getElementById('redeemBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Lädt…'; }
 
-    fetch(EBS_BASE_URL + '/api/redeem', {
+    ebsFetch('/api/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-extension-jwt': viewerJwt },
         body: JSON.stringify({ reward_id: String(r.id), tts_text: ttsText || null }),
