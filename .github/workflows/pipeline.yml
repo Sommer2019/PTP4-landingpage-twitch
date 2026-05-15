@@ -235,7 +235,6 @@ jobs:
         run: |
           $suffix = if ("${{ github.ref_name }}" -eq "dev") { "PreRelease" } else { "Release" }
           $distZip = "TwitchAddon\dist\TwitchAddon-$suffix.zip"
-
           $staging = "TwitchAddon\dist\release"
           if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
           New-Item -ItemType Directory -Path $staging | Out-Null
