@@ -8,6 +8,18 @@ import { SupabaseClient, refreshOauthToken, getBroadcasterId } from './bot/supab
 import { TwitchBot } from './bot/twitchBot.ts'
 import { startServer } from './bot/server.ts'
 import { startTunnel } from './bot/tunnel.ts'
+import {
+  ensureAutostartShortcut,
+  removeAutostartShortcut,
+  startControllMobile,
+} from './bot/controllMobile.ts'
+
+// `--uninstall` entfernt nur den Autostart-Eintrag und beendet den Prozess.
+// Damit muss der Streamer nicht mehr in den Startup-Ordner navigieren.
+if (process.argv.includes('--uninstall')) {
+  removeAutostartShortcut()
+  process.exit(0)
+}
 
 function requireEnv(key: string): string {
   const val = process.env[key]
@@ -69,6 +81,13 @@ async function main(): Promise<void> {
 
   startServer(supabase, bot, extensionSecret)
   startTunnel()
+
+  // Handy-Bridge: Realtime-Listener für STD_ID_<n>-Rewards + ADB-Tap.
+  // Optional — fehlende Konfig oder ADB stoppt den Bot nicht.
+  startControllMobile(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY ?? '')
+
+  // Autostart-Shortcut beim ersten Lauf anlegen; entfernen via `--uninstall`.
+  ensureAutostartShortcut()
 
   console.log('[Main] Bot läuft. Punkte werden in Supabase gespeichert.')
 }

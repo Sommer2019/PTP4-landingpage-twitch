@@ -14,6 +14,15 @@ var editingId = null;   // null = neuer Reward, sonst ID des bearbeiteten Reward
 
 // ── Hilfsfunktionen ──────────────────────────────────────────────────────
 
+// Wrapper für alle EBS-Calls. Setzt den ngrok-skip-browser-warning-Header,
+// sonst zeigt ngrok-free die Interstitial-HTML-Seite statt unsere JSON-Antwort
+// (Folge: Browser sieht keinen ACAO-Header → CORS-Fehler).
+function ebsFetch(path, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign({ 'ngrok-skip-browser-warning': '1' }, opts.headers || {});
+  return window.fetch(EBS_BASE_URL.concat(path), opts);
+}
+
 function esc(s) {
   return String(s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -87,13 +96,13 @@ function typeBadge(type) {
 
 /** Ruft den /api/rewards-Endpunkt auf; sendet das Broadcaster-JWT für Schreibzugriffe mit. */
 function apiRewards(method, params, body) {
-  var url = EBS_BASE_URL + '/api/rewards' + (params ? '?' + params : '');
+  var path = '/api/rewards' + (params ? '?' + params : '');
   var opts = {
     method: method,
     headers: { 'Content-Type': 'application/json', 'x-extension-jwt': broadcasterJwt }
   };
   if (body) opts.body = JSON.stringify(body);
-  return fetch(url, opts).then(function(res) {
+  return ebsFetch(path, opts).then(function(res) {
     return res.json().then(function(data) {
       if (!res.ok) throw new Error(data.error || res.status);
       return data;
@@ -102,7 +111,7 @@ function apiRewards(method, params, body) {
 }
 
 function loadRewards() {
-  fetch(EBS_BASE_URL + '/api/rewards')
+  ebsFetch('/api/rewards')
     .then(function(r) { return r.json(); })
     .then(function(data) {
       allRewards = data.sort(function(a, b) { return a.cost - b.cost; });

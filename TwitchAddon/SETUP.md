@@ -43,8 +43,9 @@ In den Repository-Secrets eintragen:
 | `NGROK_DOMAIN` | `dein-name.ngrok-free.app` (ohne `https://`-Präfix) |
 
 Bei jedem Push auf `master`/`main` baut die Pipeline `TwitchAddon-Release.zip`
-mit `TwitchAddon.exe` + `ngrok.exe` + `.env` darin. Authtoken und Domain werden
-beim Bauen als Konstanten in die EXE eingebacken.
+mit `TwitchAddon.exe` + `ngrok.exe` + `overlay.html` + `media/` darin. Alle Secrets
+(Authtoken, Twitch-OAuth, Supabase-Keys etc.) werden beim Bauen als Konstanten in
+die EXE eingebacken — daher liegt **keine `.env`** im ZIP.
 
 ---
 
@@ -79,12 +80,32 @@ beim Bauen als Konstanten in die EXE eingebacken.
 2. In einen festen Ordner entpacken (z.B. `C:\TwitchAddon\`).
 3. `TwitchAddon.exe` doppelklicken — fertig.
 
-Die EXE startet den lokalen HTTP-Server auf Port 8081 und öffnet den ngrok-Tunnel
-auf die feste Domain. Im Konsolenfenster steht eine Zeile wie
-`[Tunnel] Öffentlich erreichbar unter https://...`.
+Die EXE macht beim Start alles auf einmal:
+- HTTP-Server auf Port 8081
+- ngrok-Tunnel mit der festen Static-Domain
+- IRC-Verbindung zum Twitch-Chat (Punkte-Vergabe)
+- Stream-Status-Polling (für die Offline-Anzeige)
+- Handy-Bridge: lauscht auf `STD_ID_<n>`-Rewards und löst per ADB einen Tap aus *(nur wenn adb installiert ist und ein Handy verbunden ist — ohne adb läuft alles andere normal)*
+- Trägt sich beim ersten Start in den Windows-Autostart ein. Entfernen mit
+  `TwitchAddon.exe --uninstall`.
+
+Im Konsolenfenster steht eine Zeile wie `[Tunnel] Öffentlich erreichbar unter https://...`.
 
 Wenn die EXE nicht läuft oder der Stream offline ist, zeigt die Twitch-Extension
 automatisch eine rote Offline-Meldung („🔴 Der Streamer ist gerade offline …").
+
+### Optional: Handy-Bridge aktivieren
+
+Wenn die ADB-Tap-Funktion auf einem angeschlossenen Android-Gerät genutzt werden
+soll, einmalig adb installieren:
+
+```powershell
+winget install --id Google.PlatformTools --exact
+```
+
+Danach Handy per USB anstöpseln (USB-Debugging aktiviert) — die Bridge tappt bei
+jedem Reward mit Description `STD_ID_1` … `STD_ID_6` auf die in `controllMobile.ts`
+hinterlegten Koordinaten.
 
 ---
 
