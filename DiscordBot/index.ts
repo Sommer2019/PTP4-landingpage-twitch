@@ -1,3 +1,7 @@
+/**
+ * Einstiegspunkt des Discord-Bots: startet einen Express-Server, dessen
+ * API-Endpunkte Voting-Nachrichten in einen Discord-Channel posten.
+ */
 import { Client, GatewayIntentBits, TextChannel } from 'discord.js';
 import express, { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
@@ -20,7 +24,6 @@ app.use(rateLimit({
     message: 'Zu viele Anfragen — bitte später erneut versuchen.',
 }));
 
-// Middleware zum Prüfen des API-Keys
 app.use((req: Request, res: Response, next: express.NextFunction) => {
     if (isAuthorized(req.headers['x-api-key'], SUPABASE_SERVICE_ROLE_KEY)) {
         next();
@@ -29,7 +32,6 @@ app.use((req: Request, res: Response, next: express.NextFunction) => {
     }
 });
 
-// Discord-Client einrichten
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
 });
@@ -38,6 +40,7 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
 const PORT: number = parsePort(process.env.PORT);
 
+/** Postet eine Nachricht in den konfigurierten Channel; Fehler werden geloggt, nicht geworfen. */
 const sendDiscordMessage = async (message: string) => {
     try {
         const channel = await client.channels.fetch(CHANNEL_ID!) as TextChannel;
@@ -51,6 +54,7 @@ const sendDiscordMessage = async (message: string) => {
 
 // --- API Endpunkte ---
 
+/** Registriert einen POST-Endpunkt, der die zur Runde gehörende Voting-Nachricht in Discord postet. */
 function registerRoundEndpoint(endpoint: RoundEndpoint) {
     app.post(`/${endpoint}`, (_req: Request, res: Response) => {
         sendDiscordMessage(buildRoundMessage(endpoint));

@@ -527,6 +527,10 @@ function PostCard({post, access, onDelete, onLikeChange}: {
 // Haupt-Seite
 // ------------------------------------------------------------------
 
+/**
+ * OnlyBart-Feed: zugriffsbeschraenkter Beitrags-Feed (nur Subs/VIPs/Mods) mit
+ * Like-, Superlike- und Kommentarfunktion; Broadcaster koennen Beitraege erstellen.
+ */
 export function OnlyBartPage() {
     const {t} = useTranslation()
     const {user, signInWithTwitch} = useAuth()
@@ -535,13 +539,12 @@ export function OnlyBartPage() {
     const [filter, setFilter] = useState<'all' | 'media' | 'photos' | 'videos'>('all')
     const [posts, setPosts] = useState<Post[]>([])
 
-    // Intro-Timer aufräumen
+    // Intro-Splash nach 2s ausblenden.
     useEffect(() => {
         const timer = setTimeout(() => setShowIntro(false), 2000)
         return () => clearTimeout(timer)
     }, [])
 
-    // Beiträge laden
     const fetchPosts = useCallback(async () => {
         if (!access.canView) return
 

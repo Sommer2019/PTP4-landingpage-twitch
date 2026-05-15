@@ -7,7 +7,8 @@ export interface NextStreamEvent {
   end?: Date
 }
 
-/* ── ICS date parser ── */
+// Parst ein ICS-Datum (YYYYMMDD oder YYYYMMDDThhmmss[Z]).
+// Ohne abschließendes Z wird die Zeit als lokale Zeit interpretiert.
 function parseIcsDate(raw: string): Date {
   const s = raw.trim()
   const y = parseInt(s.substring(0, 4))
@@ -24,7 +25,7 @@ function parseIcsDate(raw: string): Date {
   return new Date(y, m, d)
 }
 
-/* ── Minimal ICS parser (handles VEVENT blocks) ── */
+// Minimaler ICS-Parser: liest VEVENT-Blöcke aus und gibt sie nach Startzeit sortiert zurück.
 function parseIcs(text: string): NextStreamEvent[] {
   const events: NextStreamEvent[] = []
   const blocks = text.split('BEGIN:VEVENT')
@@ -65,7 +66,8 @@ function parseIcs(text: string): NextStreamEvent[] {
   return events.sort((a, b) => a.start.getTime() - b.start.getTime())
 }
 
-/* ── Hook ── */
+/** Lädt einen ICS-Kalender und liefert den nächsten anstehenden Stream-Termin.
+ *  Termine, die als Feiertag markiert sind, werden übersprungen. */
 export function useNextStream(icsUrl: string) {
   const [nextEvent, setNextEvent] = useState<NextStreamEvent | null>(null)
   const [loading, setLoading] = useState(true)

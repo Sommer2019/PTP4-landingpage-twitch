@@ -24,6 +24,7 @@ declare global {
   }
 }
 
+/** 404-Seite mit Maskottchen, zufaelligem Spruch und Hintergrund-Audio via YouTube. */
 export default function NotFoundPage() {
   const { t } = useTranslation()
   const messages = t('notFound.confusedMessages', { returnObjects: true }) as string[]

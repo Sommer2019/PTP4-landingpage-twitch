@@ -4,6 +4,7 @@ import {useNextStream} from '../../hooks/useNextStream'
 import siteConfig from '../../config/siteConfig'
 import './NextStream.css'
 
+/** Zeigt den naechsten Stream-Termin aus dem ICS-Kalender; faellt bei Fehler/leer auf einen Streamplan-Link zurueck. */
 export default function NextStream() {
     const {t, i18n} = useTranslation()
     const {nextEvent, loading, error} = useNextStream(siteConfig.twitch.icsUrl)

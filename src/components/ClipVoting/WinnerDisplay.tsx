@@ -7,6 +7,7 @@ interface WinnerDisplayProps {
   winner: MonthlyWinner | YearlyWinner
 }
 
+/** Hervorhebung eines Monats- oder Jahressiegers mit eingebettetem Clip. */
 export default function WinnerDisplay({ type, winner }: WinnerDisplayProps) {
   const { t } = useTranslation()
   const clip = winner.clips

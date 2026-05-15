@@ -10,6 +10,7 @@ interface ModeratorRouteProps {
 }
 
 
+/** Route-Wrapper, der die Kinder nur fuer eingeloggte Moderatoren rendert. */
 export default function ModeratorRoute({ children }: ModeratorRouteProps) {
   const { user, loading: authLoading, signInWithTwitch } = useAuth();
   const { isMod, loading: modLoading } = useIsModerator();

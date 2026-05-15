@@ -2,6 +2,7 @@ interface Mascot404Props {
     onClick?: () => void
 }
 
+/** Verwirrt dreinblickende Maskottchen-Variante fuer die 404-Seite. */
 export function MascotNotFoundSVG({onClick}: Mascot404Props) {
     return (
         <svg viewBox="25 15 75 75" xmlns="http://www.w3.org/2000/svg" className="beard-svg" onClick={onClick}>
@@ -14,7 +15,7 @@ export function MascotNotFoundSVG({onClick}: Mascot404Props) {
                 <rect x="56" y="42" width="10" height="7" rx="1"/>
                 <path d="M44 46 h12"/>
             </g>
-            {/* Confused eyes — spirals instead of dots */}
+            {/* Verwirrte Augen — Fragezeichen statt Pupillen */}
             <text x="39" y="47" fontSize="5" textAnchor="middle" fill="#000">?</text>
             <text x="61" y="47" fontSize="5" textAnchor="middle" fill="#000">?</text>
             <path d="M 30 60 Q 50 63 70 60 L 70 76 Q 50 90 30 76 Z" fill="#3d2b1f"/>

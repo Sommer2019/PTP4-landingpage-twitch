@@ -11,6 +11,8 @@ function getInitialMode(): ThemeMode {
   return 'system'
 }
 
+/** Verwaltet den Theme-Modus (hell/dunkel/system), persistiert ihn im localStorage
+ *  und spiegelt das aufgelöste Theme als data-theme-Attribut ins DOM. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(getInitialMode)
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme)

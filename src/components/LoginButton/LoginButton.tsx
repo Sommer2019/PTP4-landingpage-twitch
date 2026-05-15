@@ -3,11 +3,12 @@ import { useAuth } from '../../context/useAuth'
 import './LoginButton.css'
 
 interface LoginButtonProps {
-  /** If set, shows this text instead of the default */
+  /** Falls gesetzt, wird dieser Text statt der Standardbeschriftung angezeigt */
   label?: string
   className?: string
 }
 
+/** Inline-Button, der den Twitch-OAuth-Login anstoesst. */
 export default function LoginButton({ label, className = '' }: LoginButtonProps) {
   const { t } = useTranslation()
   const { signInWithTwitch } = useAuth()

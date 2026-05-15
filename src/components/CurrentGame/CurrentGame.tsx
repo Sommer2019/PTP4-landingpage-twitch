@@ -62,6 +62,7 @@ function buildStoreLinks(gameName: string): StoreLink[] {
   ]
 }
 
+// Heuristik: erkennt im HTML der Store-Suchseiten, ob es keine Treffer fuer das Spiel gibt
 const NO_RESULTS_RE = /Keine Ergebnisse gefunden|Leider war die Suche erfolglos\.|0 Ergebnisse|0 results|no results|keine ergebnisse|Hier scheint nichts vorhanden zu sein\./i
 
 function checkStoreResult(store: StoreLink): Promise<boolean> {
@@ -132,6 +133,7 @@ function CurrentGameStores({ gameName, t }: { gameName: string; t: (key: string)
   )
 }
 
+/** Zeigt das aktuell gestreamte Spiel samt Box-Art; pollt die Spielinfo waehrend des Streams regelmaessig. */
 export default function CurrentGame({ isLive }: CurrentGameProps) {
   const { t } = useTranslation()
   const [game, setGame] = useState<GameInfo | null>(null)

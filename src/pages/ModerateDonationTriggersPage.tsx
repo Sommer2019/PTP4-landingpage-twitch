@@ -29,6 +29,7 @@ const defaultForm: Omit<DonationTriggerRow, 'id' | 'created_at'> = {
   sort_order: 0,
 }
 
+/** Moderations-Seite zum Anlegen, Bearbeiten und Aktivieren von Donation-Triggern. */
 export default function ModerateDonationTriggersPage() {
   const { t } = useTranslation()
   const { showToast } = useToast()

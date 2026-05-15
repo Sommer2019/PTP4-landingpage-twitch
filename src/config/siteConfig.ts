@@ -1,20 +1,23 @@
-/** Zentrale Konfiguration: Alle Texte, Links, Bilder und Codes an einer Stelle konfigurierbar.
+/**
+ * Zentrale Baukasten-Konfiguration: alle Texte, Links, Bilder und Codes an einer Stelle.
+ * Für ein neues Deployment (anderer Streamer) genügt es, die Werte hier unten anzupassen.
  */
 
+/** Eine Karte in einer der Link-Listen (Haupt-Links, Games, Clips, Partner). */
 export interface LinkItem {
-  /** i18n key for the card title, e.g. "links.youtube.title" */
+  /** i18n-Schlüssel für den Kartentitel, z.B. "links.youtube.title" */
   titleKey: string
-  /** i18n key for the card description */
+  /** i18n-Schlüssel für die Kartenbeschreibung */
   descKey?: string
   url: string
   icon: string
-  /** '_blank' for external, '_self' for internal */
+  /** '_blank' für externe, '_self' für interne Ziele */
   target?: '_blank' | '_self'
-  /** Optional discount code (shown + copied on click) */
+  /** Optionaler Rabattcode (wird angezeigt und beim Klick kopiert) */
   discountCode?: string
-  /** If set, clicking the card triggers a download confirmation */
+  /** Wenn gesetzt, löst ein Klick auf die Karte eine Download-Bestätigung aus */
   downloadFile?: string
-  /** Download file display name */
+  /** Angezeigter Dateiname für den Download */
   downloadName?: string
 }
 
@@ -27,7 +30,7 @@ export interface ProfileConfig {
 export interface TwitchConfig {
   channel: string
   chatFallbackUrl: string
-  /** ICS calendar URL used to show the next scheduled stream when offline */
+  /** ICS-Kalender-URL; liefert den nächsten geplanten Stream, wenn der Kanal offline ist */
   icsUrl: string
   /** Basis-URL des Twitch-ID-Lookup-Dienstes (DecAPI) */
   idLookupUrl: string
@@ -38,7 +41,8 @@ export interface Link {
   url: string
 }
 
-export interface OnlyBartConfig { // Konfiguration für OnlyBart-Bereich
+/** Konfiguration für den OnlyBart-Bereich. */
+export interface OnlyBartConfig {
     title: string;
     logoUrl: string;
 }

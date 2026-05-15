@@ -151,6 +151,8 @@ jobs:
           printf 'TWITCH_REFRESH_TOKEN=%s\n'  "${{ secrets.TWITCH_REFRESH_TOKEN }}"   >> TwitchAddon/.env
           printf 'EXTENSION_CLIENT_ID=%s\n'   "${{ secrets.EXTENSION_CLIENT_ID }}"    >> TwitchAddon/.env
           printf 'EXTENSION_SECRET=%s\n'      "${{ secrets.EXTENSION_SECRET }}"       >> TwitchAddon/.env
+          printf 'NGROK_AUTHTOKEN=%s\n'       "${{ secrets.NGROK_AUTHTOKEN }}"        >> TwitchAddon/.env
+          printf 'NGROK_DOMAIN=%s\n'          "${{ secrets.NGROK_DOMAIN }}"           >> TwitchAddon/.env
 
       - name: Build EXEs
         shell: pwsh
@@ -172,6 +174,10 @@ jobs:
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
           TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
           CHANNEL_NAME: ${{ secrets.CHANNEL_NAME }}
+          # ngrok-Tunnel: feste Static-Domain + Authtoken werden in tunnel.ts inlined,
+          # damit der Streamer die EXE einfach starten kann ohne weitere Konfiguration.
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+          NGROK_DOMAIN: ${{ secrets.NGROK_DOMAIN }}
           # Für ControllMobile.exe (StreamDeckHandyAnsteuern) — die Bridge braucht
           # den Service-Role-Key, weil redeemed_rewards keine SELECT-Policy für anon hat.
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -180,16 +186,17 @@ jobs:
         # Ersetzt die Sentinel-Strings (__EBS_BASE_URL__, __SUPABASE_URL__,
         # __SUPABASE_ANON__, __PRIVACY_URL__) in den Extension-JS-Dateien
         # durch die echten Werte aus den GitHub-Secrets, BEVOR extension.zip
-        # im nächsten Step gepackt wird.
+        # im nächsten Step gepackt wird. Die EBS-URL wird aus NGROK_DOMAIN
+        # abgeleitet — dieselbe URL ist in der Twitch-Extension-Allowlist hinterlegt.
         shell: pwsh
         env:
-          EBS_BASE_URL: ${{ secrets.EBS_BASE_URL }}
+          NGROK_DOMAIN: ${{ secrets.NGROK_DOMAIN }}
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_ANON: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           PRIVACY_URL: ${{ secrets.PRIVACY_URL }}
         run: |
           $missing = @()
-          if (-not $env:EBS_BASE_URL)  { $missing += 'EBS_BASE_URL' }
+          if (-not $env:NGROK_DOMAIN)  { $missing += 'NGROK_DOMAIN' }
           if (-not $env:SUPABASE_URL)  { $missing += 'VITE_SUPABASE_URL' }
           if (-not $env:SUPABASE_ANON) { $missing += 'VITE_SUPABASE_ANON_KEY' }
           if (-not $env:PRIVACY_URL)   { $missing += 'PRIVACY_URL' }
@@ -197,9 +204,10 @@ jobs:
             Write-Error ("Fehlende GitHub-Secrets: " + ($missing -join ', '))
             exit 1
           }
+          $ebs = "https://$env:NGROK_DOMAIN"
           Get-ChildItem -Path 'TwitchAddon\extension' -Filter '*.js' | ForEach-Object {
             $c = Get-Content -Raw -Path $_.FullName
-            $c = $c.Replace('__EBS_BASE_URL__',  $env:EBS_BASE_URL).
+            $c = $c.Replace('__EBS_BASE_URL__',  $ebs).
                    Replace('__SUPABASE_URL__',  $env:SUPABASE_URL).
                    Replace('__SUPABASE_ANON__', $env:SUPABASE_ANON).
                    Replace('__PRIVACY_URL__',   $env:PRIVACY_URL)
@@ -210,13 +218,22 @@ jobs:
             Set-Content -Path $_.FullName -Value $c -NoNewline -Encoding utf8
           }
 
+      - name: Download ngrok
+        # Wird neben TwitchAddon.exe ins Release-ZIP gepackt; tunnel.ts spawnt sie
+        # automatisch beim EXE-Start.
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri 'https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip' -OutFile ngrok.zip
+          Expand-Archive -Path ngrok.zip -DestinationPath TwitchAddon/dist -Force
+          Remove-Item ngrok.zip
+
       - name: Package Release
         shell: pwsh
         run: |
           $suffix = if ("${{ github.ref_name }}" -eq "dev") { "PreRelease" } else { "Release" }
           $distZip = "TwitchAddon\dist\TwitchAddon-$suffix.zip"
 
-          Compress-Archive -Path "TwitchAddon\dist\TwitchAddon.exe", "TwitchAddon\.env", "TwitchAddon\overlay.html" -DestinationPath $distZip -Force
+          Compress-Archive -Path "TwitchAddon\dist\TwitchAddon.exe", "TwitchAddon\dist\ngrok.exe", "TwitchAddon\.env", "TwitchAddon\overlay.html" -DestinationPath $distZip -Force
           if (Test-Path "TwitchAddon\media") {
             Compress-Archive -Path "TwitchAddon\media\*" -Update -DestinationPath $distZip
           }
@@ -256,28 +273,10 @@ jobs:
           - context: .
             file: Dockerfile
             image: ghcr.io/${{ github.repository }}
-          - context: .
-            file: TwitchAddon/Dockerfile
-            image: ghcr.io/${{ github.repository }}/twitchaddon
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Get Twitch OAuth Access Token for Docker
-        id: get_oauth_docker
-        shell: bash
-        run: |
-          RESPONSE=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
-            -d "client_id=${{ secrets.VITE_TWITCH_CLIENT_ID }}" \
-            -d "client_secret=${{ secrets.TWITCH_CLIENT_SECRET }}" \
-            -d "grant_type=refresh_token" \
-            -d "refresh_token=${{ secrets.TWITCH_REFRESH_TOKEN }}")
-          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
-          echo "::add-mask::$ACCESS_TOKEN"
-          echo "TWITCH_OAUTH_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-
-      - name: Create dummy .env for Build Check
-        run: touch TwitchAddon/.env
       - name: Log in to GHCR
         if: github.ref_name == 'main' || github.ref_name == 'master' || github.ref_name == 'dev'
         uses: docker/login-action@v4
@@ -305,13 +304,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-            SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}
-            TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
-            TWITCH_CLIENT_SECRET=${{ secrets.TWITCH_CLIENT_SECRET }}
-            CHANNEL_NAME=${{ secrets.CHANNEL_NAME }}
-            TWITCH_REFRESH_TOKEN=${{ secrets.TWITCH_REFRESH_TOKEN }}
-            TWITCH_OAUTH_TOKEN=${{ env.TWITCH_OAUTH_TOKEN }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_TWITCH_CLIENT_ID=${{ secrets.VITE_TWITCH_CLIENT_ID }}
   # ─── 5. Deployment Landingpage (Nur Main/Master) ─────────────────────
   deploy-pages:
     needs: validate

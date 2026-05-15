@@ -5,6 +5,8 @@ import { AuthContext } from './authContextDef'
 
 const REDIRECT_PATH_KEY = 'auth-redirect-path'
 
+/** Stellt Supabase-Auth-Status (User, Session) sowie Twitch-Login/Logout bereit
+ *  und legt beim Login das Profil an. */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -67,7 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
 
       const initProfile = async () => {
-        // Sequentiell ausführen um 503-Rate-Limit-Fehler zu vermeiden
+        // Upsert und RPC sequentiell mit Retry, da parallele Calls direkt nach dem
+        // Login bei Supabase 503-Rate-Limit-Fehler auslösen
         const username = user.user_metadata?.user_login || user.user_metadata?.full_name || user.email
         if (username) {
           for (let attempt = 0; attempt < 3; attempt++) {

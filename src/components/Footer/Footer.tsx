@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import siteConfig from '../../config/siteConfig'
 import './Footer.css'
 
+/** Seiten-Footer mit konfigurierten Links und Copyright-Zeile des laufenden Jahres. */
 export default function Footer() {
   const { t } = useTranslation()
   const year = new Date().getFullYear()

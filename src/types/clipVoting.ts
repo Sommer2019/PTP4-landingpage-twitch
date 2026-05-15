@@ -1,4 +1,4 @@
-/* ── Clip-Voting type definitions ── */
+/* ── Typdefinitionen für das Clip-Voting ── */
 
 export type RoundType   = 'round1' | 'round2' | 'yearly'
 export type RoundStatus = 'pending' | 'active' | 'completed'
@@ -60,17 +60,17 @@ export interface YearlyWinner {
 }
 
 /**
- * Describes the current UI phase derived from DB state.
+ * Aktuelle UI-Phase, abgeleitet aus dem Datenbankzustand.
  *
- *  loading          – data not yet fetched
- *  no-round         – nothing in DB
- *  round1-active    – community votes on all clips
- *  round1-results   – round 1 done, round 2 pending, showing top-10
- *  round2-active    – voting on top 10
- *  round2-results   – monthly winner determined
- *  yearly-active    – voting on clip of the year
- *  yearly-results   – yearly winner determined
- *  between-rounds   – waiting for next round 1
+ *  loading          – Daten noch nicht geladen
+ *  no-round         – nichts in der Datenbank
+ *  round1-active    – Community stimmt über alle Clips ab
+ *  round1-results   – Runde 1 beendet, Runde 2 ausstehend, Top 10 werden angezeigt
+ *  round2-active    – Abstimmung über die Top 10
+ *  round2-results   – Monatssieger feststehend
+ *  yearly-active    – Abstimmung über den Clip des Jahres
+ *  yearly-results   – Jahressieger feststehend
+ *  between-rounds   – Wartet auf die nächste Runde 1
  */
 export type VotingPhase =
   | 'loading'
@@ -87,7 +87,7 @@ export interface VotingState {
   phase: VotingPhase
   round: VotingRound | null
   clips: ClipWithVotes[]
-  /** Clip-ID the current user voted for in this round (null if not voted / not logged in) */
+  /** Clip-ID, für die der aktuelle Nutzer in dieser Runde abgestimmt hat (null falls nicht abgestimmt / nicht eingeloggt) */
   userVote: string | null
   monthlyWinner: MonthlyWinner | null
   yearlyWinner: YearlyWinner | null

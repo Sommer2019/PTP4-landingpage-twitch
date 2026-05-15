@@ -20,16 +20,20 @@ const MESSAGES: Record<RoundEndpoint, string> = {
     'ende-jahr': `🏆 **Das Clip des Jahres Voting ist abgeschlossen!** Die Legenden stehen fest. ${VOTING_URL}`,
 }
 
+/** Liefert die fertige Discord-Nachricht für den angegebenen Runden-Endpunkt. */
 export function buildRoundMessage(endpoint: RoundEndpoint): string {
     return MESSAGES[endpoint]
 }
 
+/** Prüft den mitgeschickten API-Key gegen den erwarteten Key. */
 export function isAuthorized(providedKey: unknown, expectedKey: string | undefined): boolean {
+    // Fehlender erwarteter Key bedeutet "nicht konfiguriert" — niemals durchlassen.
     if (!expectedKey) return false
     if (typeof providedKey !== 'string') return false
     return providedKey === expectedKey
 }
 
+/** Parst einen Port-String; fällt bei ungültigem Wert oder Bereichsüberschreitung auf den Fallback zurück. */
 export function parsePort(value: string | undefined, fallback = 3000): number {
     const parsed = parseInt(value ?? '', 10)
     if (Number.isNaN(parsed) || parsed <= 0 || parsed > 65535) return fallback

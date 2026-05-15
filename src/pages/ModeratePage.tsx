@@ -4,6 +4,7 @@ import {useAuth} from '../context/useAuth'
 import {useIsModerator} from '../hooks/useIsModerator'
 import SubPage from '../components/SubPage/SubPage'
 
+/** Einstiegsseite des Moderationsbereichs: Navigation, je nach Rolle gefiltert. */
 export default function ModeratePage() {
     const {t} = useTranslation()
     const {user} = useAuth()

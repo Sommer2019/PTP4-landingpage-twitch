@@ -7,6 +7,7 @@ interface SectionBoxProps {
   className?: string
 }
 
+/** Abschnitts-Container mit optionaler Ueberschrift und Raster-Layout fuer die Kinder. */
 export default function SectionBox({ title, children, className = '' }: SectionBoxProps) {
   return (
     <section className={`section-box ${className}`} aria-label={title}>

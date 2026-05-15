@@ -9,6 +9,7 @@ interface LinkCardProps {
   onDownload?: (item: LinkItem) => void
 }
 
+/** Verlinkte Karte; behandelt interne Routen, externe Links, Download-Modals und Rabattcodes. */
 export default function LinkCard({ item, onDownload }: LinkCardProps) {
   const { t } = useTranslation()
   const { showToast } = useToast()
@@ -28,7 +29,7 @@ export default function LinkCard({ item, onDownload }: LinkCardProps) {
         .writeText(item.discountCode)
         .then(() => showToast(t('toast.codeCopied', { code: item.discountCode })))
         .catch(() => {
-          /* fallback silent */
+          /* Fehler beim Kopieren bewusst ignorieren */
         })
     }
   }

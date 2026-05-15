@@ -5,7 +5,7 @@ import siteConfig from '../../config/siteConfig'
 import SubPage from '../../components/SubPage/SubPage'
 import ICAL from 'ical.js'
 import { format, isSameDay, startOfDay, addDays } from 'date-fns'
-import { de, enUS } from 'date-fns/locale' // Import locales
+import { de, enUS } from 'date-fns/locale'
 import { FiInfo, FiCheck, FiCopy } from 'react-icons/fi'
 import './StreamplanPage.css'
 
@@ -20,11 +20,14 @@ interface CalendarEvent {
   color: string
 }
 
+/**
+ * Streamplan-Seite: laedt die Kategorie-Kalender (ICS) ueber den lokalen Proxy,
+ * gruppiert kommende Termine nach Tag und erlaubt Filtern nach Kategorie.
+ */
 export default function StreamplanPage() {
   const { t, i18n } = useTranslation()
   const { categories, icsUrl } = siteConfig.streamplan
 
-  // ICS-Hinweis-UI
   const [showIcalHint, setShowIcalHint] = useState(false)
   const [copied, setCopied] = useState(false)
   const icsInputRef = useRef<HTMLInputElement>(null)
@@ -34,7 +37,7 @@ export default function StreamplanPage() {
   const [activeFilters, setActiveFilters] = useState<number[]>([]) // leer = Alle
   const [expanded, setExpanded] = useState(false)
 
-  // Date-fns locale
+  // Schweizerdeutsch (gsw) nutzt ebenfalls das deutsche Datumsformat.
   const dateLocale = i18n.language?.startsWith('de') || i18n.language?.startsWith('gsw') ? de : enUS
 
   useEffect(() => {
@@ -152,10 +155,6 @@ export default function StreamplanPage() {
     }
   })
 
-
-  // ICS-Hinweis oben rechts
-  // CSS: .streamplan-ical-hint { position: absolute; top: 24px; right: 24px; z-index: 10; }
-  //      .streamplan-ical-modal { ... } etc.
 
   return (
     <SubPage>

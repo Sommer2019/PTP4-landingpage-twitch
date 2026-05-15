@@ -78,6 +78,8 @@ function makeDateKeys(rangeDays: StatisticsRangeDays): string[] {
   return keys
 }
 
+// Verteilt Roh-Items auf eine lückenlose Tagesreihe; fehlende Tage bleiben auf 0.
+// useViews=true summiert das views-Feld, sonst wird pro Item gezählt.
 function buildTrendPoints(
   rangeDays: StatisticsRangeDays,
   items: Array<{ created_at?: string; day?: string; views?: number }>,
@@ -102,6 +104,8 @@ function buildTrendPoints(
   return dateKeys.map((key) => ({ day: formatDayLabel(key), value: map.get(key) ?? 0 }))
 }
 
+// Supabase liefert die eingebettete clips-Relation mal als Objekt, mal als Array –
+// hier auf einen einzelnen Clip oder null vereinheitlichen.
 function normalizeWinnerClip(winner: MonthlyWinnerRow | YearlyWinnerRow): WinnerClip | null {
   if (!winner.clips) return null
   return Array.isArray(winner.clips) ? winner.clips[0] ?? null : winner.clips
@@ -115,6 +119,8 @@ function normalizeWinnerCreator(winner: MonthlyWinnerRow | YearlyWinnerRow): str
   return normalizeWinnerClip(winner)?.creator_name ?? 'Unbekannt'
 }
 
+/** Lädt das Moderations-Statistik-Dashboard (Votes, Seitenaufrufe, Sieger, Trends)
+ *  für einen wählbaren Zeitraum und pollt es alle 60 Sekunden. */
 export function useModerateStatistics() {
   const [state, setState] = useState<ModerateStatisticsState>({
     rangeDays: 30,
@@ -186,6 +192,7 @@ export function useModerateStatistics() {
     const pageViews = (pageViewRes.data ?? {}) as PageViewRpcResult
     if (pageViews.error) throw new Error(pageViews.error)
 
+    // Detailauswertung bezieht sich auf die aktive Runde, sonst auf die zuletzt erstellte
     const referenceRound = rounds.find((round) => round.status === 'active') ?? rounds[0] ?? null
 
     let topClips: ModerateStatisticsDashboard['topClips'] = []
@@ -307,6 +314,7 @@ export function useModerateStatistics() {
     await load(state.rangeDays)
   }, [load, state.rangeDays])
 
+  // Initial laden und danach im Minutentakt aktualisieren
   useEffect(() => {
     void refresh()
     const intervalId = window.setInterval(() => {
