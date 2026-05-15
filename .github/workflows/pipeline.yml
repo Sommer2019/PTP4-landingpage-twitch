@@ -161,26 +161,40 @@ jobs:
           Push-Location TwitchAddon
           bun install --no-save
           Pop-Location
-          bun build --compile --target=bun-windows-x64 TwitchAddon/index.ts --outfile TwitchAddon/dist/TwitchAddon.exe
-          bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
+
+          # Bun's --compile ersetzt process.env.X NICHT automatisch durch String-Konstanten.
+          # Für jeden im Code per Literal angesprochenen Env-Key bauen wir einen
+          # --define-Flag, sodass die Werte beim Build wirklich in die EXE eingebacken werden.
+          $envNames = @(
+            'SUPABASE_URL', 'SUPABASE_API_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
+            'TWITCH_CLIENT_ID', 'TWITCH_CLIENT_SECRET', 'TWITCH_REFRESH_TOKEN',
+            'TWITCH_OAUTH_TOKEN', 'CHANNEL_NAME',
+            'EXTENSION_SECRET',
+            'NGROK_AUTHTOKEN', 'NGROK_DOMAIN'
+          )
+          $defines = @()
+          foreach ($name in $envNames) {
+            $val = [Environment]::GetEnvironmentVariable($name)
+            if ($null -eq $val) { $val = '' }
+            # ConvertTo-Json liefert die JSON-quotierte Form, die --define erwartet.
+            $json = $val | ConvertTo-Json -Compress
+            $defines += '--define'
+            $defines += "process.env.$name=$json"
+          }
+
+          & bun build --compile --target=bun-windows-x64 @defines TwitchAddon/index.ts --outfile TwitchAddon/dist/TwitchAddon.exe
+          & bun build --compile --target=bun-windows-x64 setup.ts --outfile setup.exe
         env:
-          # Ohne das hier sind die Variablen NICHT in den EXEs "baked-in".
-          # bun --compile inlined process.env.<NAME>-Zugriffe als String-Konstanten.
+          # Werte werden vom run-Block oben via --define in die EXE eingebacken.
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
           TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
           CHANNEL_NAME: ${{ secrets.CHANNEL_NAME }}
-          # ngrok-Tunnel: feste Static-Domain + Authtoken werden in tunnel.ts inlined,
-          # damit der Streamer die EXE einfach starten kann ohne weitere Konfiguration.
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
           NGROK_DOMAIN: ${{ secrets.NGROK_DOMAIN }}
-          # Handy-Bridge (controllMobile.ts) — Realtime auf redeemed_rewards braucht
-          # den Service-Role-Key, weil die Tabelle keine SELECT-Policy für anon hat.
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          # Twitch-Extension JWT-Verifikation (server.ts) — ohne das hier wäre der
-          # Wert beim --compile-Inlining leer und alle Extension-Calls würden 401.
           EXTENSION_SECRET: ${{ secrets.EXTENSION_SECRET }}
 
       - name: Inject extension config
