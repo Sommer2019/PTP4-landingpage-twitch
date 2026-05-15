@@ -90,13 +90,19 @@ function writeJson(p: string, data: unknown): void {
 
 function setNested(obj: Record<string, unknown>, path: string, value: unknown): void {
   const parts = path.split('.')
+  const isUnsafeKey = (key: string): boolean =>
+    key === '__proto__' || key === 'prototype' || key === 'constructor'
+
   let cur: Record<string, unknown> = obj
   for (let i = 0; i < parts.length - 1; i++) {
     const k = parts[i]
+    if (isUnsafeKey(k)) throw new Error(`Unsafe key in path: ${k}`)
     if (typeof cur[k] !== 'object' || cur[k] === null) cur[k] = {}
     cur = cur[k] as Record<string, unknown>
   }
-  cur[parts[parts.length - 1]] = value
+  const lastKey = parts[parts.length - 1]
+  if (isUnsafeKey(lastKey)) throw new Error(`Unsafe key in path: ${lastKey}`)
+  cur[lastKey] = value
 }
 
 /** Schreibt einen i18n-Wert in alle Sprachdateien (en/gsw bekommen denselben Wert als Default). */
