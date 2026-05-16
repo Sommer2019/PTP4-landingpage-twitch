@@ -1,0 +1,19 @@
+# Render Blueprint für den DiscordBot (Voting-Benachrichtigungen).
+# Wird beim Klick auf "Deploy to Render" automatisch ausgewertet —
+# der Setup-Assistent gibt die fertige Deploy-URL aus, der User trägt
+# nur noch die drei Secrets in der Render-UI ein.
+services:
+  - type: web
+    name: discord-bot
+    runtime: node
+    plan: free
+    rootDir: DiscordBot
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: CHANNEL_ID
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
