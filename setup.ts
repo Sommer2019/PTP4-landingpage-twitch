@@ -840,19 +840,125 @@ async function pushAllSecrets(args: {
   twitch: TwitchCreds
   supabase: SupabaseCreds
   channelName: string
+  repo: { owner: string; repo: string }
 }): Promise<void> {
   header('4b) GitHub-Secrets setzen')
 
-  console.log(`  Zusätzlich benötigen die Workflows einen GitHub-PAT mit Scope
-  „secrets:write", um Secrets automatisch zu rotieren.
+  const repoSlug = `${args.repo.owner}/${args.repo.repo}`
+  console.log(`  ───────────────────────────────────────────────────────────────
+   Was ist ein „GitHub PAT" und wozu brauchen wir ihn?
+  ───────────────────────────────────────────────────────────────
 
-    1. Browser:  https://github.com/settings/personal-access-tokens/new
-    2. Wähle „Fine-grained" → Repository „${process.env.GITHUB_REPOSITORY ?? 'dein Repo'}"
-       → Permissions „Repository secrets: Read & Write" + „Actions: Read".
-    3. Generate token → kopieren.
+  PAT = Personal Access Token. Das ist ein langer Zufalls-String,
+  der wie ein Passwort funktioniert – nur eben für GitHub-APIs
+  statt für die Login-Seite.
+
+  Warum brauchst du einen?
+  Dein Twitch-Refresh-Token läuft regelmäßig ab. Ein Cron-Job
+  (Workflow „Daily Twitch Sync", läuft alle 2 Stunden auf GitHub)
+  holt sich automatisch einen neuen Refresh-Token und muss ihn
+  dann als neues GitHub-Secret speichern. Dafür braucht der
+  Workflow Schreibrechte auf deine Repository-Secrets – und
+  genau die kann der eingebaute GITHUB_TOKEN von GitHub Actions
+  NICHT geben. Also legst du einmal einen PAT mit genau diesen
+  Rechten an, speicherst ihn als Secret „GH_TOKEN", und der
+  Workflow erledigt die Rotation in Zukunft selbständig.
+
+  Wenn du diesen Schritt überspringst, läuft alles trotzdem –
+  bis der Twitch-Refresh-Token irgendwann abläuft. Dann musst
+  du ihn manuell neu generieren (siehe Schritt 3b weiter oben).
+
+  ───────────────────────────────────────────────────────────────
+   So legst du den PAT an — Klick für Klick
+  ───────────────────────────────────────────────────────────────
+
+    1. Browser öffnen:
+         https://github.com/settings/personal-access-tokens/new
+
+       (Falls GitHub nach dem Login fragt: einloggen. Falls
+        die Seite leer aussieht, im linken Menü auf
+        „Fine-grained tokens" klicken → „Generate new token".)
+
+    2. Das Formular ausfüllen — Feld für Feld:
+
+       ┌─ Token name ────────────────────────────────────────┐
+       │  Beliebiger Name, z.B.  „twitch-sync ${args.repo.repo}"
+       │  (Hilft dir später, ihn unter mehreren Tokens
+       │   wiederzufinden – GitHub zeigt ihn nirgendwo
+       │   anders an.)
+       └─────────────────────────────────────────────────────┘
+
+       ┌─ Expiration (Ablaufdatum) ──────────────────────────┐
+       │  „Custom" → 1 Jahr in der Zukunft wählen.
+       │  Oder „No expiration", wenn du nicht jährlich
+       │  einen neuen PAT erzeugen willst (weniger sicher,
+       │  aber bequemer für kleine Hobby-Setups).
+       │  GitHub erinnert dich per Mail kurz vor Ablauf.
+       └─────────────────────────────────────────────────────┘
+
+       ┌─ Description ───────────────────────────────────────┐
+       │  Optional, z.B.  „Rotiert TWITCH_REFRESH_TOKEN"
+       └─────────────────────────────────────────────────────┘
+
+       ┌─ Resource owner ────────────────────────────────────┐
+       │  Wähle  „${args.repo.owner}"
+       │  (= dein GitHub-Account oder die Organisation,
+       │   in der das Repo liegt).
+       └─────────────────────────────────────────────────────┘
+
+       ┌─ Repository access ─────────────────────────────────┐
+       │  „Only select repositories" anklicken.
+       │  Im Dropdown darunter:  ${repoSlug}  auswählen.
+       │  (NICHT „All repositories" – Prinzip der minimalen
+       │   Rechte: der Token darf nur an dieses eine Repo.)
+       └─────────────────────────────────────────────────────┘
+
+       ┌─ Permissions → Repository permissions ──────────────┐
+       │  Liste aufklappen und exakt diese zwei auf
+       │  „Read and write" stellen, ALLE anderen auf
+       │  „No access" lassen:
+       │
+       │     • Secrets               → Read and write
+       │     • Actions               → Read and write
+       │
+       │  (Manche Versionen der Oberfläche zeigen Secrets
+       │   nur, wenn du oben „Repository access: Only
+       │   select repositories" gewählt hast – falls die
+       │   Option fehlt, prüf den Schritt davor.)
+       └─────────────────────────────────────────────────────┘
+
+       Account permissions / Organization permissions:
+       NICHTS ankreuzen, alles auf „No access" lassen.
+
+    3. Ganz unten auf „Generate token" klicken.
+
+    4. ⚠  WICHTIG: Der Token wird jetzt EINMALIG angezeigt
+       und beginnt mit  github_pat_...
+       Kopiere ihn JETZT in die Zwischenablage. Verlässt du
+       die Seite, ist er weg – dann hilft nur „Token löschen
+       und neu erzeugen".
+
+       Bewahre den Token nirgends im Repo, in Notizen oder
+       Chat-Nachrichten auf. Sobald er als GitHub-Secret
+       gespeichert ist (gleich im nächsten Schritt), kannst
+       du ihn aus der Zwischenablage löschen.
+
+    5. Zurück hier in dieses Fenster wechseln und unten
+       beim Prompt „GitHub PAT" den Token einfügen.
+       (Rechtsklick → Einfügen, oder Strg+V – der Token
+        wird beim Tippen nicht maskiert, das ist normal.)
+
+  ───────────────────────────────────────────────────────────────
+
+  Skip-Hinweis: Drückst du nur ENTER (leer), überspringen wir
+  diesen Schritt. Du kannst den PAT später nachreichen, indem
+  du das Setup nochmal startest und „Nur Twitch + Supabase +
+  GitHub" wählst – oder das Secret manuell unter
+  https://github.com/${repoSlug}/settings/secrets/actions
+  als „GH_TOKEN" anlegst.
 `)
-  await pause('Wenn fertig: ENTER drücken.')
-  const ghToken = await ask('GitHub PAT (für automatischen Token-Refresh, leer = überspringen)', '')
+  await pause('Wenn du den PAT erzeugt + kopiert hast: ENTER drücken.')
+  const ghToken = await ask('GitHub PAT (beginnt mit github_pat_…, leer = überspringen)', '')
 
   const secrets: Record<string, string> = {
     VITE_SUPABASE_URL:        args.supabase.url,
@@ -1039,7 +1145,7 @@ async function runGitHubPhase(args: {
 
   const repo = await ensureRepo()
   if (!repo) return null
-  await pushAllSecrets(args)
+  await pushAllSecrets({ ...args, repo })
   await enableGitHubPages(repo)
   return repo
 }
