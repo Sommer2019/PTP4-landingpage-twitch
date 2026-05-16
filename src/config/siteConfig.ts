@@ -70,6 +70,10 @@ export interface StreamplanConfig {
 
 export interface StreamElementsConfig {
   donationUrl: string
+  /** Angezeigter Provider-Name auf der Donate-Card (StreamElements, Ko-fi, Patreon, …). */
+  label: string
+  /** Pfad zum Provider-Logo auf der Donate-Card. */
+  logoUrl: string
 }
 
 export interface SiteConfig {
@@ -165,9 +169,11 @@ const siteConfig: SiteConfig = {
     ],
   },
 
-  // ── StreamElements / Donations ──
+  // ── Donations (StreamElements / Ko-fi / Patreon / …) ──
   streamelements: {
     donationUrl: 'https://streamelements.com/hd1920x1080-5003/tip',
+    label: 'StreamElements',
+    logoUrl: '/img/logos/StreamElements.webp',
   },
 
   // ── Haupt-Links ──

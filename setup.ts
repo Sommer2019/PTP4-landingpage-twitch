@@ -292,8 +292,53 @@ interface BaseData {
   iCity: string
   iEmail: string
   copyright: string
-  streamElemsUrl: string
+  donationProvider: string   // Anzeigename ("StreamElements", "Ko-fi", …) – leer = keiner
+  donationUrl: string
+  donationLogo: string       // Pfad zum Provider-Logo (z.B. /img/logos/Kofi.webp)
   calendarUrl: string
+}
+
+interface DonationProvider {
+  key: string
+  label: string
+  hint: string
+  /** Default-Logopfad in public/img/logos/. Wenn die Datei dort nicht existiert,
+   *  fragt das Setup nach einer eigenen URL bzw. fällt auf StreamElements.webp zurück. */
+  defaultLogo: string
+}
+
+const DONATION_PROVIDERS: DonationProvider[] = [
+  { key: 'streamelements', label: 'StreamElements', hint: 'z.B. https://streamelements.com/<name>/tip',     defaultLogo: '/img/logos/StreamElements.webp' },
+  { key: 'kofi',           label: 'Ko-fi',          hint: 'z.B. https://ko-fi.com/<name>',                  defaultLogo: '/img/logos/Kofi.webp' },
+  { key: 'patreon',        label: 'Patreon',        hint: 'z.B. https://www.patreon.com/<name>',            defaultLogo: '/img/logos/Patreon.webp' },
+  { key: 'paypal',         label: 'PayPal.me',      hint: 'z.B. https://www.paypal.com/paypalme/<name>',    defaultLogo: '/img/logos/PayPal.webp' },
+  { key: 'custom',         label: 'Anderer / eigene URL', hint: 'beliebige URL',                            defaultLogo: '/img/logos/StreamElements.webp' },
+]
+
+async function askDonationProvider(): Promise<{ provider: string; url: string; logoUrl: string }> {
+  console.log('\n  — Donation-Provider —')
+  console.log('    Wähle, wohin der Donation-Link führen soll:')
+  DONATION_PROVIDERS.forEach((p, i) => console.log(`      ${i + 1}) ${p.label}`))
+  console.log(`      ${DONATION_PROVIDERS.length + 1}) Später konfigurieren (überspringen)`)
+  const choice = await askNumber('Auswahl', 1, 1)
+  if (choice > DONATION_PROVIDERS.length) return { provider: '', url: '', logoUrl: '' }
+  const sel = DONATION_PROVIDERS[choice - 1]
+  let label = sel.label
+  if (sel.key === 'custom') {
+    label = await ask('Anzeigename des Providers (wird auf der Karte angezeigt)', 'Donation')
+  }
+  console.log(`    ${sel.hint}`)
+  const url = await ask(`${label} URL (leer = überspringen)`, '')
+  if (!url) return { provider: '', url: '', logoUrl: '' }
+
+  // Logo: Default vorschlagen; wenn die Datei in public/ nicht existiert, hinweisen.
+  const defaultExists = existsSync(join(__dir, 'public', sel.defaultLogo.replace(/^\//, '')))
+  if (!defaultExists && sel.key !== 'streamelements') {
+    console.log(`    ℹ  ${sel.defaultLogo} liegt noch nicht in public/ – ersetze es nach`)
+    console.log(`        dem Setup oder gib jetzt einen anderen Pfad an.`)
+  }
+  const logoUrl = await ask('Logo-Pfad für die Donate-Card', sel.defaultLogo)
+  return { provider: label, url, logoUrl }
 }
 
 async function askBaseData(): Promise<BaseData> {
@@ -313,14 +358,20 @@ async function askBaseData(): Promise<BaseData> {
   const iCity    = await ask('PLZ + Ort')
   const iEmail   = await ask('E-Mail-Adresse')
 
-  const copyright      = await ask('Copyright-Inhaber', iCompany || displayName)
-  const streamElemsUrl = await ask('StreamElements Donation-URL (leer = später)', '')
-  const calendarUrl    = await ask('kalender.digital Haupt-ICS-URL (leer = später)', '')
+  const copyright = await ask('Copyright-Inhaber', iCompany || displayName)
+
+  const { provider: donationProvider, url: donationUrl, logoUrl: donationLogo } = await askDonationProvider()
+
+  console.log('\n  — Streamplan-Kalender —')
+  console.log('    Beliebige öffentliche Kalender-URL (ICS/iCal-Feed) — z.B.')
+  console.log('    kalender.digital, Nextcloud-Kalender, Google Calendar (Public),')
+  console.log('    Apple iCloud (Public), Outlook / Office 365 (Public).')
+  const calendarUrl = await ask('Streamplan-Kalender-URL (leer = später)', '')
 
   return {
     channelName, displayName, heroSubtitle, accentColor, premiumName,
     iName, iCompany, iStreet, iCity, iEmail,
-    copyright, streamElemsUrl, calendarUrl,
+    copyright, donationProvider, donationUrl, donationLogo, calendarUrl,
   }
 }
 
@@ -337,14 +388,28 @@ function applyBaseData(b: BaseData): void {
   cfg = replace(cfg, `accentColor: '#7C4DFF',`,          `accentColor: '${b.accentColor}',`)
   cfg = replace(cfg, `title: 'OnlyBart',`,               `title: '${b.premiumName}',`)
 
-  if (b.streamElemsUrl)
+  if (b.donationUrl)
     cfg = replace(cfg,
       `donationUrl: 'https://streamelements.com/hd1920x1080-5003/tip',`,
-      `donationUrl: '${b.streamElemsUrl}',`)
+      `donationUrl: '${b.donationUrl}',`)
+  if (b.donationProvider)
+    cfg = replace(cfg, `label: 'StreamElements',`, `label: '${b.donationProvider}',`)
+  if (b.donationLogo)
+    cfg = replace(cfg,
+      `logoUrl: '/img/logos/StreamElements.webp',`,
+      `logoUrl: '${b.donationLogo}',`)
   if (b.calendarUrl)
     cfg = replace(cfg,
       `icsUrl: 'https://export.kalender.digital/ics/0/4ccef74582e0eb8d7026/twitchhd1920x1080.ics',`,
       `icsUrl: '${b.calendarUrl}',`)
+
+  // Wenn ein Provider gewählt wurde, Titel/Desc der Donation-Karte auf der
+  // Startseite anpassen (die Karte selbst bleibt in der links[]-Liste).
+  if (b.donationProvider && b.donationProvider !== 'StreamElements') {
+    setI18nKey('links.streamelements.title', b.donationProvider)
+    setI18nKey('links.streamelements.desc', `Spenden an ${b.donationProvider}`)
+    console.log(`  ✅ Donation-Karte umbenannt auf „${b.donationProvider}"`)
+  }
 
   writeFileSync(configPath(), cfg, 'utf-8')
   console.log('\n  ✅ src/config/siteConfig.ts (Basisdaten) aktualisiert')
@@ -455,6 +520,14 @@ async function configureLinkSection(
     if (e) entries.push(e)
   }
 
+  // Nach den vorab geplanten Einträgen: solange „noch einen?" abfragen,
+  // wie der User Einträge hinzufügen möchte (frei nachschießen).
+  for (;;) {
+    if (!await askYesNo(`\n  Noch einen ${label}-Eintrag hinzufügen?`, false)) break
+    const e = await askLinkEntry(entries.length, label, sectionKey)
+    if (e) entries.push(e)
+  }
+
   let cfg = readFileSync(configPath(), 'utf-8')
   cfg = replaceConfigBlock(cfg, sectionKey, '[', arrayLiteralOf(entries))
   writeFileSync(configPath(), cfg, 'utf-8')
@@ -472,14 +545,23 @@ async function configureRedirects(): Promise<void> {
   }
   const count = await askNumber('Wie viele Weiterleitungen?', 5, 0)
   const pairs: Array<[string, string]> = []
-  for (let i = 0; i < count; i++) {
-    console.log(`\n  — Redirect ${i + 1} —`)
-    let short = await ask('Kurz-URL (mit /, z.B. /discord)')
-    if (!short) continue
+  const askRedirect = async (idx: number): Promise<[string, string] | null> => {
+    console.log(`\n  — Redirect ${idx + 1} —`)
+    let short = await ask('Kurz-URL (mit /, z.B. /discord; leer = abbrechen)')
+    if (!short) return null
     if (!short.startsWith('/')) short = '/' + short
     const target = await ask('Ziel-URL (komplette URL)')
-    if (!target) continue
-    pairs.push([short, target])
+    if (!target) return null
+    return [short, target]
+  }
+  for (let i = 0; i < count; i++) {
+    const p = await askRedirect(i)
+    if (p) pairs.push(p)
+  }
+  for (;;) {
+    if (!await askYesNo(`\n  Noch eine Weiterleitung hinzufügen?`, false)) break
+    const p = await askRedirect(pairs.length)
+    if (p) pairs.push(p)
   }
   const literal = pairs.length === 0
     ? '{}'
@@ -498,23 +580,34 @@ async function configureStreamplanCategories(): Promise<void> {
     console.log('  ⏭  Übersprungen.')
     return
   }
+  console.log('  ℹ  Jede Kategorie braucht eine eigene öffentliche Kalender-URL')
+  console.log('     (ICS/iCal-Feed) — z.B. kalender.digital, Nextcloud, Google Calendar Public, etc.')
   const count = await askNumber('Wie viele Kategorien?', 3, 0)
   const lines: string[] = []
-  for (let i = 0; i < count; i++) {
-    console.log(`\n  — Kategorie ${i + 1} —`)
-    const label = await ask('Label (z.B. Just Chatting)')
-    if (!label) continue
-    const url   = await ask('ICS-URL für diese Kategorie (kalender.digital)')
+  const askCategory = async (idx: number): Promise<string | null> => {
+    console.log(`\n  — Kategorie ${idx + 1} —`)
+    const label = await ask('Label (z.B. Just Chatting; leer = abbrechen)')
+    if (!label) return null
+    const url   = await ask('Öffentliche Kalender-URL (ICS/iCal-Feed)')
     const color = await ask('Farbe (Hex)', '#7C4DFF')
-    const labelKey = `custom.streamplan.cat${i + 1}`
+    const labelKey = `custom.streamplan.cat${idx + 1}`
     setI18nKey(labelKey, label)
-    lines.push(
+    return (
 `      {
-        id: ${i + 1},
+        id: ${idx + 1},
         labelKey: '${labelKey}',
         url: '${url}',
         color: '${color}',
       },`)
+  }
+  for (let i = 0; i < count; i++) {
+    const l = await askCategory(i)
+    if (l) lines.push(l)
+  }
+  for (;;) {
+    if (!await askYesNo(`\n  Noch eine Kategorie hinzufügen?`, false)) break
+    const l = await askCategory(lines.length)
+    if (l) lines.push(l)
   }
   const literal = lines.length === 0 ? '[]' : '[\n' + lines.join('\n') + '\n    ]'
   let cfg = readFileSync(configPath(), 'utf-8')
@@ -955,9 +1048,59 @@ async function runGitHubPhase(args: {
 // PHASE 5: OPTIONALE MODULE
 // ═════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Baut `PointsAndRewardSection` wieder in `LiveSection.tsx` ein.
+ * Wird aufgerufen, wenn der User TwitchAddon im Setup ablehnt –
+ * dann übernimmt die Web-App das Reward-UI direkt.
+ * Idempotent: läuft mehrfach durch, ohne Doppeleinträge zu erzeugen.
+ */
+function enableInPagePointsAndRewards(): void {
+  const liveSectionPath = join(__dir, 'src/components/LiveSection/LiveSection.tsx')
+  if (!existsSync(liveSectionPath)) {
+    console.log('  ⚠  src/components/LiveSection/LiveSection.tsx nicht gefunden – übersprungen.')
+    return
+  }
+  let src = readFileSync(liveSectionPath, 'utf-8')
+  let touched = false
+
+  const importLine = `import PointsAndRewardSection from './PointsAndRewardSection'`
+  if (!src.includes(importLine)) {
+    src = src.replace(
+      `import CurrentGame from '../CurrentGame/CurrentGame'`,
+      `import CurrentGame from '../CurrentGame/CurrentGame'\nimport PointsAndRewardSection from './PointsAndRewardSection'`,
+    )
+    touched = true
+  }
+
+  if (!src.includes('<PointsAndRewardSection')) {
+    // Vor dem schließenden </div> der embed-card (direkt vor </section>) einfügen.
+    const marker = `                <p></p>\n            </div>\n        </section>`
+    const replacement =
+      `                <p></p>\n` +
+      `                <div className="points-reward-section-wrapper">\n` +
+      `                    <PointsAndRewardSection isLive={showStream}/>\n` +
+      `                </div>\n` +
+      `            </div>\n` +
+      `        </section>`
+    if (src.includes(marker)) {
+      src = src.replace(marker, replacement)
+      touched = true
+    } else {
+      console.log('  ⚠  Konnte Einfüge-Marker in LiveSection.tsx nicht finden – bitte manuell prüfen.')
+    }
+  }
+
+  if (touched) {
+    writeFileSync(liveSectionPath, src, 'utf-8')
+    console.log('  ✅ PointsAndRewardSection wieder in LiveSection.tsx eingebaut')
+    summary.done.push('LiveSection: PointsAndRewardSection in-page eingebaut (TwitchAddon übersprungen)')
+  }
+}
+
 async function setupTwitchAddon(): Promise<void> {
   if (!await askYesNo('TwitchAddon (Kanalpunkte-Bot + Extension) jetzt einrichten?', false)) {
     summary.remaining.push('TwitchAddon optional – siehe TwitchAddon/SETUP.md')
+    enableInPagePointsAndRewards()
     return
   }
   header('5a) TwitchAddon — ngrok-Tunnel')
@@ -1158,23 +1301,46 @@ interface ImageTarget {
   format: string
 }
 
-const IMAGE_TARGETS: ImageTarget[] = [
-  { path: 'public/img/logos/HDProfile.webp',     purpose: 'Profilbild auf der Startseite',         format: 'WebP, quadratisch ~512×512' },
-  { path: 'public/img/logos/OB.webp',            purpose: 'Logo des Premium-Bereichs (OnlyBart)',  format: 'WebP, quadratisch ~512×512' },
-  { path: 'public/img/logo128.png',              purpose: 'Favicon / App-Icon',                    format: 'PNG, 128×128' },
-  { path: 'public/img/logos/StreamPlan.webp',    purpose: 'Karte „Streamplan" (Startseite)',       format: 'WebP, ~512×512' },
-  { path: 'public/img/logos/StreamElements.webp',purpose: 'Karte „Donations" (StreamElements)',    format: 'WebP, ~512×512' },
-  { path: 'public/img/logos/cdm.webp',           purpose: 'Karte „Clip des Monats"',               format: 'WebP, ~512×512' },
-]
+/**
+ * Baut die Image-Target-Liste – das Donation-Logo richtet sich nach
+ * dem im Setup gewählten Provider (z.B. /img/logos/Kofi.webp).
+ * Wenn keine `base` übergeben wird (Phase-Re-Run), werden die Werte
+ * aus siteConfig.ts gelesen.
+ */
+function buildImageTargets(base?: BaseData): ImageTarget[] {
+  let donationLogo = base?.donationLogo
+  let donationProvider = base?.donationProvider
+  if (!donationLogo || !donationProvider) {
+    try {
+      const cfg = readFileSync(configPath(), 'utf-8')
+      const block = cfg.match(/streamelements:\s*\{([\s\S]*?)}/)?.[1] ?? ''
+      donationLogo    = donationLogo    || block.match(/logoUrl:\s*'([^']+)'/)?.[1] || '/img/logos/StreamElements.webp'
+      donationProvider = donationProvider || block.match(/label:\s*'([^']+)'/)?.[1]   || 'StreamElements'
+    } catch {
+      donationLogo = donationLogo || '/img/logos/StreamElements.webp'
+      donationProvider = donationProvider || 'StreamElements'
+    }
+  }
+  const donationLogoPath = donationLogo.replace(/^\//, '')
+  return [
+    { path: 'public/img/logos/HDProfile.webp',  purpose: 'Profilbild auf der Startseite',         format: 'WebP, quadratisch ~512×512' },
+    { path: 'public/img/logos/OB.webp',         purpose: 'Logo des Premium-Bereichs (OnlyBart)',  format: 'WebP, quadratisch ~512×512' },
+    { path: 'public/img/logo128.png',           purpose: 'Favicon / App-Icon',                    format: 'PNG, 128×128' },
+    { path: 'public/img/logos/StreamPlan.webp', purpose: 'Karte „Streamplan" (Startseite)',       format: 'WebP, ~512×512' },
+    { path: `public/${donationLogoPath}`,       purpose: `Karte „Donations" (${donationProvider})`, format: 'WebP, ~512×512' },
+    { path: 'public/img/logos/cdm.webp',        purpose: 'Karte „Clip des Monats"',               format: 'WebP, ~512×512' },
+  ]
+}
 
-async function imageChecklist(): Promise<void> {
+async function imageChecklist(base?: BaseData): Promise<void> {
   header('6) Bilder ersetzen')
   console.log(`  Diese Default-Dateien gehören dem alten Streamer (HD1920x1080).
   Ersetze sie durch deine eigenen, indem du sie unter dem exakt gleichen
   Dateinamen + Format überschreibst. Wir gehen sie der Reihe nach durch.\n`)
 
+  const targets = buildImageTargets(base)
   const remaining: ImageTarget[] = []
-  for (const t of IMAGE_TARGETS) {
+  for (const t of targets) {
     const abs = join(__dir, t.path)
     console.log(`  • ${t.path}`)
     console.log(`      Verwendung: ${t.purpose}`)
@@ -1227,8 +1393,79 @@ function finalReport(): void {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// MAIN
+// MAIN — Phasen-Menü + Einstiegspunkt
 // ═════════════════════════════════════════════════════════════════════════════
+
+type Phase =
+  | 'all'
+  | 'base'
+  | 'lists'
+  | 'twitch-supabase-github'
+  | 'twitchaddon'
+  | 'discord'
+  | 'images'
+
+/**
+ * Heuristik: gilt das Repo schon als „erstmals konfiguriert"?
+ * Wenn die Default-Werte aus dem Original-Streamer in siteConfig.ts nicht mehr
+ * stehen ODER eine .env vorhanden ist, war das Setup schon mindestens einmal dran.
+ */
+function isAlreadyConfigured(): boolean {
+  if (existsSync(join(__dir, '.env'))) return true
+  try {
+    const cfg = readFileSync(configPath(), 'utf-8')
+    return !cfg.includes(`name: 'HD1920x1080',`)
+  } catch { return false }
+}
+
+async function choosePhase(): Promise<Phase> {
+  console.log(`
+  Was möchtest du tun?
+    1) Komplettes Setup (alles der Reihe nach)        [Default]
+    2) Nur Basisdaten (Kanal, Profil, Impressum, Akzentfarbe, Donation, Kalender)
+    3) Nur Listen & Inhalte (Links, Games, Clips, Partner, Redirects, Streamplan)
+    4) Nur Twitch-App + Supabase + GitHub (Repo, Secrets, Pages)
+    5) Nur TwitchAddon (ngrok + Extension)
+    6) Nur Discord-Bot
+    7) Nur Bilder-Check
+    0) Beenden
+`)
+  const choice = await askNumber('Auswahl', 1, 0)
+  const map: Record<number, Phase> = {
+    1: 'all',
+    2: 'base',
+    3: 'lists',
+    4: 'twitch-supabase-github',
+    5: 'twitchaddon',
+    6: 'discord',
+    7: 'images',
+  }
+  if (choice === 0) { console.log('\n  Setup beendet.'); rl.close(); process.exit(0) }
+  return map[choice] ?? 'all'
+}
+
+/** Twitch+Supabase+GitHub als zusammenhängender Block (auch standalone wiederholbar). */
+async function runRemotePhase(channelName: string): Promise<{ owner: string; repo: string } | null> {
+  const twitch   = await twitchAppWalkthrough()
+  const supabase = await supabaseWalkthrough(twitch)
+
+  const envPath = join(__dir, '.env')
+  upsertEnv(envPath, 'VITE_SUPABASE_URL', supabase.url)
+  upsertEnv(envPath, 'VITE_SUPABASE_ANON_KEY', supabase.anonKey)
+  upsertEnv(envPath, 'VITE_TWITCH_CLIENT_ID', twitch.clientId)
+  if (channelName) upsertEnv(envPath, 'VITE_CHANNEL_NAME', channelName)
+  console.log('  ✅ .env mit Supabase- und Twitch-Werten aktualisiert')
+  summary.done.push('.env mit Supabase + Twitch Werten befüllt')
+
+  return runGitHubPhase({ twitch, supabase, channelName })
+}
+
+/** Liest VITE_CHANNEL_NAME aus .env (für Re-Runs, in denen Phase 1 übersprungen wurde). */
+function readChannelFromEnv(): string {
+  const envPath = join(__dir, '.env')
+  if (!existsSync(envPath)) return ''
+  return readFileSync(envPath, 'utf-8').match(/^VITE_CHANNEL_NAME=(.*)$/m)?.[1].trim() ?? ''
+}
 
 async function main(): Promise<void> {
   console.log('\n┌─────────────────────────────────────────────────────────┐')
@@ -1237,33 +1474,42 @@ async function main(): Promise<void> {
 
   await bootstrap(__dir)
 
-  const base = await askBaseData()
-  applyBaseData(base)
+  // Erstinstallation → direkt voller Flow; spätere Läufe → Menü.
+  const phase: Phase = isAlreadyConfigured() ? await choosePhase() : 'all'
 
-  await runListPhase()
-
+  let base: BaseData | null = null
   let ghRepo: { owner: string; repo: string } | null = null
-  if (await askYesNo('\nJetzt Twitch-App + Supabase-Projekt einrichten? (kann später wiederholt werden)', true)) {
-    const twitch   = await twitchAppWalkthrough()
-    const supabase = await supabaseWalkthrough(twitch)
 
-    // Werte direkt in .env spiegeln, damit der lokale Dev-Server sofort läuft
-    const envPath = join(__dir, '.env')
-    upsertEnv(envPath, 'VITE_SUPABASE_URL', supabase.url)
-    upsertEnv(envPath, 'VITE_SUPABASE_ANON_KEY', supabase.anonKey)
-    upsertEnv(envPath, 'VITE_TWITCH_CLIENT_ID', twitch.clientId)
-    console.log('  ✅ .env mit Supabase- und Twitch-Werten aktualisiert')
-    summary.done.push('.env mit Supabase + Twitch Werten befüllt')
-
-    ghRepo = await runGitHubPhase({ twitch, supabase, channelName: base.channelName })
-  } else {
-    summary.remaining.push('Twitch-App + Supabase + GitHub-Secrets nachholen (Setup erneut starten oder SETUP.md)')
+  if (phase === 'all' || phase === 'base') {
+    base = await askBaseData()
+    applyBaseData(base)
   }
 
-  await setupTwitchAddon()
-  await setupDiscordBot(ghRepo)
+  if (phase === 'all' || phase === 'lists') {
+    await runListPhase()
+  }
 
-  await imageChecklist()
+  if (phase === 'all') {
+    if (await askYesNo('\nJetzt Twitch-App + Supabase-Projekt einrichten? (kann später wiederholt werden)', true)) {
+      ghRepo = await runRemotePhase(base?.channelName ?? readChannelFromEnv())
+    } else {
+      summary.remaining.push('Twitch-App + Supabase + GitHub-Secrets nachholen (Setup erneut starten → Option 4)')
+    }
+  } else if (phase === 'twitch-supabase-github') {
+    ghRepo = await runRemotePhase(base?.channelName ?? readChannelFromEnv())
+  }
+
+  if (phase === 'all' || phase === 'twitchaddon') {
+    await setupTwitchAddon()
+  }
+
+  if (phase === 'all' || phase === 'discord') {
+    await setupDiscordBot(ghRepo)
+  }
+
+  if (phase === 'all' || phase === 'images') {
+    await imageChecklist(base ?? undefined)
+  }
 
   rl.close()
   finalReport()
