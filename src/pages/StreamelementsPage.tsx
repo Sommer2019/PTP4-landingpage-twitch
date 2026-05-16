@@ -31,7 +31,7 @@ interface DisplayTrigger {
  */
 export default function StreamelementsPage() {
     const {t} = useTranslation()
-    const {donationUrl} = siteConfig.streamelements
+    const {donationUrl, label: donationLabel, logoUrl: donationLogo} = siteConfig.streamelements
     const [activeTrigger, setActiveTrigger] = useState<DisplayTrigger | null>(null)
     const [triggers, setTriggers] = useState<DisplayTrigger[]>([])
     const audioRef = useRef<HTMLAudioElement>(null)
@@ -98,9 +98,9 @@ export default function StreamelementsPage() {
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                <img src="/img/logos/StreamElements.webp" alt="StreamElements" className="se-donate-icon"/>
+                <img src={donationLogo} alt={donationLabel} className="se-donate-icon"/>
                 <div>
-                    <strong>StreamElements</strong><br/>
+                    <strong>{donationLabel}</strong><br/>
                     <span style={{fontSize: '13px', color: 'var(--muted)'}}>
             {t('streamelementsPage.donateButton')}
           </span>
